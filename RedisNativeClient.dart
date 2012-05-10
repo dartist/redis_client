@@ -24,9 +24,15 @@ interface RedisNativeClient default _RedisNativeClient {
   Future<bool> persist(String key);
   Future mset(List<List<int>> keys, List<List<int>> values);
   Future<bool> msetnx(List<List<int>> keys, List<List<int>> values);
+  Future<bool> exists(String key);
   Future<int> del(String key);
   Future<int> mdel(List<String> keys);
-  
+  Future<int> incr(String key);
+  Future<int> incrby(String key, int count);
+  Future<double> incrbyfloat(String key, double count);
+  Future<int> decr(String key);
+  Future<int> decrby(String key, double count);
+
   void close();
 }
 
@@ -39,7 +45,6 @@ class _RedisNativeClient implements RedisNativeClient {
   
   static String string(List<int> bytes) => bytes == null ? null : new String.fromCharCodes(bytes); 
   static List<int> toBytes(val) => val == null ? new List<int>() : val.toString().charCodes();  
-  static intBytes(int n) => n.toString().charCodes();
   
   Future<int> get dbsize() => conn.sendExpectInt([_Cmd.DBSIZE]);
   
@@ -77,12 +82,12 @@ class _RedisNativeClient implements RedisNativeClient {
       conn.sendExpectSuccess([_Cmd.SET, toBytes(key), value]);
   
   Future setex(String key, int expireInSecs, List<int> value) => 
-      conn.sendExpectSuccess([_Cmd.SETEX, toBytes(key), intBytes(expireInSecs), value]);
+      conn.sendExpectSuccess([_Cmd.SETEX, toBytes(key), toBytes(expireInSecs), value]);
   
   Future psetex(String key, int expireInMs, List<int> value) => 
-      conn.sendExpectSuccess([_Cmd.SETEX, toBytes(key), intBytes(expireInMs), value]);
+      conn.sendExpectSuccess([_Cmd.SETEX, toBytes(key), toBytes(expireInMs), value]);
   
-  Future<bool> persist(String key) => conn.sendExpectIntSuccess([_Cmd.PERSIST,key.charCodes()]);
+  Future<bool> persist(String key) => conn.sendExpectIntSuccess([_Cmd.PERSIST,toBytes(key)]);
   
   Future mset(List<List<int>> keys, List<List<int>> values) =>
     conn.sendExpectSuccess(_Utils.mergeCommandWithKeysAndValues(_Cmd.MSET, keys, values));  
@@ -90,9 +95,21 @@ class _RedisNativeClient implements RedisNativeClient {
   Future<bool> msetnx(List<List<int>> keys, List<List<int>> values) =>
     conn.sendExpectIntSuccess(_Utils.mergeCommandWithKeysAndValues(_Cmd.MSETNX, keys, values));  
   
+  Future<bool> exists(String key) => conn.sendExpectIntSuccess([_Cmd.EXISTS,toBytes(key)]);
+
   Future<int> del(String key) => conn.sendExpectInt([_Cmd.DEL, toBytes(key)]);
   
   Future<int> mdel(List<String> keys) => conn.sendExpectInt(_Utils.mergeCommandWithStringArgs(_Cmd.DEL, keys));
+
+  Future<int> incr(String key) => conn.sendExpectInt([_Cmd.INCR, toBytes(key)]);
+
+  Future<int> incrby(String key, int count) => conn.sendExpectInt([_Cmd.INCRBY, toBytes(key), toBytes(count)]);
+
+  Future<double> incrbyfloat(String key, double count) => conn.sendExpectDouble([_Cmd.INCRBYFLOAT, toBytes(key), toBytes(count)]);
+
+  Future<int> decr(String key) => conn.sendExpectInt([_Cmd.DECR, toBytes(key)]);
+
+  Future<int> decrby(String key, double count) => conn.sendExpectInt([_Cmd.DECRBY, toBytes(key), toBytes(count)]);
   
   void close() => conn.close();
 }
@@ -146,6 +163,7 @@ class _Cmd {
   static get EXISTS() => "EXISTS".charCodes();
   static get INCR() => "INCR".charCodes();
   static get INCRBY() => "INCRBY".charCodes();
+  static get INCRBYFLOAT() => "INCRBYFLOAT".charCodes();
   static get DECR() => "DECR".charCodes();
   static get DECRBY() => "DECRBY".charCodes();
   static get APPEND() => "APPEND".charCodes();

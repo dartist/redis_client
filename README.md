@@ -2,9 +2,11 @@ DartRedisClient
 ===============
 
 An Async Redis client for Dart.
-This is a close port of the [C# ServiceStack Redis Client](https://github.com/ServiceStack/ServiceStack.Redis/) except all operations return futures and are non-blocking.
 
-In development...
+### Currently in development...
+The Redis Client is functional, but only a subset of Redis API is implemented - the rest will be added over the next few days.
+
+This is a close port of the [C# ServiceStack Redis Client](https://github.com/ServiceStack/ServiceStack.Redis/) the primary difference is all operations are non-blocking and return Futures.
 
 Current interfaces implmented:
 
@@ -52,9 +54,15 @@ Is a low-level interface providng raw byte access to Redis operations:
       Future<bool> persist(String key);
       Future mset(List<List<int>> keys, List<List<int>> values);
       Future<bool> msetnx(List<List<int>> keys, List<List<int>> values);
+      Future<bool> exists(String key);
       Future<int> del(String key);
       Future<int> mdel(List<String> keys);
-      
+      Future<int> incr(String key);
+      Future<int> incrby(String key, int count);
+      Future<double> incrbyfloat(String key, double count);
+      Future<int> decr(String key);
+      Future<int> decrby(String key, double count);
+
       void close();
     }
 

@@ -10,7 +10,8 @@ RedisClientTests (){
   module("RedisClient");
 
   var client = new RedisClient();
-
+  client.raw.flushall();
+  
   test("Connected: connected", (){
     client.set("key", "value")
       .then((_){
@@ -79,11 +80,29 @@ RedisClientTests (){
           .then((val2) => print("GETSET: getsetkey = $val2"));
       });
     
+    client.raw.incr("counter")
+      .then((counter){
+        print("INCR: counter to $counter");
+        
+        client.raw.incrby("counter", 10)
+          .then((counter2){
+            print("INCRBY: counter to $counter2");
+                        
+            client.raw.decr("counter")
+            .then((counter4){
+              print("DECR: counter to $counter4");
+              
+              client.raw.decrby("counter", 5)
+                .then((counter5) => print("DECRBY: counter to $counter5"));
+            });
+          });
+      });
+
+    client.raw.incrbyfloat("floatcounter", .5) 
+      .then((counter3) => print("INCRBYFLOAT: floatcounter to $counter3"));            
+    
   });
   
-  new Timer(5000, (_){
-    client.raw.flushall()
-      .then((__) => client.close() );
-  });
+  new Timer(5000, (_) => client.close() );
   
 }

@@ -78,7 +78,7 @@ class _RedisConnection implements RedisConnection {
   bool connected;
   List endData;
   Queue<List> readChunks;
-  int logLevel = LogLevel.All;
+  int logLevel = LogLevel.None;
 
   ByteArray cmdBuffer;
   int cmdBufferIndex = 0;
@@ -150,7 +150,7 @@ class _RedisConnection implements RedisConnection {
 
   onSocketData() {
     int available = _socket.available();
-    print("onSocketData: $available total bytes");
+    logDebug("onSocketData: $available total bytes");
     if (available == 0) return;
     
     while (true) {
@@ -162,7 +162,7 @@ class _RedisConnection implements RedisConnection {
   }
   
   void cmdLog(args){
-    print("cmdLog: $args");
+    logDebug("cmdLog: $args");
   }
   
   Future sendCommand(List<List> cmdWithArgs){
@@ -322,10 +322,10 @@ class _Utils {
   static final NoMoreData = null;
   
   static void logDebug(arg){
-    print("$arg");
+    //print("$arg");
   }
   static void logError(arg){
-    print("$arg");
+    //print("$arg");
   }
 
   static Exception createError(arg){
