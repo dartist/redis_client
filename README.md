@@ -115,6 +115,21 @@ Is a low-level interface providng raw byte access to Redis operations:
       Future<double> zscore(String setId, List<int> value);
       Future<int> zunionstore(String intoSetId, List<String> setIds);
       Future<int> zinterstore(String intoSetId, List<String> setIds);
+  
+      //HASH
+      Future<int> hset(String hashId, String key, List<int> value);
+      Future<int> hsetnx(String hashId, String key, List<int> value);
+      Future hmset(String hashId, List<List<int>> keys, List<List<int>> values);
+      Future<int> hincrby(String hashId, String key, int incrBy);
+      Future<double> hincrbyfloat(String hashId, String key, double incrBy);  
+      Future<List<int>> hget(String hashId, String key);
+      Future<List<List<int>>> hmget(String hashId, List<String> keys);
+      Future<int> hdel(String hashId, String key);
+      Future<bool> hexists(String hashId, String key);
+      Future<int> hlen(String hashId);
+      Future<List<String>> hkeys(String hashId);
+      Future<List<List<int>>> hvals(String hashId);
+      Future<List<List<int>>> hgetall(String hashId);
       
       void close();
     }

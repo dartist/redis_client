@@ -106,6 +106,21 @@ interface RedisNativeClient default _RedisNativeClient {
   Future<int> zunionstore(String intoSetId, List<String> setIds);
   Future<int> zinterstore(String intoSetId, List<String> setIds);
   
+  //HASH
+  Future<int> hset(String hashId, String key, List<int> value);
+  Future<int> hsetnx(String hashId, String key, List<int> value);
+  Future hmset(String hashId, List<List<int>> keys, List<List<int>> values);
+  Future<int> hincrby(String hashId, String key, int incrBy);
+  Future<double> hincrbyfloat(String hashId, String key, double incrBy);  
+  Future<List<int>> hget(String hashId, String key);
+  Future<List<List<int>>> hmget(String hashId, List<String> keys);
+  Future<int> hdel(String hashId, String key);
+  Future<bool> hexists(String hashId, String key);
+  Future<int> hlen(String hashId);
+  Future<List<String>> hkeys(String hashId);
+  Future<List<List<int>>> hvals(String hashId);
+  Future<List<List<int>>> hgetall(String hashId);
+  
   void close();
 }
 
@@ -429,7 +444,45 @@ class _RedisNativeClient implements RedisNativeClient {
     return conn.sendExpectInt(_Utils.mergeCommandWithStringArgs(_Cmd.ZINTERSTORE, setIds));
   }
   
-  //HASH - TODO
+  //HASH
+  Future<int> hset(String hashId, String key, List<int> value) => 
+      conn.sendExpectInt([_Cmd.HSET, keyBytes(hashId), keyBytes(key), toBytes(value)]);
+
+  Future<int> hsetnx(String hashId, String key, List<int> value) => 
+      conn.sendExpectInt([_Cmd.HSETNX, keyBytes(hashId), keyBytes(key), toBytes(value)]);
+  
+  Future hmset(String hashId, List<List<int>> keys, List<List<int>> values) =>
+    conn.sendExpectSuccess(_Utils.mergeParamsWithKeysAndValues([_Cmd.HMSET, keyBytes(hashId)], keys, values));  
+
+  Future<int> hincrby(String hashId, String key, int incrBy) => 
+      conn.sendExpectInt([_Cmd.HINRYBY, keyBytes(hashId), keyBytes(key), toBytes(incrBy)]);
+
+  Future<double> hincrbyfloat(String hashId, String key, double incrBy) => 
+      conn.sendExpectDouble([_Cmd.HINRYBYFLOAT, keyBytes(hashId), keyBytes(key), toBytes(incrBy)]);
+  
+  Future<List<int>> hget(String hashId, String key) => 
+      conn.sendExpectData([_Cmd.HGET, keyBytes(hashId), keyBytes(key)]);
+  
+  Future<List<List<int>>> hmget(String hashId, List<String> keys) => 
+      conn.sendExpectMultiData(_Utils.mergeCommandWithKeyAndStringArgs(_Cmd.HMGET, hashId, keys));
+
+  Future<int> hdel(String hashId, String key) => 
+      conn.sendExpectInt([_Cmd.HDEL, keyBytes(hashId), keyBytes(key)]);
+
+  Future<bool> hexists(String hashId, String key) => 
+      conn.sendExpectIntSuccess([_Cmd.HEXISTS, keyBytes(hashId), keyBytes(key)]);
+
+  Future<int> hlen(String hashId) => 
+      conn.sendExpectInt([_Cmd.HLEN, keyBytes(hashId)]);
+
+  Future<List<String>> hkeys(String hashId) => 
+      conn.sendExpectMultiData([_Cmd.HKEYS, keyBytes(hashId)]).transform((bytes) => bytes.map((x) => new String.fromCharCodes(x)));
+
+  Future<List<List<int>>> hvals(String hashId) => 
+      conn.sendExpectMultiData([_Cmd.HVALS, keyBytes(hashId)]);
+  
+  Future<List<List<int>>> hgetall(String hashId) => 
+      conn.sendExpectMultiData([_Cmd.HGETALL, keyBytes(hashId)]);
   
   void close() => conn.close();
 }
@@ -634,6 +687,11 @@ class _Utils {
 
   static List<List<int>> mergeCommandWithStringArgs(List<int> cmd, List<String> args) =>
     mergeCommandWithArgs(cmd, args.map((x) => x.charCodes()));
+
+  static List<List<int>> mergeCommandWithKeyAndStringArgs(List<int> cmd, String key, List<String> args){
+    args.insertRange(0, 1, key);
+    return mergeCommandWithArgs(cmd, args.map((x) => x.charCodes()));
+  }
 
   static List<List<int>> mergeCommandWithArgs(List<int> cmd, List<List<int>> args){
     List<List<int>> mergedBytes = new List<List<int>>();
