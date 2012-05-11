@@ -18,6 +18,7 @@ interface RedisConnection default _RedisConnection {
   Future<int> sendExpectInt(List<List> cmdWithArgs);
   Future<bool> sendExpectIntSuccess(List<List> cmdWithArgs);
   Future<List<int>> sendExpectData(List<List> cmdWithArgs);
+  Future<List<List<int>>> sendExpectMultiData(List<List> cmdWithArgs);
   Future<String> sendExpectString(List<List> cmdWithArgs);
   Future<double> sendExpectDouble(List<List> cmdWithArgs);
   
@@ -37,6 +38,7 @@ interface Pipeline {
   completeVoidQueuedCommand(Function expectFn);
   completeIntQueuedCommand(Function expectFn);
   completeBytesQueuedCommand(Function expectFn);
+  completeMultiBytesQueuedCommand(Function expectFn);
   completeStringQueuedCommand(Function expectFn);
 }
 
@@ -271,6 +273,18 @@ class _RedisConnection implements RedisConnection {
         pipeline.completeBytesQueuedCommand(_Utils.readData);
       else 
         queueRead(task, _Utils.readData);
+    });
+    return task.future;
+  }
+  
+  Future<List<List<int>>> sendExpectMultiData(List<List> cmdWithArgs){
+    Completer task = new Completer();
+    sendCommand(cmdWithArgs)
+    .then((_){
+      if (pipeline != null) 
+        pipeline.completeMultiBytesQueuedCommand(_Utils.readMultiData);
+      else 
+        queueRead(task, _Utils.readMultiData);
     });
     return task.future;
   }
