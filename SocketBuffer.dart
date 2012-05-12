@@ -7,6 +7,19 @@ class SocketWrapper {
   SocketInputStream inStream;
   bool isClosed; 
   
+  //stats
+  int totalRewinds = 0;
+  int totalReads = 0;
+  int totalReadIntos = 0;
+  int totalBytesRead = 0;
+  
+  Map get stats() => {
+    'rewinds': totalRewinds,
+    'reads': totalReads,
+    'readIntos': totalReadIntos,
+    'bytesRead': totalBytesRead
+  };
+  
   SocketWrapper(Socket this.socket, SocketInputStream this.inStream);
   
   //The Stream takes over the close event + manages the socket close lifecycle
@@ -33,9 +46,11 @@ class SocketBuffer implements InputStream {
   //if a full response cannot be read from the stream, the client gives up, 
   //rewinds the partially read buffer, and re-attempts processing the response on next onData event    
   void rewind(){
+    _wrapper.totalRewinds++;
+    
     int bufferSize = $(_chunks.map((x) => x.length)).sum();
     //merge all recorded chunks into a single buffer for easy reading
-    _buffer = new ByteArray(bufferSize); 
+    _buffer = new Int8List(bufferSize); 
     int i = 0;
     for (List<int> chunk in _chunks){
       _buffer.setRange(i, chunk.length, chunk);
@@ -50,9 +65,10 @@ class SocketBuffer implements InputStream {
     if (len > remaining) 
       throw new Exception("Can't read $len bytes with only $remaining remaining");
     
-    List<int> buffer = new ByteArray(len);
+    List<int> buffer = new Int8List(len);
     buffer.setRange(0, len, buffer, _position);
     _position += len;
+    
     return buffer;
   }
   
@@ -66,7 +82,7 @@ class SocketBuffer implements InputStream {
         bytesToRead = len;      
     }
 //    print("SocketBuffer.read() $len / $bytesToRead ($remaining/${available()})");
-    ByteArray buffer = new ByteArray(bytesToRead);
+    Int8List buffer = new Int8List(bytesToRead);
 
     //Read from buffer
     int bytesRead = 0;
@@ -80,12 +96,16 @@ class SocketBuffer implements InputStream {
 
     //Read from socket
     bytesRead += readInto(buffer, readFromBuffer, bytesToRead);
+    
+    _wrapper.totalReads++;
+    _wrapper.totalBytesRead += len;
+    
     if (bytesRead == 0) {
       // On MacOS when reading from a tty Ctrl-D reports 1 byte available, 0 bytes read
       return null;
     } else if (bytesRead < buffer.length) {
       //re-size the buffer
-      ByteArray newBuffer = new ByteArray(bytesRead);
+      Int8List newBuffer = new Int8List(bytesRead);
       newBuffer.setRange(0, bytesRead, buffer);
       return newBuffer;
     } else {
@@ -101,8 +121,12 @@ class SocketBuffer implements InputStream {
     if (len < 0) throw new Exception("Illegal length $len");
     
     int bytesRead = _socket.readList(buffer, offset, len);
-    List<int> chunk = buffer.getRange(offset, bytesRead);
+    List<int> chunk = buffer.getRange(offset, bytesRead);    
     _chunks.add(chunk);
+    
+    _wrapper.totalReadIntos++;
+    _wrapper.totalBytesRead += bytesRead;
+    
     return bytesRead;
   }
   

@@ -3,13 +3,14 @@
 #import("Mixin.dart");
 #import("SocketBuffer.dart");
 
-interface RedisConnection default _RedisConnection {
+interface RedisConnection default _RedisConnection {  
+  RedisConnection([String connStr]);
+
   String password;
   String hostName;
   int port;
   int db;
-  
-  RedisConnection([String connStr]);
+  Map get stats();
   
   void parse([String connStr]);
 
@@ -82,15 +83,28 @@ class _RedisConnection implements RedisConnection {
   Queue<List> readChunks;
   int logLevel = LogLevel.None;
 
-  ByteArray cmdBuffer;
+  Int8List cmdBuffer;
   int cmdBufferIndex = 0;
   static final int breathingSpace = 32 * 1024; //To Reduce Reallocations
   Pipeline pipeline;
   
   Queue<ExpectRead> pendingReads;
+  
+  //stats
+  int totalBuffersWrites = 0;
+  int totalBufferFlushes = 0;
+  int totalBufferResizes = 0;
+  int totalBytesWritten = 0;
+  
+  Map get stats() => $(_wrapper.stats).addAll({
+    'buffersWrites':totalBuffersWrites, 
+    'bufferFlushes':totalBufferFlushes,
+    'bufferResizes': totalBufferResizes,
+    'bytesWritten': totalBytesWritten
+  });
 
   _RedisConnection([String connStr]) 
-    : cmdBuffer = new ByteArray(32 * 1024),
+    : cmdBuffer = new Int8List(32 * 1024),
       pendingReads = new Queue<ExpectRead>(),
       readChunks = new Queue<List>(),
       endData = "\r\n".charCodes()
@@ -182,9 +196,10 @@ class _RedisConnection implements RedisConnection {
   }
   
   bool flushSendBuffer(){
+    totalBufferFlushes++;
     logDebug("flushSendBuffer(): ${_socket.available()}");
+    
     int maxAttempts = 100;
-
     while ((cmdBufferIndex -= _socket.writeList(cmdBuffer, 0, cmdBufferIndex)) > 0 && --maxAttempts > 0);
     
     resetSendBuffer();
@@ -203,7 +218,7 @@ class _RedisConnection implements RedisConnection {
     String strLines = noOfLines.toString();
     int strLinesLen = strLines.length;
     
-    List bytes = new ByteArray(1 + strLinesLen + 2);
+    List bytes = new Int8List(1 + strLinesLen + 2);
     bytes[0] = cmdPrefix.charCodeAt(0);
     List strBytes = strLines.charCodes();
     bytes.setRange(1, strBytes.length, strBytes);
@@ -225,12 +240,15 @@ class _RedisConnection implements RedisConnection {
   void writeToSendBuffer(List cmdBytes){
     if ((cmdBufferIndex + cmdBytes.length) > cmdBuffer.length) {
       logDebug("resizing sendBuffer $cmdBufferIndex + ${cmdBytes.length} + $breathingSpace");
-      ByteArray newLargerBuffer = new ByteArray(cmdBufferIndex + cmdBytes.length + breathingSpace);
+      Int8List newLargerBuffer = new Int8List(cmdBufferIndex + cmdBytes.length + breathingSpace);
       cmdBuffer.setRange(0, cmdBuffer.length, newLargerBuffer);
       cmdBuffer = newLargerBuffer;
     }
     cmdBuffer.setRange(cmdBufferIndex, cmdBytes.length, cmdBytes);
     cmdBufferIndex += cmdBytes.length;
+    
+    totalBuffersWrites++;
+    totalBytesWritten += cmdBytes.length;
   }
   
   void queueRead(Completer task, void reader(InputStream stream, Completer task)){
@@ -309,6 +327,8 @@ class _RedisConnection implements RedisConnection {
 
   bool get closed() => _inStream == null || _inStream.closed; 
   
+  
+  
   close() {
     logDebug("closing..");
     if (_wrapper != null) _wrapper.isClosed = true;
@@ -317,6 +337,7 @@ class _RedisConnection implements RedisConnection {
       _socket.onData = null;
       _socket.onWrite = null;
       _socket.onError = null;
+      _socket.close();
     }
     _inStream = null;
     _socket = null;
