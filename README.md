@@ -10,7 +10,7 @@ As all operations are async they return [Futures](http://api.dartlang.org/dart_c
 
 ### v.10 In development...
 Most of Redis API is now implemented - the rest will be added in the next few days.
-By this weekend we hope to have a v1.0 release with support for all operations inc. ADMIN, KEYS, LIST, SETS, SORTED SETS and HASHES.
+By this weekend we hope to have a v1.0 release with support for all ADMIN, KEYS, LIST, SETS, SORTED SETS and HASHES operations.
 
 ## RoadMap
 This is the intended roadmap following the release of v1.0:
