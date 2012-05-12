@@ -654,6 +654,11 @@ class Map$ extends Mixin {
     });
     return target;
   }
+  
+  Map addAll(Map props) {
+    props.forEach((k,v) => target[k] = v);
+    return target;
+  }
 
 //  _.extend Requires Reflection  
 }

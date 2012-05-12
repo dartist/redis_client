@@ -103,6 +103,9 @@ RedisClientTests (){
     
   });
   
-  new Timer(5000, (_) => client.close() );
+  new Timer(5000, (_) {
+    print(client.raw.stats);
+    client.close(); 
+  });
   
 }

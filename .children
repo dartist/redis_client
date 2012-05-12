@@ -2,7 +2,7 @@ DUnit.dart
 tests/RedisConnectionTests.dart
 RedisClient.dart
 SocketBuffer.dart
-DartRedisClient.dart
+tests/JsonEncoderTests.dart
 tests/TestSuite.dart
 RedisConnection.dart
 RedisNativeClient.dart

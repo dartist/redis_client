@@ -6,6 +6,8 @@
 interface RedisNativeClient default _RedisNativeClient {
   RedisNativeClient([String connStr]);
   
+  Map get stats();
+  
   Future<int> get dbsize();
   Future<int> get lastsave();
   Future flushdb();
@@ -466,7 +468,7 @@ class _RedisNativeClient implements RedisNativeClient {
   Future<List<List<int>>> hmget(String hashId, List<String> keys) => 
       conn.sendExpectMultiData(_Utils.mergeCommandWithKeyAndStringArgs(_Cmd.HMGET, hashId, keys));
 
-  Future<int> hdel(String hashId, String key) => 
+  Future<int> hdel(String hashId, String key) =>     
       conn.sendExpectInt([_Cmd.HDEL, keyBytes(hashId), keyBytes(key)]);
 
   Future<bool> hexists(String hashId, String key) => 
@@ -483,6 +485,8 @@ class _RedisNativeClient implements RedisNativeClient {
   
   Future<List<List<int>>> hgetall(String hashId) => 
       conn.sendExpectMultiData([_Cmd.HGETALL, keyBytes(hashId)]);
+  
+  Map get stats() => conn.stats;
   
   void close() => conn.close();
 }
