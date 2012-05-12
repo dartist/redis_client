@@ -6,7 +6,7 @@ A high-performance async/non-blocking Redis client for Dart. This project includ
   - RedisClient - A high-level client with auto built-in serialization support for Dart's complex data types
   - RedisNativeClient - A low-level client providing raw bytes access to Redis's binary-safe string values
 
-* As all operations are async they return [Futures](http://api.dartlang.org/dart_core/Future.html) for better handling of asynchronous operations.
+As all operations are async they return [Futures](http://api.dartlang.org/dart_core/Future.html) for better handling of asynchronous operations.
 
 ### v.10 In development...
 Most of Redis API is now implemented - the rest will be added in the next few days.
@@ -37,7 +37,7 @@ More examples can be found in [RedisClientTests.dart](https://github.com/mythz/D
 
 A high-level interface with pluggable encoders/decoders providing high-level String and JSON-encoded values by default.
 
-All methods accepting or returning **Object** allow you to pass and return any object, i.e. any int, double, bool, String, Date's persisted will also return native int, double, bool, etc,... types out. Any complex types including Lists, Maps are serialized as JSON and also auto-deserialized.
+All methods with **Object** types allow you to pass and return any object, i.e. any int, double, bool, String, Date's persisted will return native int, double, bool, String, Date types out. Any complex types including Lists, Maps are serialized as JSON and auto-deserialized as well. Examples of this built-in serialization support are visible in the [JsonEncoderTests.dart](https://github.com/mythz/DartRedisClient/blob/master/tests/JsonEncoderTests.dart)
 
     interface RedisClient default _RedisClient {
       RedisClient([String connStr]);
@@ -94,7 +94,12 @@ All methods accepting or returning **Object** allow you to pass and return any o
 
 ### RedisNativeClient
 
-A low-level client providing raw bytes access to Redis's binary-safe string values:
+A low-level client providing raw bytes access to Redis's binary-safe string values. 
+You can also get access to this client from the high-level **RedisClient** above through the **raw** property, e.g:
+
+    redis.raw.get(key) => List<int>
+
+The RedisNativeClient API:
 
     interface RedisNativeClient default _RedisNativeClient {
       RedisNativeClient([String connStr]);
