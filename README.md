@@ -1,17 +1,100 @@
-DartRedisClient
-===============
+Dart Redis Client
+=================
 
-An Async Redis client for Dart.
+A high-performance async/non-blocking Redis client for Dart. This project includes the 2 clients:
 
-### Currently in development...
-The Redis Client is functional, but only a subset of Redis API is implemented - the rest will be added over the next few days.
+  - RedisClient - A high-level client with auto built-in serialization support for Dart's complex data types
+  - RedisNativeClient - A low-level client providing raw bytes access to Redis's binary-safe string values
 
-This is a close port of the [C# ServiceStack Redis Client](https://github.com/ServiceStack/ServiceStack.Redis/) the primary difference is all operations are non-blocking and return Futures.
+* As all operations are async they return [Futures](http://api.dartlang.org/dart_core/Future.html) for better handling of asynchronous operations.
 
-Current interfaces implemented:
+### v.10 In development...
+Most of Redis API is now implemented - the rest will be added in the next few days.
+By this weekend we hope to have a v1.0 release with support for all operations inc. ADMIN, KEYS, LIST, SETS, SORTED SETS and HASHES.
 
-## RedisNativeClient
-Is a low-level interface providng raw byte access to Redis operations:
+## RoadMap
+This is the intended roadmap following the release of v1.0:
+
+### v2.0 release (2-3 weeks)
+As soon as v1.0 is released we'll start work on implementing the remaining functionality:
+  - Transactions, Pub/Sub, Lua/Scripts
+
+### v3.0 release (future)
+Adding automatic failover support in v3.0, sharding, fast RPC direct-pipeline using the Redis wire format with node.js/C# processes
+    
+## Example Usage
+
+    RedisClient client = new RedisClient("password@localhost:6379/0");
+
+    client.set("key", "value")
+      .then((_) => client.get("key").then((val) => print("GET key = $val")) );
+
+More examples can be found in [RedisClientTests.dart](https://github.com/mythz/DartRedisClient/blob/master/tests/RedisClientTests.dart)
+
+## API
+
+### RedisClient
+
+A high-level interface with pluggable encoders/decoders providing high-level String and JSON-encoded values by default.
+
+All methods accepting or returning **Object** allow you to pass and return any object, i.e. any int, double, bool, String, Date's persisted will also return native int, double, bool, etc,... types out. Any complex types including Lists, Maps are serialized as JSON and also auto-deserialized.
+
+    interface RedisClient default _RedisClient {
+      RedisClient([String connStr]);
+      RedisNativeClient get raw();
+
+      //ADMIN
+      Future<Date> get lastsave();
+      Future<int> get dbsize();
+      Future<Map> get info();
+      Future flushdb();
+      Future flushall();
+      Future<bool> ping();
+      Future save();
+      Future bgsave();
+      Future shutdown();
+      Future bgrewriteaof();
+      Future quit();
+
+      //KEYS
+      Future<Object> get(String key);
+      Future<Object> getset(String key, Object value);
+      Future set(String key, Object value);
+      Future setex(String key, int expireInSecs, Object value);
+      Future psetex(String key, int expireInMs, Object value);
+      Future mset(Map map);
+      Future<bool> msetnx(Map map);
+      Future<bool> exists(String key);
+      Future<int> del(String key);
+      Future<int> mdel(List<String> keys);
+      Future<int> incr(String key);
+      Future<int> incrby(String key, int incrBy);
+      Future<double> incrbyfloat(String key, double incrBy);
+      Future<int> decr(String key);
+      Future<int> decrby(String key, int decrBy);
+      Future<int> strlen(String key);
+      Future<int> append(String key, String value);
+      Future<String> substr(String key, int fromIndex, int toIndex);
+      Future<String> getrange(String key, int fromIndex, int toIndex);
+      Future<String> setrange(String key, int offset, String value);
+      Future<int> getbit(String key, int offset);
+      Future<int> setbit(String key, int offset, int value);
+      Future<String> randomkey();
+      Future rename(String oldKey, String newKey);
+      Future<bool> renamenx(String oldKey, String newKey);
+      Future<bool> expire(String key, int expireInSecs);
+      Future<bool> pexpire(String key, int expireInMs);
+      Future<bool> expireat(String key, int unixTimeSecs);
+      Future<bool> pexpireat(String key, int unixTimeMs);
+      Future<int> ttl(String key);
+      Future<int> pttl(String key);
+
+      void close();
+    }
+
+### RedisNativeClient
+
+A low-level client providing raw bytes access to Redis's binary-safe string values:
 
     interface RedisNativeClient default _RedisNativeClient {
       RedisNativeClient([String connStr]);
@@ -133,36 +216,6 @@ Is a low-level interface providng raw byte access to Redis operations:
       
       void close();
     }
-
-## RedisClient
-
-Is a high-level interface with pluggable encoders/decoders providing high-level String and JSON-encoded values by default.
-
-    interface RedisClient default _RedisClient {
-      RedisClient([String connStr]);
-      RedisNativeClient get raw();
-      
-      Future<Date> get lastsave();
-
-      Future<String> get(String key);
-      Future<String> getset(String key, String value);
-      Future set(String key, String value);
-      Future setex(String key, int expireInSecs, String value);
-      Future psetex(String key, int expireInMs, String value);
-      Future mset(Map map);
-      Future<bool> msetnx(Map map);
-     
-      void close();
-    }
-
-## Example Usage
-
-    RedisClient client = new RedisClient();
-
-    client.set("key", "value")
-      .then((_) => client.get("key").then( (val) => print("GET key = $val") );
-    
-More examples can be found in [RedisClientTests.dart](https://github.com/mythz/DartRedisClient/blob/master/tests/RedisClientTests.dart)
 
 ## Redis Connection Strings
 The redis clients above take a single connection string containing the password, host, port and db in the following formats:

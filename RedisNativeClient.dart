@@ -5,28 +5,27 @@
 
 interface RedisNativeClient default _RedisNativeClient {
   RedisNativeClient([String connStr]);
-  
+
   Map get stats();
-  
+
   Future<int> get dbsize();
   Future<int> get lastsave();
   Future flushdb();
   Future flushall();
   Future<Map> get info();
-  Future<bool> get ping();  
-  Future save();      
-  Future bgsave();      
-  Future shutdown();      
-  Future bgrewriteaof();      
-  Future quit();    
-  
+  Future<bool> ping();
+  Future save();
+  Future bgsave();
+  Future shutdown();
+  Future bgrewriteaof();
+  Future quit();
+
   //Keys
   Future<String> type(String key);
   Future<List<int>> get(String key);
   Future<List<List<int>>> mget(List<String> keys);
   Future<List<int>> getset(String key, List<int> value);
   Future set(String key, List<int> value);
-  Future<int> strlen(String key);
   Future setex(String key, int expireInSecs, List<int> value);
   Future psetex(String key, int expireInMs, List<int> value);
   Future<bool> persist(String key);
@@ -39,39 +38,40 @@ interface RedisNativeClient default _RedisNativeClient {
   Future<int> incrby(String key, int count);
   Future<double> incrbyfloat(String key, double count);
   Future<int> decr(String key);
-  Future<int> decrby(String key, double count);
-  Future<int> append(String key, List<int> value);  
-  Future<List<int>> substr(String key, int fromIndex, int toIndex);  
-  Future<List<int>> getrange(String key, int fromIndex, int toIndex);  
-  Future<List<int>> setrange(String key, int offset, List<int> value);  
+  Future<int> decrby(String key, int count);
+  Future<int> strlen(String key);
+  Future<int> append(String key, List<int> value);
+  Future<List<int>> substr(String key, int fromIndex, int toIndex);
+  Future<List<int>> getrange(String key, int fromIndex, int toIndex);
+  Future<List<int>> setrange(String key, int offset, List<int> value);
   Future<int> getbit(String key, int offset);
-  Future<int> setbit(String key, int offset, int value);  
-  Future<List<int>> randomkey();  
-  Future rename(String oldKey, String newKey);  
-  Future<bool> renamenx(String oldKey, String newKey);  
-  Future<bool> expire(String key, int expireInSecs);  
-  Future<bool> pexpire(String key, int expireInMs);  
-  Future<bool> expireat(String key, int unixTimeSecs);  
-  Future<bool> pexpireat(String key, int unixTimeMs);  
+  Future<int> setbit(String key, int offset, int value);
+  Future<List<int>> randomkey();
+  Future rename(String oldKey, String newKey);
+  Future<bool> renamenx(String oldKey, String newKey);
+  Future<bool> expire(String key, int expireInSecs);
+  Future<bool> pexpire(String key, int expireInMs);
+  Future<bool> expireat(String key, int unixTimeSecs);
+  Future<bool> pexpireat(String key, int unixTimeMs);
   Future<int> ttl(String key);
   Future<int> pttl(String key);
-  
+
   //SET
-  Future<List<int>> smembers(String setId);  
-  Future<int> sadd(String setId, List<int> value);  
-  Future<int> srem(String setId, List<int> value);  
-  Future<List<int>> spop(String setId);  
-  Future smove(String fromSetId, String toSetId, List<int> value);  
+  Future<List<int>> smembers(String setId);
+  Future<int> sadd(String setId, List<int> value);
+  Future<int> srem(String setId, List<int> value);
+  Future<List<int>> spop(String setId);
+  Future smove(String fromSetId, String toSetId, List<int> value);
   Future<int> scard(String setId);
-  Future<bool> sismember(String setId, List<int> value);  
-  Future<List<List<int>>> sinter(List<String> setIds);  
-  Future sinterstore(String intoSetId, List<String> setIds);  
-  Future<List<List<int>>> sunion(List<String> setIds);  
-  Future sunionstore(String intoSetId, List<String> setIds);  
-  Future<List<List<int>>> sdiff(String fromSetId, List<String> withSetIds);  
-  Future sdiffstore(String intoSetId, String fromSetId, List<String> withSetIds);  
+  Future<bool> sismember(String setId, List<int> value);
+  Future<List<List<int>>> sinter(List<String> setIds);
+  Future sinterstore(String intoSetId, List<String> setIds);
+  Future<List<List<int>>> sunion(List<String> setIds);
+  Future sunionstore(String intoSetId, List<String> setIds);
+  Future<List<List<int>>> sdiff(String fromSetId, List<String> withSetIds);
+  Future sdiffstore(String intoSetId, String fromSetId, List<String> withSetIds);
   Future<List<int>> srandmember(String setId);
-  
+
   //LIST
   Future<List<List<int>>> lrange(String listId, int startingFrom, int endingAt);
   Future<int> lpush(String listId, List<int> value);
@@ -80,15 +80,15 @@ interface RedisNativeClient default _RedisNativeClient {
   Future<int> rpushx(String listId, List<int> value);
   Future ltrim(String listId, int keepStartingFrom, int keepEndingAt);
   Future<int> lrem(String listId, int removeNoOfMatches, List<int> value);
-  Future<int> llen(String listId);  
+  Future<int> llen(String listId);
   Future<List<int>> lindex(String listId, int listIndex);
   Future lset(String listId, int listIndex, List<int> value);
   Future<List<int>> lpop(String listId);
   Future<List<int>> rpop(String listId);
   Future<List<int>> rpoplpush(String fromListId, String toListId);
-  
+
   //SORTED SETS
-  Future<int> zadd(String setId, num score, List<int> value); 
+  Future<int> zadd(String setId, num score, List<int> value);
   Future<int> zrem(String setId, List<int> value);
   Future<double> zincrby(String setId, num incrBy, List<int> value);
   Future<int> zrank(String setId, List<int> value);
@@ -102,18 +102,18 @@ interface RedisNativeClient default _RedisNativeClient {
   Future<List<List<int>>> zrevrangebyscore(String setId, num min, num max, [int skip, int take]);
   Future<List<List<int>>> zrevrangebyscoreWithScores(String setId, num min, num max, [int skip, int take]);
   Future<int> zremrangebyrank(String setId, int min, int max);
-  Future<int> zremrangebyscore(String setId, num min, num max); 
+  Future<int> zremrangebyscore(String setId, num min, num max);
   Future<int> zcard(String setId);
   Future<double> zscore(String setId, List<int> value);
   Future<int> zunionstore(String intoSetId, List<String> setIds);
   Future<int> zinterstore(String intoSetId, List<String> setIds);
-  
+
   //HASH
   Future<int> hset(String hashId, String key, List<int> value);
   Future<int> hsetnx(String hashId, String key, List<int> value);
   Future hmset(String hashId, List<List<int>> keys, List<List<int>> values);
   Future<int> hincrby(String hashId, String key, int incrBy);
-  Future<double> hincrbyfloat(String hashId, String key, double incrBy);  
+  Future<double> hincrbyfloat(String hashId, String key, double incrBy);
   Future<List<int>> hget(String hashId, String key);
   Future<List<List<int>>> hmget(String hashId, List<String> keys);
   Future<int> hdel(String hashId, String key);
@@ -122,7 +122,7 @@ interface RedisNativeClient default _RedisNativeClient {
   Future<List<String>> hkeys(String hashId);
   Future<List<List<int>>> hvals(String hashId);
   Future<List<List<int>>> hgetall(String hashId);
-  
+
   void close();
 }
 
@@ -132,32 +132,32 @@ class _RedisNativeClient implements RedisNativeClient {
   _RedisNativeClient([String this.connStr]){
     conn = new RedisConnection(connStr);
   }
-  
-  static String string(List<int> bytes) => bytes == null ? null : new String.fromCharCodes(bytes); 
+
+  static String string(List<int> bytes) => bytes == null ? null : new String.fromCharCodes(bytes);
   static List<int> toBytes(val) => val == null ? new List<int>() : val.toString().charCodes();
   static List<int> keyBytes(String key){
     if (key == null || key.isEmpty()) throw new Exception("key is null");
     return key.charCodes();
-  }  
-  
+  }
+
   Future<int> get dbsize() => conn.sendExpectInt([_Cmd.DBSIZE]);
-  
+
   Future<int> get lastsave() => conn.sendExpectInt([_Cmd.LASTSAVE]);
-  
+
   Future flushdb() => conn.sendExpectSuccess([_Cmd.FLUSHDB]);
-  
+
   Future flushall() => conn.sendExpectSuccess([_Cmd.FLUSHALL]);
-  
-  Future save() => conn.sendExpectSuccess([_Cmd.SAVE]);    
-  
-  Future bgsave() => conn.sendExpectSuccess([_Cmd.BGSAVE]);    
-  
-  Future shutdown() => conn.sendExpectSuccess([_Cmd.SHUTDOWN]);    
-  
-  Future bgrewriteaof() => conn.sendExpectSuccess([_Cmd.BGREWRITEAOF]);    
-  
-  Future quit() => conn.sendExpectSuccess([_Cmd.QUIT]);    
-  
+
+  Future save() => conn.sendExpectSuccess([_Cmd.SAVE]);
+
+  Future bgsave() => conn.sendExpectSuccess([_Cmd.BGSAVE]);
+
+  Future shutdown() => conn.sendExpectSuccess([_Cmd.SHUTDOWN]);
+
+  Future bgrewriteaof() => conn.sendExpectSuccess([_Cmd.BGREWRITEAOF]);
+
+  Future quit() => conn.sendExpectSuccess([_Cmd.QUIT]);
+
   Future<Map> get info(){
     return conn.sendExpectString([_Cmd.INFO])
       .transform((String lines){
@@ -169,43 +169,41 @@ class _RedisNativeClient implements RedisNativeClient {
          return info;
       });
   }
-  
-  Future<bool> get ping() => conn.sendExpectCode([_Cmd.PING]).transform((String r) => r == "PONG");
-  
+
+  Future<bool> ping() => conn.sendExpectCode([_Cmd.PING]).transform((String r) => r == "PONG");
+
   Future<String> type(String key) => conn.sendExpectCode([_Cmd.TYPE, keyBytes(key)]);
-  
-  Future<int> strlen(String key) => conn.sendExpectInt([_Cmd.STRLEN, keyBytes(key)]);
-  
+
   Future<List<int>> get(String key) =>
       conn.sendExpectData([_Cmd.GET, keyBytes(key)]);
-  
+
   Future<List<List<int>>> mget(List<String> keys) =>
-    conn.sendExpectMultiData(_Utils.mergeCommandWithStringArgs(_Cmd.MGET, keys));  
-  
+    conn.sendExpectMultiData(_Utils.mergeCommandWithStringArgs(_Cmd.MGET, keys));
+
   Future<List<int>> getset(String key, List<int> value) =>
       conn.sendExpectData([_Cmd.GETSET, keyBytes(key), value]);
-  
-  Future set(String key, List<int> value) => 
+
+  Future set(String key, List<int> value) =>
       conn.sendExpectSuccess([_Cmd.SET, keyBytes(key), value]);
-  
-  Future setex(String key, int expireInSecs, List<int> value) => 
+
+  Future setex(String key, int expireInSecs, List<int> value) =>
       conn.sendExpectSuccess([_Cmd.SETEX, keyBytes(key), toBytes(expireInSecs), value]);
-  
-  Future psetex(String key, int expireInMs, List<int> value) => 
+
+  Future psetex(String key, int expireInMs, List<int> value) =>
       conn.sendExpectSuccess([_Cmd.SETEX, keyBytes(key), toBytes(expireInMs), value]);
-  
+
   Future<bool> persist(String key) => conn.sendExpectIntSuccess([_Cmd.PERSIST, keyBytes(key)]);
-  
+
   Future mset(List<List<int>> keys, List<List<int>> values) =>
-    conn.sendExpectSuccess(_Utils.mergeCommandWithKeysAndValues(_Cmd.MSET, keys, values));  
-  
+    conn.sendExpectSuccess(_Utils.mergeCommandWithKeysAndValues(_Cmd.MSET, keys, values));
+
   Future<bool> msetnx(List<List<int>> keys, List<List<int>> values) =>
-    conn.sendExpectIntSuccess(_Utils.mergeCommandWithKeysAndValues(_Cmd.MSETNX, keys, values));  
-  
+    conn.sendExpectIntSuccess(_Utils.mergeCommandWithKeysAndValues(_Cmd.MSETNX, keys, values));
+
   Future<bool> exists(String key) => conn.sendExpectIntSuccess([_Cmd.EXISTS, keyBytes(key)]);
 
   Future<int> del(String key) => conn.sendExpectInt([_Cmd.DEL, keyBytes(key)]);
-  
+
   Future<int> mdel(List<String> keys) => conn.sendExpectInt(_Utils.mergeCommandWithStringArgs(_Cmd.DEL, keys));
 
   Future<int> incr(String key) => conn.sendExpectInt([_Cmd.INCR, keyBytes(key)]);
@@ -216,99 +214,101 @@ class _RedisNativeClient implements RedisNativeClient {
 
   Future<int> decr(String key) => conn.sendExpectInt([_Cmd.DECR, keyBytes(key)]);
 
-  Future<int> decrby(String key, double count) => conn.sendExpectInt([_Cmd.DECRBY, keyBytes(key), toBytes(count)]);
-  
+  Future<int> decrby(String key, int count) => conn.sendExpectInt([_Cmd.DECRBY, keyBytes(key), toBytes(count)]);
+
+  Future<int> strlen(String key) => conn.sendExpectInt([_Cmd.STRLEN, keyBytes(key)]);
+
   Future<int> append(String key, List<int> value) => conn.sendExpectInt([_Cmd.APPEND, keyBytes(key), value]);
-  
-  Future<List<int>> substr(String key, int fromIndex, int toIndex) => 
+
+  Future<List<int>> substr(String key, int fromIndex, int toIndex) =>
       conn.sendExpectData([_Cmd.SUBSTR, keyBytes(key), toBytes(fromIndex), toBytes(toIndex)]);
-  
-  Future<List<int>> getrange(String key, int fromIndex, int toIndex) => 
+
+  Future<List<int>> getrange(String key, int fromIndex, int toIndex) =>
       conn.sendExpectData([_Cmd.GETRANGE, keyBytes(key), toBytes(fromIndex), toBytes(toIndex)]);
-  
-  Future<List<int>> setrange(String key, int offset, List<int> value) => 
+
+  Future<List<int>> setrange(String key, int offset, List<int> value) =>
       conn.sendExpectData([_Cmd.SETRANGE, keyBytes(key), toBytes(offset), value]);
-  
+
   Future<int> getbit(String key, int offset) => conn.sendExpectInt([_Cmd.GETBIT, keyBytes(key), toBytes(offset)]);
-  
-  Future<int> setbit(String key, int offset, int value) => 
+
+  Future<int> setbit(String key, int offset, int value) =>
       conn.sendExpectInt([_Cmd.SETBIT, keyBytes(key), toBytes(offset), toBytes(value)]);
-  
+
   Future<List<int>> randomkey() => conn.sendExpectData([_Cmd.RANDOMKEY]);
-  
-  Future rename(String oldKey, String newKey) => 
+
+  Future rename(String oldKey, String newKey) =>
       conn.sendExpectSuccess([_Cmd.RENAME, keyBytes(oldKey), keyBytes(newKey)]);
-  
-  Future<bool> renamenx(String oldKey, String newKey) => 
+
+  Future<bool> renamenx(String oldKey, String newKey) =>
       conn.sendExpectIntSuccess([_Cmd.RENAMENX, keyBytes(oldKey), keyBytes(newKey)]);
-  
-  Future<bool> expire(String key, int expireInSecs) => 
+
+  Future<bool> expire(String key, int expireInSecs) =>
       conn.sendExpectIntSuccess([_Cmd.EXPIRE, keyBytes(key), toBytes(expireInSecs)]);
-  
-  Future<bool> pexpire(String key, int expireInMs) => 
+
+  Future<bool> pexpire(String key, int expireInMs) =>
       conn.sendExpectIntSuccess([_Cmd.EXPIRE, keyBytes(key), toBytes(expireInMs)]);
-  
-  Future<bool> expireat(String key, int unixTimeSecs) => 
+
+  Future<bool> expireat(String key, int unixTimeSecs) =>
       conn.sendExpectIntSuccess([_Cmd.EXPIREAT, keyBytes(key), toBytes(unixTimeSecs)]);
-  
-  Future<bool> pexpireat(String key, int unixTimeMs) => 
+
+  Future<bool> pexpireat(String key, int unixTimeMs) =>
       conn.sendExpectIntSuccess([_Cmd.PEXPIREAT, keyBytes(key), toBytes(unixTimeMs)]);
-  
+
   Future<int> ttl(String key) => conn.sendExpectInt([_Cmd.TTL, keyBytes(key)]);
-  
+
   Future<int> pttl(String key) => conn.sendExpectInt([_Cmd.PTTL, keyBytes(key)]);
-  
+
   //SET
   Future<List<int>> smembers(String setId) => conn.sendExpectData([_Cmd.SMEMBERS, keyBytes(setId)]);
-  
+
   Future<int> sadd(String setId, List<int> value) => conn.sendExpectInt([_Cmd.SADD, keyBytes(setId), value]);
-  
+
   Future<int> srem(String setId, List<int> value) => conn.sendExpectInt([_Cmd.SREM, keyBytes(setId), value]);
-  
+
   Future<List<int>> spop(String setId) => conn.sendExpectData([_Cmd.SPOP, keyBytes(setId)]);
-  
-  Future smove(String fromSetId, String toSetId, List<int> value) => 
+
+  Future smove(String fromSetId, String toSetId, List<int> value) =>
       conn.sendExpectSuccess([_Cmd.SMOVE, keyBytes(fromSetId), keyBytes(toSetId), value]);
-  
+
   Future<int> scard(String setId) => conn.sendExpectInt([_Cmd.SCARD, keyBytes(setId)]);
-  
-  Future<bool> sismember(String setId, List<int> value) => 
+
+  Future<bool> sismember(String setId, List<int> value) =>
       conn.sendExpectSuccess([_Cmd.SISMEMBER, keyBytes(setId), value]);
-  
-  Future<List<List<int>>> sinter(List<String> setIds) => 
+
+  Future<List<List<int>>> sinter(List<String> setIds) =>
       conn.sendExpectMultiData(_Utils.mergeCommandWithStringArgs(_Cmd.SINTER, setIds));
-  
-  Future sinterstore(String intoSetId, List<String> setIds) => 
+
+  Future sinterstore(String intoSetId, List<String> setIds) =>
       conn.sendExpectSuccess(_Utils.mergeCommandWithStringArgs(_Cmd.SINTERSTORE, $(setIds).insert(0, intoSetId)));
-  
-  Future<List<List<int>>> sunion(List<String> setIds) => 
+
+  Future<List<List<int>>> sunion(List<String> setIds) =>
       conn.sendExpectMultiData(_Utils.mergeCommandWithStringArgs(_Cmd.SUNION, setIds));
-  
-  Future sunionstore(String intoSetId, List<String> setIds) => 
+
+  Future sunionstore(String intoSetId, List<String> setIds) =>
       conn.sendExpectSuccess(_Utils.mergeCommandWithStringArgs(_Cmd.SUNIONSTORE, $(setIds).insert(0, intoSetId)));
-  
-  Future<List<List<int>>> sdiff(String fromSetId, List<String> withSetIds) => 
+
+  Future<List<List<int>>> sdiff(String fromSetId, List<String> withSetIds) =>
       conn.sendExpectMultiData(_Utils.mergeCommandWithStringArgs(_Cmd.SDIFF, $(withSetIds).insert(0, fromSetId)));
-  
+
   Future sdiffstore(String intoSetId, String fromSetId, List<String> withSetIds){
     withSetIds.insertRange(0, 1, fromSetId);
     withSetIds.insertRange(0, 1, intoSetId);
     return conn.sendExpectSuccess(_Utils.mergeCommandWithStringArgs(_Cmd.SDIFFSTORE, withSetIds));
   }
-  
+
   Future<List<int>> srandmember(String setId) => conn.sendExpectData([_Cmd.SRANDMEMBER, keyBytes(setId)]);
 
   //SORT SET/LIST
-  Future<List<List<int>>> sort(String listOrSetId, 
+  Future<List<List<int>>> sort(String listOrSetId,
     [String sortPattern, int skip, int take, String getPattern, bool sortAlpha=false, bool sortDesc=false, String storeAtKey]){
-    
+
     List<List<int>> cmdWithArgs = [_Cmd.SORT, keyBytes(listOrSetId)];
-    
+
     if (sortPattern != null) {
       cmdWithArgs.add(_Cmd.BY);
       cmdWithArgs.add(toBytes(sortPattern));
     }
-    
+
     if (skip != null || take != null){
       cmdWithArgs.add(_Cmd.LIMIT);
       cmdWithArgs.add(toBytes(skip == null ? 0 : skip));
@@ -329,76 +329,76 @@ class _RedisNativeClient implements RedisNativeClient {
       cmdWithArgs.add(toBytes(storeAtKey));
     }
 
-    return conn.sendExpectMultiData(cmdWithArgs);  
-  } 
-  
-  //LIST    
-  Future<List<List<int>>> lrange(String listId, int startingFrom, int endingAt) => 
+    return conn.sendExpectMultiData(cmdWithArgs);
+  }
+
+  //LIST
+  Future<List<List<int>>> lrange(String listId, int startingFrom, int endingAt) =>
       conn.sendExpectMultiData([_Cmd.LRANGE, keyBytes(listId), toBytes(startingFrom), toBytes(endingAt)]);
-  
-  Future<int> lpush(String listId, List<int> value) => 
-      conn.sendExpectInt([_Cmd.LPUSH, keyBytes(listId), value]);  
-  
-  Future<int> lpushx(String listId, List<int> value) => 
-      conn.sendExpectInt([_Cmd.LPUSHX, keyBytes(listId), value]);  
-  
-  Future<int> rpush(String listId, List<int> value) => 
-      conn.sendExpectInt([_Cmd.RPUSH, keyBytes(listId), value]);  
-  
-  Future<int> rpushx(String listId, List<int> value) => 
+
+  Future<int> lpush(String listId, List<int> value) =>
+      conn.sendExpectInt([_Cmd.LPUSH, keyBytes(listId), value]);
+
+  Future<int> lpushx(String listId, List<int> value) =>
+      conn.sendExpectInt([_Cmd.LPUSHX, keyBytes(listId), value]);
+
+  Future<int> rpush(String listId, List<int> value) =>
+      conn.sendExpectInt([_Cmd.RPUSH, keyBytes(listId), value]);
+
+  Future<int> rpushx(String listId, List<int> value) =>
       conn.sendExpectInt([_Cmd.RPUSHX, keyBytes(listId), value]);
-  
-  Future ltrim(String listId, int keepStartingFrom, int keepEndingAt) => 
-      conn.sendExpectSuccess([_Cmd.LTRIM, keyBytes(listId), toBytes(keepStartingFrom), toBytes(keepEndingAt)]);  
-  
-  Future<int> lrem(String listId, int removeNoOfMatches, List<int> value) => 
+
+  Future ltrim(String listId, int keepStartingFrom, int keepEndingAt) =>
+      conn.sendExpectSuccess([_Cmd.LTRIM, keyBytes(listId), toBytes(keepStartingFrom), toBytes(keepEndingAt)]);
+
+  Future<int> lrem(String listId, int removeNoOfMatches, List<int> value) =>
       conn.sendExpectInt([_Cmd.LREM, keyBytes(listId), toBytes(removeNoOfMatches), value]);
-  
+
   Future<int> llen(String listId) => conn.sendExpectInt([_Cmd.LLEN, keyBytes(listId)]);
-  
-  Future<List<int>> lindex(String listId, int listIndex) => 
+
+  Future<List<int>> lindex(String listId, int listIndex) =>
       conn.sendExpectData([_Cmd.LINDEX, keyBytes(listId), toBytes(listIndex)]);
-  
-  Future lset(String listId, int listIndex, List<int> value) => 
+
+  Future lset(String listId, int listIndex, List<int> value) =>
       conn.sendExpectInt([_Cmd.LSET, keyBytes(listId), toBytes(listIndex), value]);
-  
+
   Future<List<int>> lpop(String listId) => conn.sendExpectData([_Cmd.LPOP, keyBytes(listId)]);
-  
+
   Future<List<int>> rpop(String listId) => conn.sendExpectData([_Cmd.RPOP, keyBytes(listId)]);
-  
-  Future<List<int>> rpoplpush(String fromListId, String toListId) => 
+
+  Future<List<int>> rpoplpush(String fromListId, String toListId) =>
       conn.sendExpectData([_Cmd.RPOPLPUSH, keyBytes(fromListId), keyBytes(toListId)]);
-  
-  //SORTED SETS  
-  Future<int> zadd(String setId, num score, List<int> value) => 
+
+  //SORTED SETS
+  Future<int> zadd(String setId, num score, List<int> value) =>
       conn.sendExpectInt([_Cmd.ZADD, keyBytes(setId), toBytes(score), value]);
-  
-  Future<int> zrem(String setId, List<int> value) => 
+
+  Future<int> zrem(String setId, List<int> value) =>
       conn.sendExpectInt([_Cmd.ZREM, keyBytes(setId), value]);
-  
-  Future<double> zincrby(String setId, num incrBy, List<int> value) => 
+
+  Future<double> zincrby(String setId, num incrBy, List<int> value) =>
       conn.sendExpectDouble([_Cmd.ZINCRBY, keyBytes(setId), toBytes(incrBy), value]);
-  
+
   Future<int> zrank(String setId, List<int> value) => conn.sendExpectInt([_Cmd.ZRANK, keyBytes(setId), value]);
-  
+
   Future<int> zrevrank(String setId, List<int> value) => conn.sendExpectInt([_Cmd.ZREVRANK, keyBytes(setId), value]);
-  
+
   Future<List<List<int>>> _zrange(List<int> cmdBytes, String setId, int min, int max, [bool withScores=false]){
     List<List<int>> cmdWithArgs = [cmdBytes, keyBytes(setId), toBytes(min), toBytes(max)];
     if (withScores) cmdWithArgs.add(_Cmd.WITHSCORES);
     conn.sendExpectMultiData(cmdWithArgs);
   }
-  
+
   Future<List<List<int>>> zrange(String setId, int min, int max) =>
       _zrange(_Cmd.ZRANGE, setId, min, max);
-  
-  Future<List<List<int>>> zrangeWithScores(String setId, int min, int max) => 
+
+  Future<List<List<int>>> zrangeWithScores(String setId, int min, int max) =>
       _zrange(_Cmd.ZRANGE, setId, min, max, withScores:true);
-  
+
   Future<List<List<int>>> zrevrange(String setId, int min, int max) =>
       _zrange(_Cmd.ZREVRANGE, setId, min, max);
-  
-  Future<List<List<int>>> zrevrangeWithScores(String setId, int min, int max) => 
+
+  Future<List<List<int>>> zrevrangeWithScores(String setId, int min, int max) =>
       _zrange(_Cmd.ZREVRANGE, setId, min, max, withScores:true);
 
   Future<List<List<int>>> _zrangeByScore(List<int> cmdBytes, String setId, num min, num max, [int skip, int take, bool withScores=false]){
@@ -411,89 +411,89 @@ class _RedisNativeClient implements RedisNativeClient {
     if (withScores) cmdWithArgs.add(_Cmd.WITHSCORES);
     conn.sendExpectMultiData(cmdWithArgs);
   }
-  
+
   Future<List<List<int>>> zrangebyscore(String setId, num min, num max, [int skip, int take]) =>
       _zrangeByScore(_Cmd.ZRANGEBYSCORE, setId, min, max, skip, take);
-  
-  Future<List<List<int>>> zrangebyscoreWithScores(String setId, num min, num max, [int skip, int take]) => 
+
+  Future<List<List<int>>> zrangebyscoreWithScores(String setId, num min, num max, [int skip, int take]) =>
       _zrangeByScore(_Cmd.ZRANGEBYSCORE, setId, min, max, skip, take, withScores:true);
-  
+
   Future<List<List<int>>> zrevrangebyscore(String setId, num min, num max, [int skip, int take]) =>
       _zrangeByScore(_Cmd.ZREVRANGEBYSCORE, setId, min, max, skip, take);
-  
-  Future<List<List<int>>> zrevrangebyscoreWithScores(String setId, num min, num max, [int skip, int take]) => 
+
+  Future<List<List<int>>> zrevrangebyscoreWithScores(String setId, num min, num max, [int skip, int take]) =>
       _zrangeByScore(_Cmd.ZREVRANGEBYSCORE, setId, min, max, skip, take, withScores:true);
-    
-  Future<int> zremrangebyrank(String setId, int min, int max) => 
+
+  Future<int> zremrangebyrank(String setId, int min, int max) =>
       conn.sendExpectInt([_Cmd.ZREMRANGEBYRANK, keyBytes(setId), toBytes(min), toBytes(max)]);
-  
-  Future<int> zremrangebyscore(String setId, num min, num max) => 
+
+  Future<int> zremrangebyscore(String setId, num min, num max) =>
       conn.sendExpectInt([_Cmd.ZREMRANGEBYSCORE, keyBytes(setId), toBytes(min), toBytes(max)]);
-  
+
   Future<int> zcard(String setId) => conn.sendExpectInt([_Cmd.ZCARD, keyBytes(setId)]);
-  
+
   Future<double> zscore(String setId, List<int> value) => conn.sendExpectDouble([_Cmd.ZSCORE, value]);
-  
+
   Future<int> zunionstore(String intoSetId, List<String> setIds){
     setIds.insertRange(0, 1, setIds.length.toString());
     setIds.insertRange(0, 1, intoSetId);
     return conn.sendExpectInt(_Utils.mergeCommandWithStringArgs(_Cmd.ZUNIONSTORE, setIds));
   }
-  
+
   Future<int> zinterstore(String intoSetId, List<String> setIds){
     setIds.insertRange(0, 1, setIds.length.toString());
     setIds.insertRange(0, 1, intoSetId);
     return conn.sendExpectInt(_Utils.mergeCommandWithStringArgs(_Cmd.ZINTERSTORE, setIds));
   }
-  
+
   //HASH
-  Future<int> hset(String hashId, String key, List<int> value) => 
+  Future<int> hset(String hashId, String key, List<int> value) =>
       conn.sendExpectInt([_Cmd.HSET, keyBytes(hashId), keyBytes(key), toBytes(value)]);
 
-  Future<int> hsetnx(String hashId, String key, List<int> value) => 
+  Future<int> hsetnx(String hashId, String key, List<int> value) =>
       conn.sendExpectInt([_Cmd.HSETNX, keyBytes(hashId), keyBytes(key), toBytes(value)]);
-  
-  Future hmset(String hashId, List<List<int>> keys, List<List<int>> values) =>
-    conn.sendExpectSuccess(_Utils.mergeParamsWithKeysAndValues([_Cmd.HMSET, keyBytes(hashId)], keys, values));  
 
-  Future<int> hincrby(String hashId, String key, int incrBy) => 
+  Future hmset(String hashId, List<List<int>> keys, List<List<int>> values) =>
+    conn.sendExpectSuccess(_Utils.mergeParamsWithKeysAndValues([_Cmd.HMSET, keyBytes(hashId)], keys, values));
+
+  Future<int> hincrby(String hashId, String key, int incrBy) =>
       conn.sendExpectInt([_Cmd.HINRYBY, keyBytes(hashId), keyBytes(key), toBytes(incrBy)]);
 
-  Future<double> hincrbyfloat(String hashId, String key, double incrBy) => 
+  Future<double> hincrbyfloat(String hashId, String key, double incrBy) =>
       conn.sendExpectDouble([_Cmd.HINRYBYFLOAT, keyBytes(hashId), keyBytes(key), toBytes(incrBy)]);
-  
-  Future<List<int>> hget(String hashId, String key) => 
+
+  Future<List<int>> hget(String hashId, String key) =>
       conn.sendExpectData([_Cmd.HGET, keyBytes(hashId), keyBytes(key)]);
-  
-  Future<List<List<int>>> hmget(String hashId, List<String> keys) => 
+
+  Future<List<List<int>>> hmget(String hashId, List<String> keys) =>
       conn.sendExpectMultiData(_Utils.mergeCommandWithKeyAndStringArgs(_Cmd.HMGET, hashId, keys));
 
-  Future<int> hdel(String hashId, String key) =>     
+  Future<int> hdel(String hashId, String key) =>
       conn.sendExpectInt([_Cmd.HDEL, keyBytes(hashId), keyBytes(key)]);
 
-  Future<bool> hexists(String hashId, String key) => 
+  Future<bool> hexists(String hashId, String key) =>
       conn.sendExpectIntSuccess([_Cmd.HEXISTS, keyBytes(hashId), keyBytes(key)]);
 
-  Future<int> hlen(String hashId) => 
+  Future<int> hlen(String hashId) =>
       conn.sendExpectInt([_Cmd.HLEN, keyBytes(hashId)]);
 
-  Future<List<String>> hkeys(String hashId) => 
+  Future<List<String>> hkeys(String hashId) =>
       conn.sendExpectMultiData([_Cmd.HKEYS, keyBytes(hashId)]).transform((bytes) => bytes.map((x) => new String.fromCharCodes(x)));
 
-  Future<List<List<int>>> hvals(String hashId) => 
+  Future<List<List<int>>> hvals(String hashId) =>
       conn.sendExpectMultiData([_Cmd.HVALS, keyBytes(hashId)]);
-  
-  Future<List<List<int>>> hgetall(String hashId) => 
+
+  Future<List<List<int>>> hgetall(String hashId) =>
       conn.sendExpectMultiData([_Cmd.HGETALL, keyBytes(hashId)]);
-  
+
   Map get stats() => conn.stats;
-  
+
   void close() => conn.close();
 }
 
 //TODO change to lazy static initializers
 class _Cmd {
-  
+
   //Admin
   static get DBSIZE() => "DBSIZE".charCodes();
   static get INFO() => "INFO".charCodes();
@@ -558,7 +558,7 @@ class _Cmd {
   static get PEXPIREAT() => "PEXPIREAT".charCodes();
   static get TTL() => "TTL".charCodes();
   static get PTTL() => "PTTL".charCodes();
-  
+
   //Transactions
   static get MGET() => "MGET".charCodes();
   static get WATCH() => "WATCH".charCodes();
@@ -566,7 +566,7 @@ class _Cmd {
   static get MULTI() => "MULTI".charCodes();
   static get EXEC() => "EXEC".charCodes();
   static get DISCARD() => "DISCARD".charCodes();
-  
+
   //SET
   static get SMEMBERS() => "SMEMBERS".charCodes();
   static get SADD() => "SADD".charCodes();
@@ -582,14 +582,14 @@ class _Cmd {
   static get SDIFF() => "SDIFF".charCodes();
   static get SDIFFSTORE() => "SDIFFSTORE".charCodes();
   static get SRANDMEMBER() => "SRANDMEMBER".charCodes();
-  
+
   //Sort Set/List
   static get SORT() => "SORT".charCodes(); //BY LIMIT GET DESC ALPHA STORE
-  static get BY() => "BY".charCodes(); 
-  static get DESC() => "DESC".charCodes(); 
-  static get ALPHA() => "ALPHA".charCodes(); 
-  static get STORE() => "STORE".charCodes();   
-  
+  static get BY() => "BY".charCodes();
+  static get DESC() => "DESC".charCodes();
+  static get ALPHA() => "ALPHA".charCodes();
+  static get STORE() => "STORE".charCodes();
+
   //List
   static get LRANGE() => "LRANGE".charCodes();
   static get RPUSH() => "RPUSH".charCodes();
@@ -609,7 +609,7 @@ class _Cmd {
   static get BLPOP() => "BLPOP".charCodes();
   static get BRPOP() => "BRPOP".charCodes();
   static get RPOPLPUSH() => "RPOPLPUSH".charCodes();
-  
+
   //Sorted Sets
   static get ZADD() => "ZADD".charCodes();
   static get ZREM() => "ZREM".charCodes();
@@ -628,7 +628,7 @@ class _Cmd {
   static get ZSCORE() => "ZSCORE".charCodes();
   static get ZUNIONSTORE() => "ZUNIONSTORE".charCodes();
   static get ZINTERSTORE() => "ZINTERSTORE".charCodes();
-  
+
   //Hash
   static get HSET() => "HSET".charCodes();
   static get HSETNX() => "HSETNX".charCodes();
@@ -643,14 +643,14 @@ class _Cmd {
   static get HKEYS() => "HKEYS".charCodes();
   static get HVALS() => "HVALS".charCodes();
   static get HGETALL() => "HGETALL".charCodes();
-  
+
   //Pub/Sub
   static get PUBLISH() => "PUBLISH".charCodes();
   static get SUBSCRIBE() => "SUBSCRIBE".charCodes();
   static get UNSUBSCRIBE() => "UNSUBSCRIBE".charCodes();
   static get PSUBSCRIBE() => "PSUBSCRIBE".charCodes();
   static get PUNSUBSCRIBE() => "PUNSUBSCRIBE".charCodes();
-  
+
   //Scripting
   static get EVAL() => "EVAL".charCodes();
   static get SCRIPT() => "SCRIPT".charCodes(); //EXISTS FLUSH KILL LOAD
@@ -661,8 +661,8 @@ class _Cmd {
 
 class _Utils {
   static List<List<int>> mergeCommandWithKeysAndValues(List<int> cmd, List<List<int>> keys, List<List<int>> values) =>
-    mergeParamsWithKeysAndValues([cmd], keys, values);  
-  
+    mergeParamsWithKeysAndValues([cmd], keys, values);
+
   static List<List<int>> mergeParamsWithKeysAndValues(List<List<int>> firstParams, List<List<int>> keys, List<List<int>> values) {
     if (keys == null || keys.length == 0)
       throw new Exception("keys is null");
@@ -670,7 +670,7 @@ class _Utils {
       throw new Exception("values is null");
     if (keys.length != values.length)
       throw new Exception("keys.length != values.length");
-    
+
     int keyValueStartIndex = firstParams != null ? firstParams.length : 0;
 
     int keysAndValuesLength = keys.length * 2 + keyValueStartIndex;
@@ -686,7 +686,7 @@ class _Utils {
       keysAndValues.add(values[j]);
       j++;
     }
-    return keysAndValues;    
+    return keysAndValues;
   }
 
   static List<List<int>> mergeCommandWithStringArgs(List<int> cmd, List<String> args) =>
@@ -705,5 +705,5 @@ class _Utils {
     }
     return mergedBytes;
   }
-  
+
 }
