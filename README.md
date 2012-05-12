@@ -9,14 +9,14 @@ A high-performance async/non-blocking Redis client for Dart. This project includ
 As all operations are async they return [Futures](http://api.dartlang.org/dart_core/Future.html) for better handling of asynchronous operations.
 
 ### v.10 In development...
-Most of Redis API is now implemented - the rest will be added in the next few days.
-By this weekend we hope to have a v1.0 release with support for all ADMIN, KEYS, LIST, SETS, SORTED SETS and HASHES operations.
+Most of Redis API is now implemented with support for all ADMIN, KEYS, LIST, SETS, SORTED SETS and HASHES operations.
+The rest of this weekend will be focused on creating tests for all implemented operations.
 
 ## RoadMap
 This is the intended roadmap following the release of v1.0:
 
 ### v2.0 release (2-3 weeks)
-As soon as v1.0 is released we'll start work on implementing the remaining functionality:
+After the v1.0 release we'll start work on implementing the remaining functionality:
   - Transactions, Pub/Sub, Lua/Scripts
 
 ### v3.0 release (future)
@@ -35,7 +35,7 @@ More examples can be found in [RedisClientTests.dart](https://github.com/mythz/D
 
 ### RedisClient
 
-A high-level interface with pluggable encoders/decoders providing high-level String and JSON-encoded values by default.
+A high-level interface with pluggable encoders/decoders providing API for native Dart types.
 
 All methods with **Object** types allow you to pass and return any object, i.e. any int, double, bool, String, Date's persisted will return native int, double, bool, String, Date types out. Any complex types including Lists, Maps are serialized as JSON and auto-deserialized as well. Examples of this built-in serialization support are visible in the [JsonEncoderTests.dart](https://github.com/mythz/DartRedisClient/blob/master/tests/JsonEncoderTests.dart)
 
@@ -88,6 +88,70 @@ All methods with **Object** types allow you to pass and return any object, i.e. 
       Future<bool> pexpireat(String key, int unixTimeMs);
       Future<int> ttl(String key);
       Future<int> pttl(String key);
+
+      //SET
+      Future<List<Object>> smembers(String setId);
+      Future<int> sadd(String setId, Object value);
+      Future<int> srem(String setId, Object value);
+      Future<Object> spop(String setId);
+      Future smove(String fromSetId, String toSetId, Object value);
+      Future<int> scard(String setId);
+      Future<bool> sismember(String setId, Object value);
+      Future<List<Object>> sinter(List<String> setIds);
+      Future sinterstore(String intoSetId, List<String> setIds);
+      Future<List<Object>> sunion(List<String> setIds);
+      Future sunionstore(String intoSetId, List<String> setIds);
+      Future sdiffstore(String intoSetId, String fromSetId, List<String> withSetIds);
+      Future<Object> srandmember(String setId);
+      
+      //LIST
+      Future<List<Object>> lrange(String listId, int startingFrom, int endingAt);
+      Future<int> lpush(String listId, Object value);
+      Future<int> lpushx(String listId, Object value);
+      Future<int> rpush(String listId, Object value);
+      Future<int> rpushx(String listId, Object value);
+      Future ltrim(String listId, int keepStartingFrom, int keepEndingAt);
+      Future<int> lrem(String listId, int removeNoOfMatches, Object value);
+      Future<int> llen(String listId);
+      Future<Object> lindex(String listId, int listIndex);
+      Future lset(String listId, int listIndex, Object value);
+      Future<Object> lpop(String listId);
+      Future<Object> rpop(String listId);
+      Future<Object> rpoplpush(String fromListId, String toListId);
+      
+      //SORTED SET
+      Future<int> zadd(String setId, num score, Object value);
+      Future<int> zrem(String setId, Object value);
+      Future<double> zincrby(String setId, num incrBy, Object value);
+      Future<int> zrank(String setId, Object value);
+      Future<int> zrevrank(String setId, Object value);
+      Future<List<Object>> zrange(String setId, int min, int max);
+      Future<Map<Object,double>> zrangeWithScores(String setId, int min, int max);
+      Future<List<Object>> zrevrange(String setId, int min, int max);
+      Future<Map<Object,double>> zrevrangeWithScores(String setId, int min, int max);
+      Future<List<Object>> zrangebyscore(String setId, num min, num max, [int skip, int take]);
+      Future<Map<Object,double>> zrangebyscoreWithScores(String setId, num min, num max, [int skip, int take]);
+      Future<int> zremrangebyrank(String setId, int min, int max);
+      Future<int> zremrangebyscore(String setId, num min, num max);
+      Future<int> zcard(String setId);
+      Future<double> zscore(String setId, Object value);
+      Future<int> zunionstore(String intoSetId, List<String> setIds);
+      Future<int> zinterstore(String intoSetId, List<String> setIds);
+
+      //HASH
+      Future<int> hset(String hashId, String key, Object value);
+      Future<int> hsetnx(String hashId, String key, Object value);
+      Future hmset(String hashId, Map<String,Object> map);
+      Future<int> hincrby(String hashId, String key, int incrBy);
+      Future<double> hincrbyfloat(String hashId, String key, double incrBy);
+      Future<Object> hget(String hashId, String key);
+      Future<List<Object>> hmget(String hashId, List<String> keys);
+      Future<int> hdel(String hashId, String key);
+      Future<bool> hexists(String hashId, String key);
+      Future<int> hlen(String hashId);
+      Future<List<String>> hkeys(String hashId);
+      Future<List<Object>> hvals(String hashId);
+      Future<Map<String,Object>> hgetall(String hashId);
 
       void close();
     }

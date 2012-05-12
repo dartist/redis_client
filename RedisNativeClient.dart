@@ -20,7 +20,7 @@ interface RedisNativeClient default _RedisNativeClient {
   Future bgrewriteaof();
   Future quit();
 
-  //Keys
+  //KEYS
   Future<String> type(String key);
   Future<List<int>> get(String key);
   Future<List<List<int>>> mget(List<String> keys);
@@ -57,7 +57,7 @@ interface RedisNativeClient default _RedisNativeClient {
   Future<int> pttl(String key);
 
   //SET
-  Future<List<int>> smembers(String setId);
+  Future<List<List<int>>> smembers(String setId);
   Future<int> sadd(String setId, List<int> value);
   Future<int> srem(String setId, List<int> value);
   Future<List<int>> spop(String setId);
@@ -259,7 +259,7 @@ class _RedisNativeClient implements RedisNativeClient {
   Future<int> pttl(String key) => conn.sendExpectInt([_Cmd.PTTL, keyBytes(key)]);
 
   //SET
-  Future<List<int>> smembers(String setId) => conn.sendExpectData([_Cmd.SMEMBERS, keyBytes(setId)]);
+  Future<List<List<int>>> smembers(String setId) => conn.sendExpectMultiData([_Cmd.SMEMBERS, keyBytes(setId)]);
 
   Future<int> sadd(String setId, List<int> value) => conn.sendExpectInt([_Cmd.SADD, keyBytes(setId), value]);
 
@@ -494,7 +494,7 @@ class _RedisNativeClient implements RedisNativeClient {
 //TODO change to lazy static initializers
 class _Cmd {
 
-  //Admin
+  //ADMIN
   static get DBSIZE() => "DBSIZE".charCodes();
   static get INFO() => "INFO".charCodes();
   static get LASTSAVE() => "LASTSAVE".charCodes();
