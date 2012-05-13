@@ -7,8 +7,8 @@
 
 main () {
 //  RedisConnectionTests();
-  RedisClientTests();
 //  JsonEncoderTests();
+  RedisClientTests();
 
-  runAllTests();
+  runAllTests(hidePassedTests:true);
 }

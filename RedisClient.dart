@@ -142,7 +142,7 @@ class _RedisClient implements RedisClient {
 
   //ADMIN
   Future<int> get dbsize() => client.dbsize;
-  Future<Date> get lastsave() => client.lastsave.transform((int unixTs) => new Date.fromEpoch(unixTs, new TimeZone.utc()));
+  Future<Date> get lastsave() => client.lastsave.transform((int unixTs) => new Date.fromEpoch(unixTs * 1000, new TimeZone.utc()));
   Future<Map> get info() => client.info;
   Future flushdb() => client.flushdb();
   Future flushall() => client.flushall();
@@ -264,7 +264,7 @@ class _RedisClient implements RedisClient {
   Map<String,Object> _toMap(List<List<int>> multiData){
     Map<String,Object> map = new Map<String,Object>();
     for (int i=0; i<multiData.length; i+= 2){
-      String key = toString(multiData[i]);
+      String key = toStr(multiData[i]);
       map[key] = toObject(multiData[i + 1]);
     }
     return map;
