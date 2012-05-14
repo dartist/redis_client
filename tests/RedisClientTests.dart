@@ -7,7 +7,7 @@
 #import("dart:io");
 
 RedisClientTests (){
-  bool runLongRunningTests = true;
+  bool runLongRunningTests = false;
 
   RedisClient client = new RedisClient();
 
@@ -241,7 +241,7 @@ RedisClientTests (){
     });
   });
 
-  asyncTest("SETS: SMEMBERS, SADD, SREM, SPOP, SMOVE, SCARD, SISMEMBER"
+  asyncTest("SETS: SMEMBERS, SADD, MSADD, SREM, SPOP, SMOVE, SCARD, SISMEMBER"
     ", SINTER, SINTERSTORE, SUNION, SUNIONSTORE, SDIFFSTORE, SRANDMEMBER", (){
       List items = ["A","B","C","D"];
       List items2 = ["C","D","E","F"];
@@ -274,6 +274,34 @@ RedisClientTests (){
           });
         });
       });
+  });
+
+  asyncTest("LIST: ", (){
+    List items = ["A","B","C","D"];
+    client.mlpush("llistkey", items);
+    client.lrange("llistkey", 0, -1).then((x) => deepEqual(x, $(items).reverse(), "LPUSH adds multiple items"));
+    client.mrpush("rlistkey", items);
+    client.lrange("rlistkey", 0, -1).then((x) => deepEqual(x, items, "RPUSH adds multiple items"));
+    client.lrange("rlistkey", 1, 2).then((x) =>  deepEqual(x, ["B","C"], "LRANGE"));
+    client.ltrim("rlistkey", 1, 2);
+    client.lrange("rlistkey", 0, -1).then((x) => deepEqual(x, ["B","C"], "LTRIM"));
+    client.lpush("rlistkey", "A");
+    client.rpush("rlistkey", "D");
+    client.lrange("rlistkey", 0, -1).then((x) => deepEqual(x, items, "RPUSH and LPUSH on same list"));
+    client.lindex("rlistkey", 3).then((x) => equal(x, items[3], "LINDEX"));
+    client.lset("rlistkey", 1, "b");
+    client.lrange("rlistkey", 0, -1).then((x) => deepEqual(x, ["A","b","C","D"], "LSET"));
+    client.lrem("llistkey", 1, "D").then((x) => equal(x, 1, "LREM returns occurances removed"));
+    client.lrange("llistkey", 0, -1).then((x) => deepEqual(x, ["C","B","A"], "LREM returns item from list"));
+    client.lpop("llistkey").then((x) => equal(x,"C","LPOP"));
+    client.rpop("llistkey").then((x) => equal(x,"A","RPOP"));
+    client.rpoplpush("llistkey", "newllistkey");
+    client.lrange("newllistkey", 0, -1).then((x) => deepEqual(x, ["B"], "RPOPLPUSH"));
+
+    client.llen("rlistkey").then((len){
+      equal(len, items.length, "LLEN");
+      start();
+    });
   });
 
   new Timer(3000, (_) {

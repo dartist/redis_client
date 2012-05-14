@@ -95,24 +95,30 @@ All methods with **Object** types allow you to pass and return any object, i.e. 
       //SET
       Future<List<Object>> smembers(String setId);
       Future<int> sadd(String setId, Object value);
+      Future<int> msadd(String setId, List<Object> values);
       Future<int> srem(String setId, Object value);
       Future<Object> spop(String setId);
-      Future smove(String fromSetId, String toSetId, Object value);
+      Future<bool> smove(String fromSetId, String toSetId, Object value);
       Future<int> scard(String setId);
       Future<bool> sismember(String setId, Object value);
       Future<List<Object>> sinter(List<String> setIds);
-      Future sinterstore(String intoSetId, List<String> setIds);
+      Future<int> sinterstore(String intoSetId, List<String> setIds);
       Future<List<Object>> sunion(List<String> setIds);
-      Future sunionstore(String intoSetId, List<String> setIds);
-      Future sdiffstore(String intoSetId, String fromSetId, List<String> withSetIds);
+      Future<int> sunionstore(String intoSetId, List<String> setIds);
+      Future<List<Object>> sdiff(String fromSetId, List<String> withSetIds);
+      Future<int> sdiffstore(String intoSetId, String fromSetId, List<String> withSetIds);
       Future<Object> srandmember(String setId);
 
       //LIST
       Future<List<Object>> lrange(String listId, int startingFrom, int endingAt);
       Future<int> lpush(String listId, Object value);
+      Future<int> mlpush(String listId, List<Object> values);
       Future<int> lpushx(String listId, Object value);
+      Future<int> mlpushx(String listId, List<Object> values);
       Future<int> rpush(String listId, Object value);
+      Future<int> mrpush(String listId, List<Object> values);
       Future<int> rpushx(String listId, Object value);
+      Future<int> mrpushx(String listId, List<Object> values);
       Future ltrim(String listId, int keepStartingFrom, int keepEndingAt);
       Future<int> lrem(String listId, int removeNoOfMatches, Object value);
       Future<int> llen(String listId);
@@ -170,26 +176,30 @@ The RedisNativeClient API:
 
     interface RedisNativeClient default _RedisNativeClient {
       RedisNativeClient([String connStr]);
-      
+
+      Map get stats();
+
+      int get db();
+      Future select(int db);
       Future<int> get dbsize();
       Future<int> get lastsave();
       Future flushdb();
       Future flushall();
       Future<Map> get info();
-      Future<bool> get ping();  
-      Future save();      
-      Future bgsave();      
-      Future shutdown();      
-      Future bgrewriteaof();      
-      Future quit();    
-      
-      //Keys
+      Future<bool> ping();
+      Future<List<int>> echo(List<int> value);
+      Future save();
+      Future bgsave();
+      Future shutdown();
+      Future bgrewriteaof();
+      Future quit();
+
+      //KEYS
       Future<String> type(String key);
       Future<List<int>> get(String key);
       Future<List<List<int>>> mget(List<String> keys);
       Future<List<int>> getset(String key, List<int> value);
       Future set(String key, List<int> value);
-      Future<int> strlen(String key);
       Future setex(String key, int expireInSecs, List<int> value);
       Future psetex(String key, int expireInMs, List<int> value);
       Future<bool> persist(String key);
@@ -202,56 +212,62 @@ The RedisNativeClient API:
       Future<int> incrby(String key, int count);
       Future<double> incrbyfloat(String key, double count);
       Future<int> decr(String key);
-      Future<int> decrby(String key, double count);
-      Future<int> append(String key, List<int> value);  
-      Future<List<int>> substr(String key, int fromIndex, int toIndex);  
-      Future<List<int>> getrange(String key, int fromIndex, int toIndex);  
-      Future<List<int>> setrange(String key, int offset, List<int> value);  
+      Future<int> decrby(String key, int count);
+      Future<int> strlen(String key);
+      Future<int> append(String key, List<int> value);
+      Future<List<int>> substr(String key, int fromIndex, int toIndex);
+      Future<List<int>> getrange(String key, int fromIndex, int toIndex);
+      Future<List<int>> setrange(String key, int offset, List<int> value);
       Future<int> getbit(String key, int offset);
-      Future<int> setbit(String key, int offset, int value);  
-      Future<List<int>> randomkey();  
-      Future rename(String oldKey, String newKey);  
-      Future<bool> renamenx(String oldKey, String newKey);  
-      Future<bool> expire(String key, int expireInSecs);  
-      Future<bool> pexpire(String key, int expireInMs);  
-      Future<bool> expireat(String key, int unixTimeSecs);  
-      Future<bool> pexpireat(String key, int unixTimeMs);  
+      Future<int> setbit(String key, int offset, int value);
+      Future<List<int>> randomkey();
+      Future rename(String oldKey, String newKey);
+      Future<bool> renamenx(String oldKey, String newKey);
+      Future<bool> expire(String key, int expireInSecs);
+      Future<bool> pexpire(String key, int expireInMs);
+      Future<bool> expireat(String key, int unixTimeSecs);
+      Future<bool> pexpireat(String key, int unixTimeMs);
       Future<int> ttl(String key);
       Future<int> pttl(String key);
-      
+
       //SET
-      Future<List<int>> smembers(String setId);  
-      Future<int> sadd(String setId, List<int> value);  
-      Future<int> srem(String setId, List<int> value);  
-      Future<List<int>> spop(String setId);  
-      Future smove(String fromSetId, String toSetId, List<int> value);  
+      Future<List<List<int>>> smembers(String setId);
+      Future<int> sadd(String setId, List<int> value);
+      Future<int> msadd(String setId, List<List<int>> values);
+      Future<int> srem(String setId, List<int> value);
+      Future<List<int>> spop(String setId);
+      Future<bool> smove(String fromSetId, String toSetId, List<int> value);
       Future<int> scard(String setId);
-      Future<bool> sismember(String setId, List<int> value);  
-      Future<List<List<int>>> sinter(List<String> setIds);  
-      Future sinterstore(String intoSetId, List<String> setIds);  
-      Future<List<List<int>>> sunion(List<String> setIds);  
-      Future sunionstore(String intoSetId, List<String> setIds);  
-      Future<List<List<int>>> sdiff(String fromSetId, List<String> withSetIds);  
-      Future sdiffstore(String intoSetId, String fromSetId, List<String> withSetIds);  
+      Future<bool> sismember(String setId, List<int> value);
+      Future<List<List<int>>> sinter(List<String> setIds);
+      Future<int> sinterstore(String intoSetId, List<String> setIds);
+      Future<List<List<int>>> sunion(List<String> setIds);
+      Future<int> sunionstore(String intoSetId, List<String> setIds);
+      Future<List<List<int>>> sdiff(String fromSetId, List<String> withSetIds);
+      Future<int> sdiffstore(String intoSetId, String fromSetId, List<String> withSetIds);
       Future<List<int>> srandmember(String setId);
-      
+
       //LIST
       Future<List<List<int>>> lrange(String listId, int startingFrom, int endingAt);
       Future<int> lpush(String listId, List<int> value);
+      Future<int> mlpush(String listId, List<List<int>> values);
       Future<int> lpushx(String listId, List<int> value);
+      Future<int> mlpushx(String listId, List<List<int>> values);
       Future<int> rpush(String listId, List<int> value);
+      Future<int> mrpush(String listId, List<List<int>> values);
       Future<int> rpushx(String listId, List<int> value);
+      Future<int> mrpushx(String listId, List<List<int>> values);
       Future ltrim(String listId, int keepStartingFrom, int keepEndingAt);
       Future<int> lrem(String listId, int removeNoOfMatches, List<int> value);
-      Future<int> llen(String listId);  
+      Future<int> llen(String listId);
       Future<List<int>> lindex(String listId, int listIndex);
       Future lset(String listId, int listIndex, List<int> value);
       Future<List<int>> lpop(String listId);
       Future<List<int>> rpop(String listId);
       Future<List<int>> rpoplpush(String fromListId, String toListId);
-      
+
       //SORTED SETS
-      Future<int> zadd(String setId, num score, List<int> value); 
+      Future<int> zadd(String setId, num score, List<int> value);
       Future<int> zrem(String setId, List<int> value);
       Future<double> zincrby(String setId, num incrBy, List<int> value);
       Future<int> zrank(String setId, List<int> value);
@@ -265,18 +281,18 @@ The RedisNativeClient API:
       Future<List<List<int>>> zrevrangebyscore(String setId, num min, num max, [int skip, int take]);
       Future<List<List<int>>> zrevrangebyscoreWithScores(String setId, num min, num max, [int skip, int take]);
       Future<int> zremrangebyrank(String setId, int min, int max);
-      Future<int> zremrangebyscore(String setId, num min, num max); 
+      Future<int> zremrangebyscore(String setId, num min, num max);
       Future<int> zcard(String setId);
       Future<double> zscore(String setId, List<int> value);
       Future<int> zunionstore(String intoSetId, List<String> setIds);
       Future<int> zinterstore(String intoSetId, List<String> setIds);
-  
+
       //HASH
       Future<int> hset(String hashId, String key, List<int> value);
       Future<int> hsetnx(String hashId, String key, List<int> value);
       Future hmset(String hashId, List<List<int>> keys, List<List<int>> values);
       Future<int> hincrby(String hashId, String key, int incrBy);
-      Future<double> hincrbyfloat(String hashId, String key, double incrBy);  
+      Future<double> hincrbyfloat(String hashId, String key, double incrBy);
       Future<List<int>> hget(String hashId, String key);
       Future<List<List<int>>> hmget(String hashId, List<String> keys);
       Future<int> hdel(String hashId, String key);
@@ -285,7 +301,7 @@ The RedisNativeClient API:
       Future<List<String>> hkeys(String hashId);
       Future<List<List<int>>> hvals(String hashId);
       Future<List<List<int>>> hgetall(String hashId);
-      
+
       void close();
     }
 

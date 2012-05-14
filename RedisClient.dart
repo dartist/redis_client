@@ -68,6 +68,7 @@ interface RedisClient default _RedisClient {
   //SET
   Future<List<Object>> smembers(String setId);
   Future<int> sadd(String setId, Object value);
+  Future<int> msadd(String setId, List<Object> values);
   Future<int> srem(String setId, Object value);
   Future<Object> spop(String setId);
   Future<bool> smove(String fromSetId, String toSetId, Object value);
@@ -80,14 +81,17 @@ interface RedisClient default _RedisClient {
   Future<List<Object>> sdiff(String fromSetId, List<String> withSetIds);
   Future<int> sdiffstore(String intoSetId, String fromSetId, List<String> withSetIds);
   Future<Object> srandmember(String setId);
-  Future<int> msadd(String setId, List<Object> values);
 
   //LIST
   Future<List<Object>> lrange(String listId, int startingFrom, int endingAt);
   Future<int> lpush(String listId, Object value);
+  Future<int> mlpush(String listId, List<Object> values);
   Future<int> lpushx(String listId, Object value);
+  Future<int> mlpushx(String listId, List<Object> values);
   Future<int> rpush(String listId, Object value);
+  Future<int> mrpush(String listId, List<Object> values);
   Future<int> rpushx(String listId, Object value);
+  Future<int> mrpushx(String listId, List<Object> values);
   Future ltrim(String listId, int keepStartingFrom, int keepEndingAt);
   Future<int> lrem(String listId, int removeNoOfMatches, Object value);
   Future<int> llen(String listId);
@@ -201,6 +205,7 @@ class _RedisClient implements RedisClient {
   //SET
   Future<List<Object>> smembers(String setId) => client.smembers(setId).transform((x) => x.map(toObject));
   Future<int> sadd(String setId, Object value) => client.sadd(setId, toBytes(value));
+  Future<int> msadd(String setId, List<Object> values) => client.msadd(setId, values.map((x) => toBytes(x)));
   Future<int> srem(String setId, Object value) => client.srem(setId, toBytes(value));
   Future<Object> spop(String setId) => client.spop(setId).transform(toObject);
   Future<bool> smove(String fromSetId, String toSetId, Object value) => client.smove(fromSetId, toSetId, toBytes(value));
@@ -213,24 +218,23 @@ class _RedisClient implements RedisClient {
   Future<List<Object>> sdiff(String fromSetId, List<String> withSetIds) => client.sdiff(fromSetId, withSetIds).transform((x) => x.map(toObject));
   Future<int> sdiffstore(String intoSetId, String fromSetId, List<String> withSetIds) => client.sdiffstore(intoSetId, fromSetId, withSetIds);
   Future<Object> srandmember(String setId) => client.srandmember(setId).transform(toObject);
-  Future<int> msadd(String setId, List<Object> values){
-    Completer<int> task = new Completer<int>();
-    Futures.wait(values.map((x) => sadd(setId, x))).then((counts) => task.complete($(counts).sum()));
-    return task.future;
-  }
 
   //LIST
   Future<List<Object>> lrange(String listId, int startingFrom, int endingAt) =>
       client.lrange(listId, startingFrom, endingAt).transform((x) => x.map(toObject));
   Future<int> lpush(String listId, Object value) => client.lpush(listId, toBytes(value));
+  Future<int> mlpush(String listId, List<Object> values) => client.mlpush(listId, values.map((x) => toBytes(x)));
   Future<int> lpushx(String listId, Object value) => client.lpushx(listId, toBytes(value));
+  Future<int> mlpushx(String listId, List<Object> values) => client.mlpushx(listId, values.map((x) => toBytes(x)));
   Future<int> rpush(String listId, Object value) => client.rpush(listId, toBytes(value));
+  Future<int> mrpush(String listId, List<Object> values) => client.mrpush(listId, values.map((x) => toBytes(x)));
   Future<int> rpushx(String listId, Object value) => client.rpushx(listId, toBytes(value));
+  Future<int> mrpushx(String listId, List<Object> values) => client.mrpushx(listId, values.map((x) => toBytes(x)));
   Future ltrim(String listId, int keepStartingFrom, int keepEndingAt) => client.ltrim(listId, keepStartingFrom, keepEndingAt);
   Future<int> lrem(String listId, int removeNoOfMatches, Object value) => client.lrem(listId, removeNoOfMatches, toBytes(value));
   Future<int> llen(String listId) => client.llen(listId);
   Future<Object> lindex(String listId, int listIndex) => client.lindex(listId, listIndex).transform(toObject);
-  Future lset(String listId, int listIndex, Object value) => client.lset(listId, listIndex, value);
+  Future lset(String listId, int listIndex, Object value) => client.lset(listId, listIndex, toBytes(value));
   Future<Object> lpop(String listId) => client.lpop(listId).transform(toObject);
   Future<Object> rpop(String listId) => client.rpop(listId).transform(toObject);
   Future<Object> rpoplpush(String fromListId, String toListId) => client.rpoplpush(fromListId, toListId).transform(toObject);

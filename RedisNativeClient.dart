@@ -62,6 +62,7 @@ interface RedisNativeClient default _RedisNativeClient {
   //SET
   Future<List<List<int>>> smembers(String setId);
   Future<int> sadd(String setId, List<int> value);
+  Future<int> msadd(String setId, List<List<int>> values);
   Future<int> srem(String setId, List<int> value);
   Future<List<int>> spop(String setId);
   Future<bool> smove(String fromSetId, String toSetId, List<int> value);
@@ -78,9 +79,13 @@ interface RedisNativeClient default _RedisNativeClient {
   //LIST
   Future<List<List<int>>> lrange(String listId, int startingFrom, int endingAt);
   Future<int> lpush(String listId, List<int> value);
+  Future<int> mlpush(String listId, List<List<int>> values);
   Future<int> lpushx(String listId, List<int> value);
+  Future<int> mlpushx(String listId, List<List<int>> values);
   Future<int> rpush(String listId, List<int> value);
+  Future<int> mrpush(String listId, List<List<int>> values);
   Future<int> rpushx(String listId, List<int> value);
+  Future<int> mrpushx(String listId, List<List<int>> values);
   Future ltrim(String listId, int keepStartingFrom, int keepEndingAt);
   Future<int> lrem(String listId, int removeNoOfMatches, List<int> value);
   Future<int> llen(String listId);
@@ -271,6 +276,9 @@ class _RedisNativeClient implements RedisNativeClient {
 
   Future<int> sadd(String setId, List<int> value) => conn.sendExpectInt([_Cmd.SADD, keyBytes(setId), value]);
 
+  Future<int> msadd(String setId, List<List<int>> values) =>
+      conn.sendExpectInt(_Utils.mergeCommandWithKeyAndArgs(_Cmd.SADD, setId, values));
+
   Future<int> srem(String setId, List<int> value) => conn.sendExpectInt([_Cmd.SREM, keyBytes(setId), value]);
 
   Future<List<int>> spop(String setId) => conn.sendExpectData([_Cmd.SPOP, keyBytes(setId)]);
@@ -347,14 +355,26 @@ class _RedisNativeClient implements RedisNativeClient {
   Future<int> lpush(String listId, List<int> value) =>
       conn.sendExpectInt([_Cmd.LPUSH, keyBytes(listId), value]);
 
+  Future<int> mlpush(String listId, List<List<int>> values) =>
+      conn.sendExpectInt(_Utils.mergeCommandWithKeyAndArgs(_Cmd.LPUSH, listId, values));
+
   Future<int> lpushx(String listId, List<int> value) =>
       conn.sendExpectInt([_Cmd.LPUSHX, keyBytes(listId), value]);
+
+  Future<int> mlpushx(String listId, List<List<int>> values) =>
+      conn.sendExpectInt(_Utils.mergeCommandWithKeyAndArgs(_Cmd.LPUSHX, listId, values));
 
   Future<int> rpush(String listId, List<int> value) =>
       conn.sendExpectInt([_Cmd.RPUSH, keyBytes(listId), value]);
 
+  Future<int> mrpush(String listId, List<List<int>> values) =>
+      conn.sendExpectInt(_Utils.mergeCommandWithKeyAndArgs(_Cmd.RPUSH, listId, values));
+
   Future<int> rpushx(String listId, List<int> value) =>
       conn.sendExpectInt([_Cmd.RPUSHX, keyBytes(listId), value]);
+
+  Future<int> mrpushx(String listId, List<List<int>> values) =>
+      conn.sendExpectInt(_Utils.mergeCommandWithKeyAndArgs(_Cmd.RPUSHX, listId, values));
 
   Future ltrim(String listId, int keepStartingFrom, int keepEndingAt) =>
       conn.sendExpectSuccess([_Cmd.LTRIM, keyBytes(listId), toBytes(keepStartingFrom), toBytes(keepEndingAt)]);
@@ -368,7 +388,7 @@ class _RedisNativeClient implements RedisNativeClient {
       conn.sendExpectData([_Cmd.LINDEX, keyBytes(listId), toBytes(listIndex)]);
 
   Future lset(String listId, int listIndex, List<int> value) =>
-      conn.sendExpectInt([_Cmd.LSET, keyBytes(listId), toBytes(listIndex), value]);
+      conn.sendExpectSuccess([_Cmd.LSET, keyBytes(listId), toBytes(listIndex), value]);
 
   Future<List<int>> lpop(String listId) => conn.sendExpectData([_Cmd.LPOP, keyBytes(listId)]);
 
@@ -704,6 +724,11 @@ class _Utils {
   static List<List<int>> mergeCommandWithKeyAndStringArgs(List<int> cmd, String key, List<String> args){
     args.insertRange(0, 1, key);
     return mergeCommandWithArgs(cmd, args.map((x) => x.charCodes()));
+  }
+
+  static List<List<int>> mergeCommandWithKeyAndArgs(List<int> cmd, String key, List<List<int>> args){
+    args.insertRange(0, 1, key.charCodes());
+    return mergeCommandWithArgs(cmd, args);
   }
 
   static List<List<int>> mergeCommandWithArgs(List<int> cmd, List<List<int>> args){
