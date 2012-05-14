@@ -8,26 +8,17 @@ A high-performance async/non-blocking Redis client for Dart. This project includ
 
 As all operations are async they return [Futures](http://api.dartlang.org/dart_core/Future.html) for better handling of asynchronous operations.
 
-### v.10 In development...
-Most of Redis API is now implemented with support for all ADMIN, KEYS, LIST, SETS, SORTED SETS and HASHES operations.
-The rest of this weekend will be focused on creating tests for all implemented operations.
+### v1.0 Released
+The Redis Client API is now feature complete with support for all ADMIN tasks as well as all KEYS, LISTS, SETS, SORTED SETS and HASH collections [including tests for all operations](https://github.com/mythz/DartRedisClient/blob/master/tests/RedisClientTests.dart).
 
-## RoadMap
-This is the intended roadmap following the release of v1.0:
-
-### v2.0 release (2-3 weeks)
-After the v1.0 release we'll start work on implementing the remaining functionality:
-  - Transactions, Pub/Sub, Lua/Scripts
-
-### v3.0 release (future)
-Adding automatic failover support in v3.0, sharding, fast RPC direct-pipeline using the Redis wire format with node.js/C# processes
+Follow [@demisbellot](http://twitter.com/demisbellot) for project updates.
     
 ## Example Usage
 
     RedisClient client = new RedisClient("password@localhost:6379/0");
 
-    client.set("key", "value")
-      .then((_) => client.get("key").then((val) => print("GET key = $val")) );
+    client.set("key", "value");
+    client.get("key").then((val) => print("GET key = $val"));
 
 More examples can be found in [RedisClientTests.dart](https://github.com/mythz/DartRedisClient/blob/master/tests/RedisClientTests.dart)
 
@@ -130,7 +121,9 @@ All methods with **Object** types allow you to pass and return any object, i.e. 
 
       //SORTED SET
       Future<int> zadd(String setId, num score, Object value);
+      Future<int> zmadd(String setId, Map<Object,num> scoresMap);
       Future<int> zrem(String setId, Object value);
+      Future<int> zmrem(String setId, List<Object> values);
       Future<double> zincrby(String setId, num incrBy, Object value);
       Future<int> zrank(String setId, Object value);
       Future<int> zrevrank(String setId, Object value);
@@ -148,8 +141,8 @@ All methods with **Object** types allow you to pass and return any object, i.e. 
       Future<int> zinterstore(String intoSetId, List<String> setIds);
 
       //HASH
-      Future<int> hset(String hashId, String key, Object value);
-      Future<int> hsetnx(String hashId, String key, Object value);
+      Future<bool> hset(String hashId, String key, Object value);
+      Future<bool> hsetnx(String hashId, String key, Object value);
       Future hmset(String hashId, Map<String,Object> map);
       Future<int> hincrby(String hashId, String key, int incrBy);
       Future<double> hincrbyfloat(String hashId, String key, double incrBy);
@@ -317,3 +310,23 @@ The redis clients above take a single connection string containing the password,
 Valid example:
     
     RedisClient client = new RedisClient("password@localhost:6379/0");
+
+## RoadMap
+This is the intended roadmap following the release of v1.0:
+
+### v2.0 release (2-4 weeks)
+After the v1.0 release we'll start work on implementing the remaining functionality:
+  - Transactions, Pub/Sub, Lua/Scripts
+
+### v3.0 release (future)
+Adding automatic failover support in v3.0, sharding, fast RPC direct-pipeline using the Redis wire format with node.js/C# processes
+
+## Contributors
+
+  - [mythz](https://github.com/mythz) (Demis Bellot)
+
+
+### Feedback 
+
+Feedback and contributions are welcome.
+

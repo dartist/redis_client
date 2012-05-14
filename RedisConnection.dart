@@ -186,7 +186,11 @@ class _RedisConnection implements RedisConnection {
     while (true) {
       if (pendingReads.length == 0) return;
       ExpectRead expectRead = pendingReads.first(); //peek + read next in queue
-      if (!expectRead.execute(_wrapper)) return;
+      try{
+        if (!expectRead.execute(_wrapper)) return;
+      }catch(var e){
+        logError("ERROR parsing read: $e");
+      }
       pendingReads.removeFirst(); //pop if success
     }
   }
@@ -528,7 +532,12 @@ class _Utils {
           ret.add(dataTask.future.value);
         }
 
-        task.complete(ret);
+        try{
+          task.complete(ret);
+        }catch(var e){
+          logError("readMultiData: task.complete(ret): $e");
+          throw e;
+        }
       } else {
         task.completeException(createError("Unknown reply on integer response: $c$line"));
       }

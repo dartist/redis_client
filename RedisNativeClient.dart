@@ -97,7 +97,9 @@ interface RedisNativeClient default _RedisNativeClient {
 
   //SORTED SETS
   Future<int> zadd(String setId, num score, List<int> value);
+  Future<int> zmadd(String setId, List<List<int>> scoresAndValues);
   Future<int> zrem(String setId, List<int> value);
+  Future<int> zmrem(String setId, List<List<int>> values);
   Future<double> zincrby(String setId, num incrBy, List<int> value);
   Future<int> zrank(String setId, List<int> value);
   Future<int> zrevrank(String setId, List<int> value);
@@ -117,8 +119,8 @@ interface RedisNativeClient default _RedisNativeClient {
   Future<int> zinterstore(String intoSetId, List<String> setIds);
 
   //HASH
-  Future<int> hset(String hashId, String key, List<int> value);
-  Future<int> hsetnx(String hashId, String key, List<int> value);
+  Future<bool> hset(String hashId, String key, List<int> value);
+  Future<bool> hsetnx(String hashId, String key, List<int> value);
   Future hmset(String hashId, List<List<int>> keys, List<List<int>> values);
   Future<int> hincrby(String hashId, String key, int incrBy);
   Future<double> hincrbyfloat(String hashId, String key, double incrBy);
@@ -401,8 +403,14 @@ class _RedisNativeClient implements RedisNativeClient {
   Future<int> zadd(String setId, num score, List<int> value) =>
       conn.sendExpectInt([_Cmd.ZADD, keyBytes(setId), toBytes(score), value]);
 
+  Future<int> zmadd(String setId, List<List<int>> scoresAndValues) =>
+    conn.sendExpectInt(_Utils.mergeCommandWithKeyAndArgs(_Cmd.ZADD, setId, scoresAndValues));
+
   Future<int> zrem(String setId, List<int> value) =>
       conn.sendExpectInt([_Cmd.ZREM, keyBytes(setId), value]);
+
+  Future<int> zmrem(String setId, List<List<int>> values) =>
+      conn.sendExpectInt(_Utils.mergeCommandWithKeyAndArgs(_Cmd.ZREM, setId, values));
 
   Future<double> zincrby(String setId, num incrBy, List<int> value) =>
       conn.sendExpectDouble([_Cmd.ZINCRBY, keyBytes(setId), toBytes(incrBy), value]);
@@ -414,7 +422,7 @@ class _RedisNativeClient implements RedisNativeClient {
   Future<List<List<int>>> _zrange(List<int> cmdBytes, String setId, int min, int max, [bool withScores=false]){
     List<List<int>> cmdWithArgs = [cmdBytes, keyBytes(setId), toBytes(min), toBytes(max)];
     if (withScores) cmdWithArgs.add(_Cmd.WITHSCORES);
-    conn.sendExpectMultiData(cmdWithArgs);
+    return conn.sendExpectMultiData(cmdWithArgs);
   }
 
   Future<List<List<int>>> zrange(String setId, int min, int max) =>
@@ -437,7 +445,7 @@ class _RedisNativeClient implements RedisNativeClient {
       cmdWithArgs.add(toBytes(take == null ? 0 : take));
     }
     if (withScores) cmdWithArgs.add(_Cmd.WITHSCORES);
-    conn.sendExpectMultiData(cmdWithArgs);
+    return conn.sendExpectMultiData(cmdWithArgs);
   }
 
   Future<List<List<int>>> zrangebyscore(String setId, num min, num max, [int skip, int take]) =>
@@ -460,7 +468,7 @@ class _RedisNativeClient implements RedisNativeClient {
 
   Future<int> zcard(String setId) => conn.sendExpectInt([_Cmd.ZCARD, keyBytes(setId)]);
 
-  Future<double> zscore(String setId, List<int> value) => conn.sendExpectDouble([_Cmd.ZSCORE, value]);
+  Future<double> zscore(String setId, List<int> value) => conn.sendExpectDouble([_Cmd.ZSCORE, keyBytes(setId), value]);
 
   Future<int> zunionstore(String intoSetId, List<String> setIds){
     setIds.insertRange(0, 1, setIds.length.toString());
@@ -475,20 +483,20 @@ class _RedisNativeClient implements RedisNativeClient {
   }
 
   //HASH
-  Future<int> hset(String hashId, String key, List<int> value) =>
-      conn.sendExpectInt([_Cmd.HSET, keyBytes(hashId), keyBytes(key), toBytes(value)]);
+  Future<bool> hset(String hashId, String key, List<int> value) =>
+      conn.sendExpectIntSuccess([_Cmd.HSET, keyBytes(hashId), keyBytes(key), value]);
 
-  Future<int> hsetnx(String hashId, String key, List<int> value) =>
-      conn.sendExpectInt([_Cmd.HSETNX, keyBytes(hashId), keyBytes(key), toBytes(value)]);
+  Future<bool> hsetnx(String hashId, String key, List<int> value) =>
+      conn.sendExpectIntSuccess([_Cmd.HSETNX, keyBytes(hashId), keyBytes(key), value]);
 
   Future hmset(String hashId, List<List<int>> keys, List<List<int>> values) =>
     conn.sendExpectSuccess(_Utils.mergeParamsWithKeysAndValues([_Cmd.HMSET, keyBytes(hashId)], keys, values));
 
   Future<int> hincrby(String hashId, String key, int incrBy) =>
-      conn.sendExpectInt([_Cmd.HINRYBY, keyBytes(hashId), keyBytes(key), toBytes(incrBy)]);
+      conn.sendExpectInt([_Cmd.HINCRBY, keyBytes(hashId), keyBytes(key), toBytes(incrBy)]);
 
   Future<double> hincrbyfloat(String hashId, String key, double incrBy) =>
-      conn.sendExpectDouble([_Cmd.HINRYBYFLOAT, keyBytes(hashId), keyBytes(key), toBytes(incrBy)]);
+      conn.sendExpectDouble([_Cmd.HINCRBYFLOAT, keyBytes(hashId), keyBytes(key), toBytes(incrBy)]);
 
   Future<List<int>> hget(String hashId, String key) =>
       conn.sendExpectData([_Cmd.HGET, keyBytes(hashId), keyBytes(key)]);
@@ -662,8 +670,8 @@ class _Cmd {
   static get HSET() => "HSET".charCodes();
   static get HSETNX() => "HSETNX".charCodes();
   static get HMSET() => "HMSET".charCodes();
-  static get HINRYBY() => "HINRYBY".charCodes();
-  static get HINRYBYFLOAT() => "HINRYBYFLOAT".charCodes();
+  static get HINCRBY() => "HINCRBY".charCodes();
+  static get HINCRBYFLOAT() => "HINCRBYFLOAT".charCodes();
   static get HGET() => "HGET".charCodes();
   static get HMGET() => "HMGET".charCodes();
   static get HDEL() => "HDEL".charCodes();

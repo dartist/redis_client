@@ -7,7 +7,7 @@
 #import("dart:io");
 
 RedisClientTests (){
-  bool runLongRunningTests = false;
+  bool runLongRunningTests = true;
 
   RedisClient client = new RedisClient();
 
@@ -300,6 +300,65 @@ RedisClientTests (){
 
     client.llen("rlistkey").then((len){
       equal(len, items.length, "LLEN");
+      start();
+    });
+  });
+
+  asyncTest("SORTED SET: ", (){
+    Map<Object,num> items = {"A":1,"B":2,"C":3,"C#":3.5,"D":4};
+
+    client.zmadd("zsetkey", items).then((len) => equal(len, items.length, "zmadd map with int,double keys and String values"));
+    client.zscore("zsetkey", "C#").then((score) => equal(score, 3.5, "ZSCORE"));
+    client.zrange("zsetkey", 0, -1).then((values) => deepEqual(values, items.getKeys(), "ZRANGE"));
+    client.zrangeWithScores("zsetkey", 0, -1).then((map) => deepEqual(map, items, "ZRANGE with scores"));
+    client.zrank("zsetkey", "C#").then((x) => equal(x,3,"ZRANK"));
+    client.zrevrank("zsetkey", "C#").then((x) => equal(x,1,"ZREVRANK"));
+    client.zmrem("zsetkey", ["B","C"]).then((len) => equal(len,2,"ZREM"));
+    client.zrevrange("zsetkey", 0, -1).then((values) => deepEqual(values, ["D","C#","A"], "ZREVRANGE"));
+    client.zrevrangeWithScores("zsetkey", 0, -1).then((map) => deepEqual(map, {"A":1,"C#":3.5,"D":4}, "ZREVRANGE with scores"));
+    client.zrangebyscore("zsetkey", 2, 10).then((values) => deepEqual(values, ["C#","D"], "ZRANGEBYSCORE"));
+    client.zrangebyscoreWithScores("zsetkey", 2, 10).then((values) => deepEqual(values, {"C#":3.5,"D":4}, "ZRANGEBYSCORE with scores"));
+    client.zadd("zsetkey", 2, "B");
+    client.zadd("zsetkey", 3, "C");
+    client.zremrangebyrank("zsetkey", 3, 5).then((len) => equal(len,2,"ZREMRANGEBYRANK count of items removed"));
+    client.zrange("zsetkey", 0, -1).then((values) => deepEqual(values, ["A","B","C"], "ZREMRANGEBYRANK remaining set"));
+    client.zmadd("zsetkey", {"C#":3.5,"D":4});
+    client.zremrangebyscore("zsetkey", 0.5, 2.5).then((len) => equal(len,2,"ZREMRANGEBYSCORE count of items removed"));
+    client.zrange("zsetkey", 0, -1).then((values) => deepEqual(values, ["C","C#","D"], "ZREMRANGEBYRANK remaining set"));
+
+    client.zmadd("zsetkey", {"A":1,"B":2,"C":3,"C#":3.5,"D":4});
+    client.zmadd("zsetkey2", {"C#":3.5,"D":4,"E":20});
+    client.zinterstore("zinter", ["zsetkey","zsetkey2"]).then((len) => equal(len,["C#","D"].length, "ZINTERSTORE returns new set count"));
+    client.zrange("zinter", 0, -1).then((values) => deepEqual(values, ["C#","D"], "ZINTERSTORE new set"));
+    client.zunionstore("zunion", ["zsetkey","zsetkey2"]).then((len) => equal(len,items.length + 1, "ZUNIONSTORE returns new set count"));
+    client.zrange("zunion", 0, -1).then((values) => deepEqual(values, ["A","B","C","C#","D","E"], "ZUNIONSTORE new set"));
+
+    client.zcard("zsetkey").then((len) {
+      equal(len, items.length, "ZCARD");
+      start();
+    });
+
+  });
+
+  asyncTest("HASH: ", (){
+    Map<String,int> items = {"A":1,"B":2,"C":3,"D":4};
+    client.hmset("hashkey", items);
+    client.hkeys("hashkey").then((keys) => deepEqual(keys,items.getKeys(),"HKEYS"));
+    client.hvals("hashkey").then((vals) => deepEqual(vals,items.getValues(),"HVALS"));
+    client.hgetall("hashkey").then((map) => deepEqual(map,items,"HGETALL"));
+    client.hsetnx("hashkey", "D", 5).then((success) => ok(!success, "HSETNX doesn't set existing key"));
+    client.hsetnx("hashkey", "E", 10).then((success) => ok(success, "HSETNX updates new key"));
+    client.hset("hashkey", "E", 5).then((isNewKey) => ok(!isNewKey, "HSET sets new key"));
+    client.hincrby("hashkey", "E", 2).then((x) => equal(x, 5+2, "HINCRBY existing key"));
+    client.hincrbyfloat("hashkey", "E", 2.5).then((x) => equal(x, 5+2+2.5, "HINCRBYFLOAT existing key"));
+    client.hget("hashkey", "C").then((x) => equal(x, 3, "HGET existing key"));
+    client.hget("hashkey", "F").then((x) => isNull(x, "HGET non-existing key"));
+    client.hexists("hashkey", "C").then((exists) => ok(exists, "HEXISTS existing key"));
+    client.hexists("hashkey", "F").then((exists) => ok(!exists, "HEXISTS non-existing key"));
+    client.hdel("hashkey", "E").then((count) => equal(count,1,"HDEL existing key"));
+
+    client.hlen("hashkey").then((len) {
+      equal(len,items.length, "HMSET count");
       start();
     });
   });
