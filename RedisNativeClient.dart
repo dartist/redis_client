@@ -64,15 +64,15 @@ interface RedisNativeClient default _RedisNativeClient {
   Future<int> sadd(String setId, List<int> value);
   Future<int> srem(String setId, List<int> value);
   Future<List<int>> spop(String setId);
-  Future smove(String fromSetId, String toSetId, List<int> value);
+  Future<bool> smove(String fromSetId, String toSetId, List<int> value);
   Future<int> scard(String setId);
   Future<bool> sismember(String setId, List<int> value);
   Future<List<List<int>>> sinter(List<String> setIds);
-  Future sinterstore(String intoSetId, List<String> setIds);
+  Future<int> sinterstore(String intoSetId, List<String> setIds);
   Future<List<List<int>>> sunion(List<String> setIds);
-  Future sunionstore(String intoSetId, List<String> setIds);
+  Future<int> sunionstore(String intoSetId, List<String> setIds);
   Future<List<List<int>>> sdiff(String fromSetId, List<String> withSetIds);
-  Future sdiffstore(String intoSetId, String fromSetId, List<String> withSetIds);
+  Future<int> sdiffstore(String intoSetId, String fromSetId, List<String> withSetIds);
   Future<List<int>> srandmember(String setId);
 
   //LIST
@@ -275,33 +275,33 @@ class _RedisNativeClient implements RedisNativeClient {
 
   Future<List<int>> spop(String setId) => conn.sendExpectData([_Cmd.SPOP, keyBytes(setId)]);
 
-  Future smove(String fromSetId, String toSetId, List<int> value) =>
-      conn.sendExpectSuccess([_Cmd.SMOVE, keyBytes(fromSetId), keyBytes(toSetId), value]);
+  Future<bool> smove(String fromSetId, String toSetId, List<int> value) =>
+      conn.sendExpectIntSuccess([_Cmd.SMOVE, keyBytes(fromSetId), keyBytes(toSetId), value]);
 
   Future<int> scard(String setId) => conn.sendExpectInt([_Cmd.SCARD, keyBytes(setId)]);
 
   Future<bool> sismember(String setId, List<int> value) =>
-      conn.sendExpectSuccess([_Cmd.SISMEMBER, keyBytes(setId), value]);
+      conn.sendExpectIntSuccess([_Cmd.SISMEMBER, keyBytes(setId), value]);
 
   Future<List<List<int>>> sinter(List<String> setIds) =>
       conn.sendExpectMultiData(_Utils.mergeCommandWithStringArgs(_Cmd.SINTER, setIds));
 
-  Future sinterstore(String intoSetId, List<String> setIds) =>
-      conn.sendExpectSuccess(_Utils.mergeCommandWithStringArgs(_Cmd.SINTERSTORE, $(setIds).insert(0, intoSetId)));
+  Future<int> sinterstore(String intoSetId, List<String> setIds) =>
+      conn.sendExpectInt(_Utils.mergeCommandWithStringArgs(_Cmd.SINTERSTORE, $(setIds).insert(0, intoSetId)));
 
   Future<List<List<int>>> sunion(List<String> setIds) =>
       conn.sendExpectMultiData(_Utils.mergeCommandWithStringArgs(_Cmd.SUNION, setIds));
 
-  Future sunionstore(String intoSetId, List<String> setIds) =>
-      conn.sendExpectSuccess(_Utils.mergeCommandWithStringArgs(_Cmd.SUNIONSTORE, $(setIds).insert(0, intoSetId)));
+  Future<int> sunionstore(String intoSetId, List<String> setIds) =>
+      conn.sendExpectInt(_Utils.mergeCommandWithStringArgs(_Cmd.SUNIONSTORE, $(setIds).insert(0, intoSetId)));
 
   Future<List<List<int>>> sdiff(String fromSetId, List<String> withSetIds) =>
       conn.sendExpectMultiData(_Utils.mergeCommandWithStringArgs(_Cmd.SDIFF, $(withSetIds).insert(0, fromSetId)));
 
-  Future sdiffstore(String intoSetId, String fromSetId, List<String> withSetIds){
+  Future<int> sdiffstore(String intoSetId, String fromSetId, List<String> withSetIds){
     withSetIds.insertRange(0, 1, fromSetId);
     withSetIds.insertRange(0, 1, intoSetId);
-    return conn.sendExpectSuccess(_Utils.mergeCommandWithStringArgs(_Cmd.SDIFFSTORE, withSetIds));
+    return conn.sendExpectInt(_Utils.mergeCommandWithStringArgs(_Cmd.SDIFFSTORE, withSetIds));
   }
 
   Future<List<int>> srandmember(String setId) => conn.sendExpectData([_Cmd.SRANDMEMBER, keyBytes(setId)]);

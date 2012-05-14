@@ -374,7 +374,7 @@ class _Utils {
     //print("$arg");
   }
   static void logError(arg){
-    //print("$arg");
+    print("$arg");
   }
 
   static Exception createError(arg){
@@ -442,12 +442,17 @@ class _Utils {
 
   static void readInt(InputStream stream, Completer task){
     parseLine(stream, task, (int c, String line) {
-      try {
-        if (c == COLON || c == DOLLAR){
-          task.complete(Math.parseInt(line));
+      if (c == COLON || c == DOLLAR){
+        int ret = null;
+        try {
+          ret = Math.parseInt(line);
+        }catch (var e){
+          task.completeException(createError("Unknown reply in readInt: $c/$line"));
           return;
         }
-      }catch (var e){ logError("readInt: $e"); }
+        task.complete(ret);
+        return;
+      }
       task.completeException(createError("Unknown reply on integer response: $c/$line"));
     });
   }
@@ -465,62 +470,68 @@ class _Utils {
         return;
       }
 
+      int count;
       try {
-        int count = Math.parseInt(line.substring(1));
-        if (stream.available() < count) return;
+        count = Math.parseInt(line.substring(1));
+      }catch (var e){
+        task.completeException(createError("readData: Invalid length: $line: $e"));
+        return null;
+      }
+      if (stream.available() < count) return;
 
-        int offset = 0;
-        List<int> buffer = stream.read(count);
+      int offset = 0;
+      List<int> buffer = stream.read(count);
 
-        List<int> eol = stream.read(2);
-        if (eol.length != 2 || eol[0] != _Utils.CR || eol[1] != _Utils.LF)
-          task.completeException(createError("Invalid termination: $eol"));
-        else
-          task.complete(buffer);
-
-        return;
-      }catch (var e){ logError("readData: $e"); }
-      task.completeException(createError("Invalid length: $line"));
-      return;
+      List<int> eol = stream.read(2);
+      if (eol.length != 2 || eol[0] != _Utils.CR || eol[1] != _Utils.LF){
+        task.completeException(createError("Invalid termination: $eol"));
+      }
+      else{
+        task.complete(buffer);
+      }
     }
-    if (c == COLON){
+    else if (c == COLON){
       task.complete(bytes.getRange(1, bytes.length -1));
       return;
+    } else {
+      task.completeException(createError("Unexpected reply: $line"));
     }
-    task.completeException(createError("Unexpected reply: $line"));
  }
 
   static void readMultiData(InputStream stream, Completer task){
     parseLine(stream, task, (int c, String line) {
-      try{
-        if (c == ASTERIX){
-          int dataCount = Math.parseInt(line);
-          List<List<int>> ret = new List<List<int>>();
-          if (dataCount == -1){
-            task.complete(ret);
-            return;
-          }
-
-          for (int i=0; i<dataCount; i++){
-            Completer<List<int>> dataTask = new Completer<List<int>>();
-            readData(stream, dataTask);
-
-            if (!dataTask.future.isComplete) {
-              task.completeException(createError("readMultiData: Expected synchronus result, aborting..."));
-              return;
-            }
-            if (dataTask.future.exception != null) {
-              task.completeException(dataTask.future.exception);
-              return;
-            }
-            ret.add(dataTask.future.value);
-          }
-
+      if (c == ASTERIX){
+        int dataCount = null;
+        try{
+          dataCount = Math.parseInt(line);
+        }catch (var e){
+          task.completeException(createError("readMultiData: Unknown reply on integer response: $c$line: $e"));
+          return;
+        }
+        List<List<int>> ret = new List<List<int>>();
+        if (dataCount == -1){
           task.complete(ret);
           return;
         }
-      }catch (var e){ logError("readMultiData: $e"); }
-      task.completeException(createError("Unknown reply on integer response: $c$line"));
+
+        for (int i=0; i<dataCount; i++){
+          Completer<List<int>> dataTask = new Completer<List<int>>();
+          readData(stream, dataTask);
+          if (!dataTask.future.isComplete) {
+            task.completeException(createError("readMultiData: Expected synchronus result, aborting..."));
+            return;
+          }
+          if (dataTask.future.exception != null) {
+            task.completeException(dataTask.future.exception);
+            return;
+          }
+          ret.add(dataTask.future.value);
+        }
+
+        task.complete(ret);
+      } else {
+        task.completeException(createError("Unknown reply on integer response: $c$line"));
+      }
     });
   }
 

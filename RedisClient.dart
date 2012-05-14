@@ -1,6 +1,7 @@
 #library("RedisClient");
 #import("dart:io");
 #import("dart:json");
+#import("Mixin.dart");
 #import("RedisConnection.dart");
 #import("RedisNativeClient.dart");
 
@@ -69,15 +70,17 @@ interface RedisClient default _RedisClient {
   Future<int> sadd(String setId, Object value);
   Future<int> srem(String setId, Object value);
   Future<Object> spop(String setId);
-  Future smove(String fromSetId, String toSetId, Object value);
+  Future<bool> smove(String fromSetId, String toSetId, Object value);
   Future<int> scard(String setId);
   Future<bool> sismember(String setId, Object value);
   Future<List<Object>> sinter(List<String> setIds);
-  Future sinterstore(String intoSetId, List<String> setIds);
+  Future<int> sinterstore(String intoSetId, List<String> setIds);
   Future<List<Object>> sunion(List<String> setIds);
-  Future sunionstore(String intoSetId, List<String> setIds);
-  Future sdiffstore(String intoSetId, String fromSetId, List<String> withSetIds);
+  Future<int> sunionstore(String intoSetId, List<String> setIds);
+  Future<List<Object>> sdiff(String fromSetId, List<String> withSetIds);
+  Future<int> sdiffstore(String intoSetId, String fromSetId, List<String> withSetIds);
   Future<Object> srandmember(String setId);
+  Future<int> msadd(String setId, List<Object> values);
 
   //LIST
   Future<List<Object>> lrange(String listId, int startingFrom, int endingAt);
@@ -200,15 +203,21 @@ class _RedisClient implements RedisClient {
   Future<int> sadd(String setId, Object value) => client.sadd(setId, toBytes(value));
   Future<int> srem(String setId, Object value) => client.srem(setId, toBytes(value));
   Future<Object> spop(String setId) => client.spop(setId).transform(toObject);
-  Future smove(String fromSetId, String toSetId, Object value) => client.smove(fromSetId, toSetId, toBytes(value));
+  Future<bool> smove(String fromSetId, String toSetId, Object value) => client.smove(fromSetId, toSetId, toBytes(value));
   Future<int> scard(String setId) => client.scard(setId);
   Future<bool> sismember(String setId, Object value) => client.sismember(setId, toBytes(value));
   Future<List<Object>> sinter(List<String> setIds) => client.sinter(setIds).transform((x) => x.map(toObject));
-  Future sinterstore(String intoSetId, List<String> setIds) => client.sinterstore(intoSetId, setIds);
+  Future<int> sinterstore(String intoSetId, List<String> setIds) => client.sinterstore(intoSetId, setIds);
   Future<List<Object>> sunion(List<String> setIds) => client.sunion(setIds).transform((x) => x.map(toObject));
-  Future sunionstore(String intoSetId, List<String> setIds) => client.sunionstore(intoSetId, setIds);
-  Future sdiffstore(String intoSetId, String fromSetId, List<String> withSetIds) => client.sdiffstore(intoSetId, fromSetId, withSetIds);
+  Future<int> sunionstore(String intoSetId, List<String> setIds) => client.sunionstore(intoSetId, setIds);
+  Future<List<Object>> sdiff(String fromSetId, List<String> withSetIds) => client.sdiff(fromSetId, withSetIds).transform((x) => x.map(toObject));
+  Future<int> sdiffstore(String intoSetId, String fromSetId, List<String> withSetIds) => client.sdiffstore(intoSetId, fromSetId, withSetIds);
   Future<Object> srandmember(String setId) => client.srandmember(setId).transform(toObject);
+  Future<int> msadd(String setId, List<Object> values){
+    Completer<int> task = new Completer<int>();
+    Futures.wait(values.map((x) => sadd(setId, x))).then((counts) => task.complete($(counts).sum()));
+    return task.future;
+  }
 
   //LIST
   Future<List<Object>> lrange(String listId, int startingFrom, int endingAt) =>
@@ -297,6 +306,11 @@ class _RedisClient implements RedisClient {
       values.add(toBytes(map[key]));
     }
     return new _Tuple(keys,values);
+  }
+
+  dump(arg){
+    print(arg);
+    return arg;
   }
 }
 

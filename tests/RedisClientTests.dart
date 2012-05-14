@@ -1,5 +1,6 @@
 #library("RedisConnectionTests");
 #import("../DUnit.dart");
+#import("../Mixin.dart");
 #import("../RedisConnection.dart");
 #import("../RedisNativeClient.dart");
 #import("../RedisClient.dart");
@@ -8,7 +9,7 @@
 RedisClientTests (){
   bool runLongRunningTests = true;
 
-  var client = new RedisClient();
+  RedisClient client = new RedisClient();
 
   module("RedisClient",
     startup:(Function cb) {
@@ -39,7 +40,7 @@ RedisClientTests (){
     });
   });
 
-  asyncTest("KEYS: GET, SET, GETSET RANDOMKEY RENAME RENAMENX", (){
+  asyncTest("KEYS: GET, SET, GETSET RANDOMKEY RENAME RENAMENX TTL PTTL", (){
     client.set("key", "value").then((_){
       client.get("key").then((res) {
          equal(res, "value", "GET, SET");
@@ -68,7 +69,7 @@ RedisClientTests (){
     });
   });
 
-  asyncTest("KEYS: MSET, MGET, DEL, MDEL", (){
+  asyncTest("KEYS: MSET, MSETNX, MGET, DEL, MDEL", (){
     var map = {'MSET-A':1,'MSET-B':2,'MSET-C':3,'MSET-D':4,'MSET-E':5};
     client.mset(map).then((_){
       client.mget(['MSET-A','MSET-B','MSET-C','MSET-D','MSET-E']).then((values) =>
@@ -82,8 +83,14 @@ RedisClientTests (){
       client.mdel(["MSET-C","MSET-D"]).then((count) {
         equal(count,2,"DEL returns number of multiple deleted keys");
         client.get('MSET-C').then((val) => isNull(val, "MDEL delets key"));
-        client.get('MSET-D').then((val) {
-          isNull(val, "MDEL delets key");
+        client.get('MSET-D').then((val) => isNull(val, "MDEL delets key"));
+
+        client.msetnx(map).then((success) => ok(!success, "MSETNX - doesn't set map if some keys exist"));
+
+        Map mapnx = {};
+        map.forEach((k,v) => mapnx["NX$k"] = v);
+        client.msetnx(mapnx).then((success) {
+          ok(success, "MSETNX - sets map when all keys don't exist");
           start();
         });
       });
@@ -116,8 +123,22 @@ RedisClientTests (){
       client.set("keyAt", "expires in 1 sec");
       client.expireat("keyAt", in1Sec).then((_){
         client.get("keyAt").then((val) => isNotNull(val,"EXPIREAT: doesn't expire immediately"));
-        new Timer(1500, (__) => client.get("key").then((val) =>
+        new Timer(1500, (__) => client.get("keyAt").then((val) =>
             isNull(val,"EXPIREAT: expires after 1s")));
+      });
+      client.set("pkeyAt", "expires in 1 sec");
+      client.pexpireat("pkeyAt", in1Sec).then((_){
+        client.get("pkeyAt").then((val) => isNotNull(val,"PEXPIREAT: doesn't expire immediately"));
+        new Timer(1500, (__) => client.get("pkeyAt").then((val) =>
+            isNull(val,"EXPIREAT: expires after 1s")));
+      });
+
+      client.setex("ttlkey",10,"expire in 10 secs");
+      client.ttl("ttlkey").then((ttlSecs) {
+        ok(ttlSecs <= 10, "TTL $ttlSecs < 10s");
+      });
+      client.ttl("ttlkey").then((ttlMs) {
+        ok(ttlMs <= 10000, "TTL $ttlMs < 10ms");
       });
 
       client.psetex("keyExMs", 1000, "expires in 1 sec").then((_){
@@ -189,7 +210,7 @@ RedisClientTests (){
         client.decr("counter").then((counter3){
           equal(counter3, 1 + 10 - 1, "DECR decrements existing key");
 
-          client.raw.decrby("counter", 5).then((counter4){
+          client.decrby("counter", 5).then((counter4){
             equal(counter4, 1 + 10 - 1 - 5, "DECRBY decrements existing key");
             start();
           });
@@ -212,15 +233,48 @@ RedisClientTests (){
     });
     client.setbit("bits", 5, 1).then((oldBit) {
       equal(oldBit, 0, "SETBIT oldbit on new key == 0");
-      client.get("bits").then((val) => equal(val, "00001", "SETBIT fills missing index with 0"));
     });
+    client.getbit("bits", 4).then((bit) => equal(bit, 0, "GETBIT preceeding bits are filled with '0'"));
     client.getbit("bits", 5).then((bit){
       equal(bit,1, "GETBIT");
       start();
     });
   });
 
+  asyncTest("SETS: SMEMBERS, SADD, SREM, SPOP, SMOVE, SCARD, SISMEMBER"
+    ", SINTER, SINTERSTORE, SUNION, SUNIONSTORE, SDIFFSTORE, SRANDMEMBER", (){
+      List items = ["A","B","C","D"];
+      List items2 = ["C","D","E","F"];
+      client.smembers("setkey").then((x) => equal(x.length, 0, "SMEMBERS empty set returns 0 results"));
+      client.msadd("setkey",items).then((itemsLen) {
+        equal(itemsLen, items.length, "MSADD returns set length");
+        client.srandmember("setkey").then((x) => ok(items.indexOf(x)>=0, "SRANDMEMBER returns item from existing set"));
+        client.scard("setkey").then((len) => equal(len, items.length, "SCARD length of existing set"));
+        client.spop("setkey").then((popped) {
+          ok(items.indexOf(popped)>=0, "SPOP pops from existing set");
+          client.scard("setkey").then((len) => equal(len, items.length-1, "SCARD length of existing set"));
+          client.sadd("setkey", popped);
+          client.smembers("setkey").then((x) => deepEqual($(x).sort(), items, "SADD adds to existing set"));
+          client.sismember("setkey", "F").then((exists) => ok(!exists, "SISMEMBER false for non-member"));
+          client.sismember("setkey", "A").then((exists) => ok(exists, "SISMEMBER true for member"));
 
+          client.msadd("setkey2",items2).then((_){
+            client.sinter(["setkey","setkey2"]).then((intersect) => deepEqual($(intersect).sort(), ["C","D"], "SINTER"));
+            client.sinterstore("inter",["setkey","setkey2"]).then((len) => equal(len, 2, "SINTERSTORE returns length"));
+            client.smembers("inter").then((intersect) => deepEqual($(intersect).sort(), ["C","D"], "SINTERSTORE at key"));
+            client.sunion(["setkey","setkey2"]).then((union) => deepEqual($(union).sort(), ["A","B","C","D","E","F"], "SUNION"));
+            client.sunionstore("union",["setkey","setkey2"]).then((len) => equal(len, 6, "SUNIONSTORE returns length"));
+            client.smembers("union").then((intersect) => deepEqual($(intersect).sort(), ["A","B","C","D","E","F"], "SINTERSTORE at key"));
+            client.sdiff("setkey", ["setkey2"]).then((diff) => deepEqual($(diff).sort(), ["A","B"], "SDIFF"));
+            client.sdiffstore("diff","setkey", ["setkey2"]).then((len) => equal(len, 2, "SDIFFSTORE returns length"));
+            client.smembers("diff").then((diff) {
+              deepEqual($(diff).sort(), ["A","B"], "SDIFFSTORE at key");
+              start();
+            });
+          });
+        });
+      });
+  });
 
   new Timer(3000, (_) {
     print("\nRedisClient stats:");
