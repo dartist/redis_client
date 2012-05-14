@@ -56,7 +56,7 @@ ok(actual, msg) =>
 
 Function _start;
 Function _next;
-start() => _start();
+start([ignore]) => _start();
 
 raises(actualFn, expectedTypeFn, msg) {
   try {
@@ -146,9 +146,9 @@ runAllTests([bool hidePassedTests=false]){
         _test.func();
       }
     }
-//UnComment to catch and report errors
+/*UnComment to catch and report errors*/
 //    catch(final e){
-//      error = "Error while running $testType test #$testNo in $moduleName: $testName\n$e";
+//      print("Error while running test #$testNo in $moduleName: ${_test.testName}\n$e");
 //    }
     finally {}
     if (!_test.isAsync) start();

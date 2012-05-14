@@ -8,12 +8,15 @@ interface RedisNativeClient default _RedisNativeClient {
 
   Map get stats();
 
+  int get db();
+  Future select(int db);
   Future<int> get dbsize();
   Future<int> get lastsave();
   Future flushdb();
   Future flushall();
   Future<Map> get info();
   Future<bool> ping();
+  Future<List<int>> echo(List<int> value);
   Future save();
   Future bgsave();
   Future shutdown();
@@ -140,6 +143,9 @@ class _RedisNativeClient implements RedisNativeClient {
     return key.charCodes();
   }
 
+  int get db() => conn.db;
+  Future select(int db) => conn.select(db);
+
   Future<int> get dbsize() => conn.sendExpectInt([_Cmd.DBSIZE]);
 
   Future<int> get lastsave() => conn.sendExpectInt([_Cmd.LASTSAVE]);
@@ -172,6 +178,8 @@ class _RedisNativeClient implements RedisNativeClient {
 
   Future<bool> ping() => conn.sendExpectCode([_Cmd.PING]).transform((String r) => r == "PONG");
 
+  Future<List<int>> echo(List<int> value) => conn.sendExpectData([_Cmd.ECHO, value]);
+
   Future<String> type(String key) => conn.sendExpectCode([_Cmd.TYPE, keyBytes(key)]);
 
   Future<List<int>> get(String key) =>
@@ -190,7 +198,7 @@ class _RedisNativeClient implements RedisNativeClient {
       conn.sendExpectSuccess([_Cmd.SETEX, keyBytes(key), toBytes(expireInSecs), value]);
 
   Future psetex(String key, int expireInMs, List<int> value) =>
-      conn.sendExpectSuccess([_Cmd.SETEX, keyBytes(key), toBytes(expireInMs), value]);
+      conn.sendExpectSuccess([_Cmd.PSETEX, keyBytes(key), toBytes(expireInMs), value]);
 
   Future<bool> persist(String key) => conn.sendExpectIntSuccess([_Cmd.PERSIST, keyBytes(key)]);
 
@@ -246,7 +254,7 @@ class _RedisNativeClient implements RedisNativeClient {
       conn.sendExpectIntSuccess([_Cmd.EXPIRE, keyBytes(key), toBytes(expireInSecs)]);
 
   Future<bool> pexpire(String key, int expireInMs) =>
-      conn.sendExpectIntSuccess([_Cmd.EXPIRE, keyBytes(key), toBytes(expireInMs)]);
+      conn.sendExpectIntSuccess([_Cmd.PEXPIRE, keyBytes(key), toBytes(expireInMs)]);
 
   Future<bool> expireat(String key, int unixTimeSecs) =>
       conn.sendExpectIntSuccess([_Cmd.EXPIREAT, keyBytes(key), toBytes(unixTimeSecs)]);
@@ -499,6 +507,7 @@ class _Cmd {
   static get INFO() => "INFO".charCodes();
   static get LASTSAVE() => "LASTSAVE".charCodes();
   static get PING() => "PING".charCodes();
+  static get ECHO() => "ECHO".charCodes();
   static get SLAVEOF() => "SLAVEOF".charCodes();
   static get NO() => "NO".charCodes();
   static get ONE() => "ONE".charCodes();

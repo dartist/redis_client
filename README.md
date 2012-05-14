@@ -44,12 +44,15 @@ All methods with **Object** types allow you to pass and return any object, i.e. 
       RedisNativeClient get raw();
 
       //ADMIN
+      int get db();
+      Future select(int db);
       Future<Date> get lastsave();
       Future<int> get dbsize();
       Future<Map> get info();
       Future flushdb();
       Future flushall();
       Future<bool> ping();
+      Future<Object> echo(Object value);
       Future save();
       Future bgsave();
       Future shutdown();
@@ -84,8 +87,8 @@ All methods with **Object** types allow you to pass and return any object, i.e. 
       Future<bool> renamenx(String oldKey, String newKey);
       Future<bool> expire(String key, int expireInSecs);
       Future<bool> pexpire(String key, int expireInMs);
-      Future<bool> expireat(String key, int unixTimeSecs);
-      Future<bool> pexpireat(String key, int unixTimeMs);
+      Future<bool> expireat(String key, Date date);
+      Future<bool> pexpireat(String key, Date date);
       Future<int> ttl(String key);
       Future<int> pttl(String key);
 
@@ -103,7 +106,7 @@ All methods with **Object** types allow you to pass and return any object, i.e. 
       Future sunionstore(String intoSetId, List<String> setIds);
       Future sdiffstore(String intoSetId, String fromSetId, List<String> withSetIds);
       Future<Object> srandmember(String setId);
-      
+
       //LIST
       Future<List<Object>> lrange(String listId, int startingFrom, int endingAt);
       Future<int> lpush(String listId, Object value);
@@ -118,7 +121,7 @@ All methods with **Object** types allow you to pass and return any object, i.e. 
       Future<Object> lpop(String listId);
       Future<Object> rpop(String listId);
       Future<Object> rpoplpush(String fromListId, String toListId);
-      
+
       //SORTED SET
       Future<int> zadd(String setId, num score, Object value);
       Future<int> zrem(String setId, Object value);

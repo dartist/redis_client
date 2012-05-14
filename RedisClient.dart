@@ -16,12 +16,15 @@ interface RedisClient default _RedisClient {
   RedisNativeClient get raw();
 
   //ADMIN
+  int get db();
+  Future select(int db);
   Future<Date> get lastsave();
   Future<int> get dbsize();
   Future<Map> get info();
   Future flushdb();
   Future flushall();
   Future<bool> ping();
+  Future<Object> echo(Object value);
   Future save();
   Future bgsave();
   Future shutdown();
@@ -56,8 +59,8 @@ interface RedisClient default _RedisClient {
   Future<bool> renamenx(String oldKey, String newKey);
   Future<bool> expire(String key, int expireInSecs);
   Future<bool> pexpire(String key, int expireInMs);
-  Future<bool> expireat(String key, int unixTimeSecs);
-  Future<bool> pexpireat(String key, int unixTimeMs);
+  Future<bool> expireat(String key, Date date);
+  Future<bool> pexpireat(String key, Date date);
   Future<int> ttl(String key);
   Future<int> pttl(String key);
 
@@ -141,12 +144,15 @@ class _RedisClient implements RedisClient {
   RedisNativeClient get raw() => client;
 
   //ADMIN
+  int get db() => client.db;
+  Future select(int db) => client.select(db);
   Future<int> get dbsize() => client.dbsize;
   Future<Date> get lastsave() => client.lastsave.transform((int unixTs) => new Date.fromEpoch(unixTs * 1000, new TimeZone.utc()));
   Future<Map> get info() => client.info;
   Future flushdb() => client.flushdb();
   Future flushall() => client.flushall();
   Future<bool> ping() => client.ping();
+  Future<Object> echo(Object value) => client.echo(toBytes(value)).transform(toObject);
   Future save() => client.save();
   Future bgsave() => client.bgsave();
   Future shutdown() => client.shutdown();
@@ -184,8 +190,8 @@ class _RedisClient implements RedisClient {
   Future<bool> renamenx(String oldKey, String newKey) => client.renamenx(oldKey, newKey);
   Future<bool> expire(String key, int expireInSecs) => client.expire(key, expireInSecs);
   Future<bool> pexpire(String key, int expireInMs) => client.pexpire(key, expireInMs);
-  Future<bool> expireat(String key, int unixTimeSecs) => client.expireat(key, unixTimeSecs);
-  Future<bool> pexpireat(String key, int unixTimeMs) => client.pexpireat(key, unixTimeMs);
+  Future<bool> expireat(String key, Date date) => client.expireat(key, (date.changeTimeZone(new TimeZone.utc()).value / 1000).toInt());
+  Future<bool> pexpireat(String key, Date date) => client.pexpireat(key, date.changeTimeZone(new TimeZone.utc()).value);
   Future<int> ttl(String key) => client.ttl(key);
   Future<int> pttl(String key) => client.pttl(key);
 
