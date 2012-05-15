@@ -241,13 +241,12 @@ RedisClientTests (){
     });
   });
 
-  asyncTest("SETS: SMEMBERS, SADD, MSADD, SREM, SPOP, SMOVE, SCARD, SISMEMBER"
-    ", SINTER, SINTERSTORE, SUNION, SUNIONSTORE, SDIFFSTORE, SRANDMEMBER", (){
+  asyncTest("SETS: ", (){
       List items = ["A","B","C","D"];
       List items2 = ["C","D","E","F"];
       client.smembers("setkey").then((x) => equal(x.length, 0, "SMEMBERS empty set returns 0 results"));
-      client.msadd("setkey",items).then((itemsLen) {
-        equal(itemsLen, items.length, "MSADD returns set length");
+      client.smadd("setkey",items).then((itemsLen) {
+        equal(itemsLen, items.length, "smadd returns set length");
         client.srandmember("setkey").then((x) => ok(items.indexOf(x)>=0, "SRANDMEMBER returns item from existing set"));
         client.scard("setkey").then((len) => equal(len, items.length, "SCARD length of existing set"));
         client.spop("setkey").then((popped) {
@@ -258,7 +257,7 @@ RedisClientTests (){
           client.sismember("setkey", "F").then((exists) => ok(!exists, "SISMEMBER false for non-member"));
           client.sismember("setkey", "A").then((exists) => ok(exists, "SISMEMBER true for member"));
 
-          client.msadd("setkey2",items2).then((_){
+          client.smadd("setkey2",items2).then((_){
             client.sinter(["setkey","setkey2"]).then((intersect) => deepEqual($(intersect).sort(), ["C","D"], "SINTER"));
             client.sinterstore("inter",["setkey","setkey2"]).then((len) => equal(len, 2, "SINTERSTORE returns length"));
             client.smembers("inter").then((intersect) => deepEqual($(intersect).sort(), ["C","D"], "SINTERSTORE at key"));
@@ -359,6 +358,31 @@ RedisClientTests (){
 
     client.hlen("hashkey").then((len) {
       equal(len,items.length, "HMSET count");
+      start();
+    });
+  });
+
+  asyncTest("Usecases",(){
+    var items = ["B","A","A","C","D","B","E"];
+    var itemScores = {"B":2,"A":1,"C":3,"D":4,"E":5};
+
+    client.smadd("setId", items);
+    client.smembers("setId").then((members) => print("setId contains: $members"));
+    client.mrpush("listId", items);
+    client.lrange("listId").then((items) => print("listId contains: $items"));
+    client.hmset("hashId", itemScores);
+    client.hmget("hashId", ["A","B","C"]).then((values) => print("selected hashId values: $values"));
+    client.zmadd("zsetId", itemScores);
+    client.zrangeWithScores("zsetId", 1, 3).then((map) => print("ranked zsetId entries: $map"));
+    client.zrangebyscoreWithScores("zsetId", 1, 3).then((map) => print("scored zsetId entries: $map"));
+
+    var users = [{"name":"tom","age":29},{"name":"dick","age":30},{"name":"harry","age":31}];
+    users.forEach((x) => client.set("user:${x['name']}", x['age']));
+    client.keys("user:*").then((keys) => print("keys matching user:* $keys"));
+
+    client.info.then((info) {
+      print("Redis Server info: $info");
+      print("Redis Client info: ${client.raw.stats}");
       start();
     });
   });

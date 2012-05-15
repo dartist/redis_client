@@ -33,11 +33,15 @@ interface RedisClient default _RedisClient {
   Future quit();
 
   //KEYS
+  Future<String> type(String key);
+  Future<List<String>> keys(String pattern);
   Future<Object> get(String key);
+  Future<List<Object>> mget(List<String> keys);
   Future<Object> getset(String key, Object value);
   Future set(String key, Object value);
   Future setex(String key, int expireInSecs, Object value);
   Future psetex(String key, int expireInMs, Object value);
+  Future<bool> persist(String key);
   Future mset(Map map);
   Future<bool> msetnx(Map map);
   Future<bool> exists(String key);
@@ -68,7 +72,7 @@ interface RedisClient default _RedisClient {
   //SET
   Future<List<Object>> smembers(String setId);
   Future<int> sadd(String setId, Object value);
-  Future<int> msadd(String setId, List<Object> values);
+  Future<int> smadd(String setId, List<Object> values);
   Future<int> srem(String setId, Object value);
   Future<Object> spop(String setId);
   Future<bool> smove(String fromSetId, String toSetId, Object value);
@@ -83,7 +87,7 @@ interface RedisClient default _RedisClient {
   Future<Object> srandmember(String setId);
 
   //LIST
-  Future<List<Object>> lrange(String listId, int startingFrom, int endingAt);
+  Future<List<Object>> lrange(String listId, [int startingFrom, int endingAt]);
   Future<int> lpush(String listId, Object value);
   Future<int> mlpush(String listId, List<Object> values);
   Future<int> lpushx(String listId, Object value);
@@ -170,6 +174,7 @@ class _RedisClient implements RedisClient {
 
   //KEYS
   Future<String> type(String key) => client.type(key);
+  Future<List<String>> keys(String pattern) => client.keys(pattern);
   Future<Object> get(String key) => client.get(key).transform(toObject);
   Future<List<Object>> mget(List<String> keys) => client.mget(keys).transform((x) => x.map(toObject));
   Future<Object> getset(String key, Object value) => client.getset(key, toBytes(value)).transform(toObject);
@@ -207,7 +212,7 @@ class _RedisClient implements RedisClient {
   //SET
   Future<List<Object>> smembers(String setId) => client.smembers(setId).transform((x) => x.map(toObject));
   Future<int> sadd(String setId, Object value) => client.sadd(setId, toBytes(value));
-  Future<int> msadd(String setId, List<Object> values) => client.msadd(setId, values.map((x) => toBytes(x)));
+  Future<int> smadd(String setId, List<Object> values) => client.smadd(setId, values.map((x) => toBytes(x)));
   Future<int> srem(String setId, Object value) => client.srem(setId, toBytes(value));
   Future<Object> spop(String setId) => client.spop(setId).transform(toObject);
   Future<bool> smove(String fromSetId, String toSetId, Object value) => client.smove(fromSetId, toSetId, toBytes(value));
@@ -222,7 +227,7 @@ class _RedisClient implements RedisClient {
   Future<Object> srandmember(String setId) => client.srandmember(setId).transform(toObject);
 
   //LIST
-  Future<List<Object>> lrange(String listId, int startingFrom, int endingAt) =>
+  Future<List<Object>> lrange(String listId, [int startingFrom=0, int endingAt=-1]) =>
       client.lrange(listId, startingFrom, endingAt).transform((x) => x.map(toObject));
   Future<int> lpush(String listId, Object value) => client.lpush(listId, toBytes(value));
   Future<int> mlpush(String listId, List<Object> values) => client.mlpush(listId, values.map((x) => toBytes(x)));

@@ -82,7 +82,7 @@ class _RedisConnection implements RedisConnection {
   bool connected;
   List endData;
   Queue<List> readChunks;
-  int logLevel = LogLevel.None;
+  int logLevel = LogLevel.Error;
 
   Int8List cmdBuffer;
   int cmdBufferIndex = 0;

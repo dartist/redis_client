@@ -25,6 +25,7 @@ interface RedisNativeClient default _RedisNativeClient {
 
   //KEYS
   Future<String> type(String key);
+  Future<List<String>> keys(String pattern);
   Future<List<int>> get(String key);
   Future<List<List<int>>> mget(List<String> keys);
   Future<List<int>> getset(String key, List<int> value);
@@ -62,7 +63,7 @@ interface RedisNativeClient default _RedisNativeClient {
   //SET
   Future<List<List<int>>> smembers(String setId);
   Future<int> sadd(String setId, List<int> value);
-  Future<int> msadd(String setId, List<List<int>> values);
+  Future<int> smadd(String setId, List<List<int>> values);
   Future<int> srem(String setId, List<int> value);
   Future<List<int>> spop(String setId);
   Future<bool> smove(String fromSetId, String toSetId, List<int> value);
@@ -189,6 +190,9 @@ class _RedisNativeClient implements RedisNativeClient {
 
   Future<String> type(String key) => conn.sendExpectCode([_Cmd.TYPE, keyBytes(key)]);
 
+  Future<List<String>> keys(String pattern) =>
+      conn.sendExpectMultiData([_Cmd.KEYS, keyBytes(pattern)]).transform((x) => x.map((k) => new String.fromCharCodes(k)));
+
   Future<List<int>> get(String key) =>
       conn.sendExpectData([_Cmd.GET, keyBytes(key)]);
 
@@ -278,7 +282,7 @@ class _RedisNativeClient implements RedisNativeClient {
 
   Future<int> sadd(String setId, List<int> value) => conn.sendExpectInt([_Cmd.SADD, keyBytes(setId), value]);
 
-  Future<int> msadd(String setId, List<List<int>> values) =>
+  Future<int> smadd(String setId, List<List<int>> values) =>
       conn.sendExpectInt(_Utils.mergeCommandWithKeyAndArgs(_Cmd.SADD, setId, values));
 
   Future<int> srem(String setId, List<int> value) => conn.sendExpectInt([_Cmd.SREM, keyBytes(setId), value]);

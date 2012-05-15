@@ -6,8 +6,8 @@
 #import("../RedisClient.dart");
 
 main () {
-//  RedisConnectionTests();
-//  JsonEncoderTests();
+  RedisConnectionTests();
+  JsonEncoderTests();
   RedisClientTests();
 
   runAllTests(hidePassedTests:true);
