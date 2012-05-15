@@ -3,7 +3,7 @@ Dart Redis Client
 
 A high-performance async/non-blocking Redis client for Dart. This project includes the 2 clients:
 
-  - RedisClient - A high-level client with auto built-in serialization support for Dart's native data types
+  - RedisClient - A high-level client with auto built-in serialization support for Dart's native types
   - RedisNativeClient - A low-level client providing raw bytes access to Redis's binary-safe string values
 
 As all operations are async they return [Futures](http://api.dartlang.org/dart_core/Future.html) for better handling of asynchronous operations. 
@@ -17,8 +17,8 @@ This will be made available on the Dart Package Manager when its ready, until th
 
   - [Mixin.dart](https://github.com/mythz/DartRedisClient/blob/master/Mixin.dart)
   - [RedisConnection.dart](https://github.com/mythz/DartRedisClient/blob/master/RedisConnection.dart)
-  - [RedisNativeClient](https://github.com/mythz/DartRedisClient/blob/master/RedisNativeClient.dart)
-  - [RedisClient](https://github.com/mythz/DartRedisClient/blob/master/RedisClient.dart)
+  - [RedisNativeClient.dart](https://github.com/mythz/DartRedisClient/blob/master/RedisNativeClient.dart)
+  - [RedisClient.dart](https://github.com/mythz/DartRedisClient/blob/master/RedisClient.dart)
     
 ## Example Usage
 
