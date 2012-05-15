@@ -100,7 +100,7 @@ class _RedisConnection implements RedisConnection {
     'bufferWrites':totalBuffersWrites,
     'flushes':totalBufferFlushes,
     'bytesWritten': totalBytesWritten,
-    //'bufferResizes': totalBufferResizes,
+    'bufferResizes': totalBufferResizes,
   });
 
   _RedisConnection([String connStr])
@@ -257,6 +257,7 @@ class _RedisConnection implements RedisConnection {
   void writeToSendBuffer(List cmdBytes){
     if ((cmdBufferIndex + cmdBytes.length) > cmdBuffer.length) {
       logDebug("resizing sendBuffer $cmdBufferIndex + ${cmdBytes.length} + $breathingSpace");
+      totalBufferResizes++;
       Int8List newLargerBuffer = new Int8List(cmdBufferIndex + cmdBytes.length + breathingSpace);
       cmdBuffer.setRange(0, cmdBuffer.length, newLargerBuffer);
       cmdBuffer = newLargerBuffer;
