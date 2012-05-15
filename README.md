@@ -6,12 +6,19 @@ A high-performance async/non-blocking Redis client for Dart. This project includ
   - RedisClient - A high-level client with auto built-in serialization support for Dart's complex data types
   - RedisNativeClient - A low-level client providing raw bytes access to Redis's binary-safe string values
 
-As all operations are async they return [Futures](http://api.dartlang.org/dart_core/Future.html) for better handling of asynchronous operations.
+As all operations are async they return [Futures](http://api.dartlang.org/dart_core/Future.html) for better handling of asynchronous operations. 
 
 ### v1.0 Released
 The Redis Client API is now feature complete with support for all ADMIN tasks as well as all KEYS, LISTS, SETS, SORTED SETS and HASH collections [including tests for all operations](https://github.com/mythz/DartRedisClient/blob/master/tests/RedisClientTests.dart).
 
 Follow [@demisbellot](http://twitter.com/demisbellot) for project updates.
+
+This will be made available on the Dart Package Manager when its ready, until then you just need these files in the same directory: 
+
+  - [Mixin.dart](https://github.com/mythz/DartRedisClient/blob/master/Mixin.dart)
+  - [RedisConnection.dart](https://github.com/mythz/DartRedisClient/blob/master/RedisConnection.dart)
+  - [RedisNativeClient](https://github.com/mythz/DartRedisClient/blob/master/RedisNativeClient.dart)
+  - [RedisClient](https://github.com/mythz/DartRedisClient/blob/master/RedisClient.dart)
     
 ## Example Usage
 
@@ -50,9 +57,9 @@ Which generates the following output:
       keys matching user:* [user:tom, user:dick, user:harry]
 
       Redis Server info: {# Server: null, redis_version: 2.5.9, ... db0: keys=7,expires=0}
-      Redis Client info: {rewinds: 18, reads: 1733, bytesRead: 9256, buffersWrites: 2029, bufferFlushes: 184, bytesWritten: 7332}
+      Redis Client info: {rewinds: 0, reads: 246, bytesRead: 3152, bufferWrites: 239, flushes: 14, bytesWritten: 740}
 
-More examples can be found in [RedisClientTests.dart](https://github.com/mythz/DartRedisClient/blob/master/tests/RedisClientTests.dart)
+More examples can be found in 150+ tests in [RedisClientTests.dart](https://github.com/mythz/DartRedisClient/blob/master/tests/RedisClientTests.dart) - [latest testrun](https://gist.github.com/2698702).
 
 ## API
 
