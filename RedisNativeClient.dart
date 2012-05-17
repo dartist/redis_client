@@ -140,8 +140,16 @@ interface RedisNativeClient default _RedisNativeClient {
 class _RedisNativeClient implements RedisNativeClient {
   String connStr;
   RedisConnection conn;
-  _RedisNativeClient([String this.connStr]){
+  Function _emptyValue;
+  Function _emptyList;
+  Function _emptyMap;
+  
+  _RedisNativeClient([String this.connStr]) {
     conn = new RedisConnection(connStr);
+    
+    _emptyValue = () { Completer<Object> task = new Completer<Object>(); task.complete(null); return task.future; };
+    _emptyList = () { Completer<List> task = new Completer<List>(); task.complete(const []); return task.future; };
+    _emptyMap = () { Completer<Map> task = new Completer<Map>(); task.complete(const {}); return task.future; };
   }
 
   static String string(List<int> bytes) => bytes == null ? null : new String.fromCharCodes(bytes);
@@ -196,7 +204,7 @@ class _RedisNativeClient implements RedisNativeClient {
   Future<List<int>> get(String key) =>
       conn.sendExpectData([_Cmd.GET, keyBytes(key)]);
 
-  Future<List<List<int>>> mget(List<String> keys) =>
+  Future<List<List<int>>> mget(List<String> keys) => keys.isEmpty() ? _emptyList() : 
     conn.sendExpectMultiData(_Utils.mergeCommandWithStringArgs(_Cmd.MGET, keys));
 
   Future<List<int>> getset(String key, List<int> value) =>
@@ -213,17 +221,18 @@ class _RedisNativeClient implements RedisNativeClient {
 
   Future<bool> persist(String key) => conn.sendExpectIntSuccess([_Cmd.PERSIST, keyBytes(key)]);
 
-  Future mset(List<List<int>> keys, List<List<int>> values) =>
+  Future mset(List<List<int>> keys, List<List<int>> values) => keys.isEmpty() ? _emptyValue() :
     conn.sendExpectSuccess(_Utils.mergeCommandWithKeysAndValues(_Cmd.MSET, keys, values));
 
-  Future<bool> msetnx(List<List<int>> keys, List<List<int>> values) =>
+  Future<bool> msetnx(List<List<int>> keys, List<List<int>> values) => 
     conn.sendExpectIntSuccess(_Utils.mergeCommandWithKeysAndValues(_Cmd.MSETNX, keys, values));
 
   Future<bool> exists(String key) => conn.sendExpectIntSuccess([_Cmd.EXISTS, keyBytes(key)]);
 
   Future<int> del(String key) => conn.sendExpectInt([_Cmd.DEL, keyBytes(key)]);
 
-  Future<int> mdel(List<String> keys) => conn.sendExpectInt(_Utils.mergeCommandWithStringArgs(_Cmd.DEL, keys));
+  Future<int> mdel(List<String> keys) => keys.isEmpty() ? _emptyValue() :
+      conn.sendExpectInt(_Utils.mergeCommandWithStringArgs(_Cmd.DEL, keys));
 
   Future<int> incr(String key) => conn.sendExpectInt([_Cmd.INCR, keyBytes(key)]);
 
@@ -493,7 +502,7 @@ class _RedisNativeClient implements RedisNativeClient {
   Future<bool> hsetnx(String hashId, String key, List<int> value) =>
       conn.sendExpectIntSuccess([_Cmd.HSETNX, keyBytes(hashId), keyBytes(key), value]);
 
-  Future hmset(String hashId, List<List<int>> keys, List<List<int>> values) =>
+  Future hmset(String hashId, List<List<int>> keys, List<List<int>> values) => keys.isEmpty() ? _emptyValue() :
     conn.sendExpectSuccess(_Utils.mergeParamsWithKeysAndValues([_Cmd.HMSET, keyBytes(hashId)], keys, values));
 
   Future<int> hincrby(String hashId, String key, int incrBy) =>
@@ -505,7 +514,7 @@ class _RedisNativeClient implements RedisNativeClient {
   Future<List<int>> hget(String hashId, String key) =>
       conn.sendExpectData([_Cmd.HGET, keyBytes(hashId), keyBytes(key)]);
 
-  Future<List<List<int>>> hmget(String hashId, List<String> keys) =>
+  Future<List<List<int>>> hmget(String hashId, List<String> keys) => keys.isEmpty() ? _emptyList() :
       conn.sendExpectMultiData(_Utils.mergeCommandWithKeyAndStringArgs(_Cmd.HMGET, hashId, keys));
 
   Future<int> hdel(String hashId, String key) =>
