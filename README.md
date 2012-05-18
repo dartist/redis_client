@@ -13,6 +13,8 @@ The Redis Client API is now feature complete with support for all ADMIN tasks as
 
 Follow [@demisbellot](http://twitter.com/demisbellot) for project updates.
 
+## Download 
+
 This will be made available on the Dart Package Manager when its ready, until then you can easily make use of this library by adding it as a submodule at your projects root:
 
     git submodule add git@github.com:mythz/DartRedisClient.git vendor/RedisClient
