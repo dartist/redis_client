@@ -1,7 +1,7 @@
 #library("RedisClient");
 #import("dart:io");
 #import("dart:json");
-#import("Mixin.dart");
+#import("vendor/Mixins/Mixin.dart");
 #import("RedisConnection.dart");
 #import("RedisNativeClient.dart");
 

@@ -1,6 +1,6 @@
 #library("RedisClient");
 #import("dart:io");
-#import("Mixin.dart");
+#import("vendor/Mixins/Mixin.dart");
 
 interface RedisConnection default _RedisConnection {
   RedisConnection([String connStr]);

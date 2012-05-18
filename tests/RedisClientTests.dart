@@ -1,6 +1,6 @@
 #library("RedisConnectionTests");
-#import("../DUnit.dart");
-#import("../Mixin.dart");
+#import("../vendor/Mixins/DUnit.dart");
+#import("../vendor/Mixins/Mixin.dart");
 #import("../RedisConnection.dart");
 #import("../RedisNativeClient.dart");
 #import("../RedisClient.dart");

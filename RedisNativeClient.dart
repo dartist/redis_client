@@ -1,6 +1,6 @@
 #library("RedisClient");
 #import("dart:io");
-#import("Mixin.dart");
+#import("vendor/Mixins/Mixin.dart");
 #import("RedisConnection.dart");
 
 interface RedisNativeClient default _RedisNativeClient {
@@ -143,10 +143,10 @@ class _RedisNativeClient implements RedisNativeClient {
   Function _emptyValue;
   Function _emptyList;
   Function _emptyMap;
-  
+
   _RedisNativeClient([String this.connStr]) {
     conn = new RedisConnection(connStr);
-    
+
     _emptyValue = () { Completer<Object> task = new Completer<Object>(); task.complete(null); return task.future; };
     _emptyList = () { Completer<List> task = new Completer<List>(); task.complete(const []); return task.future; };
     _emptyMap = () { Completer<Map> task = new Completer<Map>(); task.complete(const {}); return task.future; };
@@ -204,7 +204,7 @@ class _RedisNativeClient implements RedisNativeClient {
   Future<List<int>> get(String key) =>
       conn.sendExpectData([_Cmd.GET, keyBytes(key)]);
 
-  Future<List<List<int>>> mget(List<String> keys) => keys.isEmpty() ? _emptyList() : 
+  Future<List<List<int>>> mget(List<String> keys) => keys.isEmpty() ? _emptyList() :
     conn.sendExpectMultiData(_Utils.mergeCommandWithStringArgs(_Cmd.MGET, keys));
 
   Future<List<int>> getset(String key, List<int> value) =>
@@ -224,7 +224,7 @@ class _RedisNativeClient implements RedisNativeClient {
   Future mset(List<List<int>> keys, List<List<int>> values) => keys.isEmpty() ? _emptyValue() :
     conn.sendExpectSuccess(_Utils.mergeCommandWithKeysAndValues(_Cmd.MSET, keys, values));
 
-  Future<bool> msetnx(List<List<int>> keys, List<List<int>> values) => 
+  Future<bool> msetnx(List<List<int>> keys, List<List<int>> values) =>
     conn.sendExpectIntSuccess(_Utils.mergeCommandWithKeysAndValues(_Cmd.MSETNX, keys, values));
 
   Future<bool> exists(String key) => conn.sendExpectIntSuccess([_Cmd.EXISTS, keyBytes(key)]);

@@ -1,5 +1,5 @@
 #library("RedisConnectionTests");
-#import("../DUnit.dart");
+#import("../vendor/Mixins/DUnit.dart");
 #import("../RedisClient.dart");
 #import("dart:json");
 
