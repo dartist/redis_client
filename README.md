@@ -18,10 +18,12 @@ Follow [@demisbellot](http://twitter.com/demisbellot) for project updates.
 This will be made available on the Dart Package Manager when its ready, until then you can easily make use of this library by adding it as a submodule at your projects root:
 
     git submodule add git@github.com:mythz/DartRedisClient.git vendor/RedisClient
-
-Note: you can pull future updates on the client with a git pull in the submodule directory, e.g:
-
     cd vendor/RedisClient
+    git submodule init
+    git submodule update    
+
+Then you can pull future project updates with a git pull in the submodule directory, e.g:
+
     git pull origin master    
 
 If you prefer not to add a submodule you can just copy these files into the same directory: 
