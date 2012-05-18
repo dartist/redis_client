@@ -13,9 +13,18 @@ The Redis Client API is now feature complete with support for all ADMIN tasks as
 
 Follow [@demisbellot](http://twitter.com/demisbellot) for project updates.
 
-This will be made available on the Dart Package Manager when its ready, until then you just need these files in the same directory: 
+This will be made available on the Dart Package Manager when its ready, until then you can easily make use of this library by adding it as a submodule at your projects root:
 
-  - [Mixin.dart](https://github.com/mythz/DartRedisClient/blob/master/Mixin.dart)
+    git submodule add git@github.com:mythz/DartRedisClient.git vendor/RedisClient
+
+Note: you can pull future updates on the client with a git pull in the submodule directory, e.g:
+
+    cd vendor/RedisClient
+    git pull origin master    
+
+If you prefer not to add a submodule you can just copy these files into the same directory: 
+
+  - [vendor/Mixins/Mixin.dart](https://github.com/mythz/DartRedisClient/blob/master/Mixin.dart)
   - [RedisConnection.dart](https://github.com/mythz/DartRedisClient/blob/master/RedisConnection.dart)
   - [RedisNativeClient.dart](https://github.com/mythz/DartRedisClient/blob/master/RedisNativeClient.dart)
   - [RedisClient.dart](https://github.com/mythz/DartRedisClient/blob/master/RedisClient.dart)
