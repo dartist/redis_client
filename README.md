@@ -26,7 +26,7 @@ Note: you can pull future updates on the client with a git pull in the submodule
 
 If you prefer not to add a submodule you can just copy these files into the same directory: 
 
-  - [vendor/Mixins/Mixin.dart](https://github.com/mythz/DartRedisClient/blob/master/Mixin.dart)
+  - [vendor/Mixins/Mixin.dart](https://github.com/mythz/DartMixins/blob/master/Mixin.dart)
   - [RedisConnection.dart](https://github.com/mythz/DartRedisClient/blob/master/RedisConnection.dart)
   - [RedisNativeClient.dart](https://github.com/mythz/DartRedisClient/blob/master/RedisNativeClient.dart)
   - [RedisClient.dart](https://github.com/mythz/DartRedisClient/blob/master/RedisClient.dart)
