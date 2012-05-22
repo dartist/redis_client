@@ -1,5 +1,6 @@
 tests/UseCaseTests.dart
 vendor/Mixins/tests/FunctionTests.dart
+InMemoryRedisClient.dart
 vendor/Mixins/Mixin.dart
 tests/TestSuite.dart
 RedisConnection.dart
