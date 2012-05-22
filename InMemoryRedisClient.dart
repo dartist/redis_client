@@ -1,6 +1,6 @@
 #library("RedisClient");
 #import("dart:io");
-#import("vendor/Mixins/Mixin.dart");
+#import("../vendor/Mixins/Mixin.dart");
 
 
 class InMemoryRedisClient {
@@ -13,9 +13,9 @@ class InMemoryRedisClient {
   Future<List<String>> keys(String pattern){
     Completer<List<String>> task = new Completer<List<String>>();
     List<Object> values = [];
-    _keys.forEach((k,v) =>
-      if (_globMatch(k, pattern)) values.add(v)
-    );
+    _keys.forEach((k,v){
+      if (_globMatch(k, pattern)) values.add(v);
+    });
     task.complete(values);
     return task.future;
   }
@@ -26,12 +26,12 @@ class InMemoryRedisClient {
     return task.future;
   }
 
-  Future<List<Object>> mget(List<String> keys){
+  Future<List<Object>> mget(List<String> allKeys){
     Completer<Object> task = new Completer<List<Object>>();
     List<Object> values = [];
-    keys.forEach((x) =>
-      if (_keys.containsKey(x)) values.add(v)
-    );
+    allKeys.forEach((x){
+      if (_keys.containsKey(x)) values.add(_keys[x]);
+    });
     task.complete(values);
     return task.future;
   }
@@ -46,7 +46,7 @@ class InMemoryRedisClient {
   Future incr(String key){
     Completer task = new Completer();
     var counter = _keys[key];
-    counter = counter == null ? 1 : Math.parseInt(counter.toString())++;
+    counter = counter == null ? 1 : Math.parseInt(counter.toString()) + 1;
     _keys[key] = counter;
     task.complete(counter);
     return task.future;
@@ -60,11 +60,12 @@ class InMemoryRedisClient {
   }
 }
 
-static bool _globMatch(String key, String withPattern) {
+//very basic redis glob function - only supports '*' wildcard on start or end of pattern
+bool _globMatch(String key, String withPattern) {
   bool startsWith = withPattern.endsWith("*");
   bool endsWith = withPattern.startsWith("*");
   bool contains = startsWith && endsWith;
-  String pattern = withPattern.replaceAll(new RegExp("^\*"),"").replaceAll(new RegExp("^\*"),"");
+  String pattern = withPattern.replaceAll(new RegExp("^\\*"),"").replaceAll(new RegExp("\\*\$"),"");
 
   return contains
       ? key.indexOf(pattern) >= 0
