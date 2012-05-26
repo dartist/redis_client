@@ -1,6 +1,6 @@
 #library("RedisClient");
 #import("dart:io");
-#import("../vendor/Mixins/Mixin.dart");
+#import("vendor/Mixins/Mixin.dart");
 
 
 class InMemoryRedisClient {
