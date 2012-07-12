@@ -1,4 +1,4 @@
-#import("../vendor/Mixins/DUnit.dart");
+#import("../packages/DartMixins/DUnit.dart");
 #import("RedisConnectionTests.dart");
 #import("RedisClientTests.dart");
 #import("JsonEncoderTests.dart");
