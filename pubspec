@@ -1,0 +1,3 @@
+dependencies:
+  DartMixins:
+    git: git://github.com/mythz/DartMixins.git

@@ -1,5 +1,5 @@
 #library("RedisConnectionTests");
-#import("../vendor/Mixins/DUnit.dart");
+#import("../packages/DartMixins/DUnit.dart");
 #import("../RedisClient.dart");
 #import("dart:json");
 
@@ -39,7 +39,7 @@ JsonEncoderTests() {
     deepEqual(enc.toObject(enc.toBytes([])), [], "can decode empty List");
     deepEqual(enc.toObject(enc.toBytes({'A':1})), {"A":1}, "can decode Map");
     deepEqual(enc.toObject(enc.toBytes(['A'])), ["A"], "can decode List");
-    Date utcDate = new Date.withTimeZone(2012,05,09,0,0,0,0, new TimeZone.utc());
+    Date utcDate = new Date(2012,05,09,0,0,0,0, isUtc: true);
     equal(enc.toObject(enc.toBytes(utcDate)), utcDate, "can decode UTC Date");
 
 //TODO support non UTC dates

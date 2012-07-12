@@ -1,7 +1,7 @@
 #library("RedisClient");
 #import("dart:io");
 #import("dart:json");
-#import("vendor/Mixins/Mixin.dart");
+#import("packages/DartMixins/Mixin.dart");
 #import("RedisConnection.dart");
 #import("RedisNativeClient.dart");
 
@@ -160,7 +160,7 @@ class _RedisClient implements RedisClient {
   int get db() => client.db;
   Future select(int db) => client.select(db);
   Future<int> get dbsize() => client.dbsize;
-  Future<Date> get lastsave() => client.lastsave.transform((int unixTs) => new Date.fromEpoch(unixTs * 1000, new TimeZone.utc()));
+  Future<Date> get lastsave() => client.lastsave.transform((int unixTs) => new Date.fromMillisecondsSinceEpoch(unixTs * 1000, isUtc:true));
   Future<Map> get info() => client.info;
   Future flushdb() => client.flushdb();
   Future flushall() => client.flushall();
@@ -204,8 +204,8 @@ class _RedisClient implements RedisClient {
   Future<bool> renamenx(String oldKey, String newKey) => client.renamenx(oldKey, newKey);
   Future<bool> expire(String key, int expireInSecs) => client.expire(key, expireInSecs);
   Future<bool> pexpire(String key, int expireInMs) => client.pexpire(key, expireInMs);
-  Future<bool> expireat(String key, Date date) => client.expireat(key, (date.changeTimeZone(new TimeZone.utc()).value / 1000).toInt());
-  Future<bool> pexpireat(String key, Date date) => client.pexpireat(key, date.changeTimeZone(new TimeZone.utc()).value);
+  Future<bool> expireat(String key, Date date) => client.expireat(key, (date.toUtc().value / 1000).toInt());
+  Future<bool> pexpireat(String key, Date date) => client.pexpireat(key, date.toUtc.value);
   Future<int> ttl(String key) => client.ttl(key);
   Future<int> pttl(String key) => client.pttl(key);
 
@@ -362,7 +362,7 @@ class JsonEncoder implements BytesEncoder {
     : obj is String ?
       obj
     : obj is Date ?
-      "/Date(${obj.changeTimeZone(new TimeZone.utc()).value})/"
+      "/Date(${obj.toUtc().value})/"
     : obj is bool || obj is num ?
       obj.toString() :
       JSON.stringify(obj);
@@ -383,7 +383,7 @@ class JsonEncoder implements BytesEncoder {
       String str = new String.fromCharCodes(bytes);
       if (str.startsWith(DATE_PREFIX)) {
         int epoch = Math.parseInt(str.substring(DATE_PREFIX.length, str.length - DATE_SUFFIX.length));
-        return new Date.fromEpoch(epoch, new TimeZone.utc());
+        return new Date.fromMillisecondsSinceEpoch(epoch, isUtc: true);
       }
       if (str == TRUE)  return true;
       if (str == FALSE) return false;
