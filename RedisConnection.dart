@@ -1,6 +1,6 @@
 #library("RedisClient");
 #import("dart:io");
-#import("vendor/Mixins/Mixin.dart");
+#import("packages/DartMixins/Mixin.dart");
 
 interface RedisConnection default _RedisConnection {
   RedisConnection([String connStr]);
@@ -49,7 +49,7 @@ class ExpectRead {
   List<int> buffer;
   SocketBuffer _socketBuffer;
 
-  ExpectRead(Completer this.task, bool this.reader(InputStream stream, Completer task));
+  ExpectRead(Completer this.task, void this.reader(InputStream stream, Completer task));
 
   bool execute(SocketWrapper wrapper){
     if (_socketBuffer == null)
