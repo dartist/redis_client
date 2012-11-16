@@ -1,6 +1,7 @@
-#library("RedisConnectionTests");
-#import("../packages/DartMixins/DUnit.dart");
-#import("../RedisConnection.dart");
+library RedisConnectionTests;
+
+import "DUnit.dart";
+import "package:dartredisclient/redis_client.dart";
 
 RedisConnectionTests(){
 
