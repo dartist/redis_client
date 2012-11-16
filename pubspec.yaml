@@ -1,3 +1,4 @@
+name: dartredisclient
 dependencies:
-  DartMixins:
+  dartmixins:
     git: git://github.com/mythz/DartMixins.git

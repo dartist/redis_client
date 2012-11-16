@@ -1,7 +1,7 @@
-#library("RedisClient");
-#import("dart:io");
-#import("packages/DartMixins/Mixin.dart");
+//part of redis_client;
+library in_memory_redis_client;
 
+import 'dart:math' as Math;
 
 class InMemoryRedisClient {
 

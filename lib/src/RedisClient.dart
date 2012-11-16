@@ -1,27 +1,32 @@
-#library("RedisClient");
-#import("dart:io");
-#import("dart:json");
-#import("packages/DartMixins/Mixin.dart");
-#import("RedisConnection.dart");
-#import("RedisNativeClient.dart");
+//part of redis_client;
+library redis_client;
 
-interface BytesEncoder default JsonEncoder {
-  BytesEncoder();
+import 'dart:io';
+import 'dart:json';
+import 'dart:math' as Math;
+import 'dart:scalarlist';
+
+import 'package:dartmixins/mixin.dart';
+
+import 'RedisNativeClient.dart';
+
+abstract class BytesEncoder {
+  factory BytesEncoder() => new JsonEncoder();
   List<int> toBytes(Object obj);
   String stringify(Object obj);
   Object toObject(List<int> bytes);
 }
 
-interface RedisClient default _RedisClient {
-  RedisClient([String connStr]);
-  RedisNativeClient get raw();
+abstract class RedisClient {
+  factory RedisClient([String connStr]) => new _RedisClient(connStr);
+  RedisNativeClient get raw;
 
   //ADMIN
-  int get db();
+  int get db;
   Future select(int db);
-  Future<Date> get lastsave();
-  Future<int> get dbsize();
-  Future<Map> get info();
+  Future<Date> get lastsave;
+  Future<int> get dbsize;
+  Future<Map> get info;
   Future flushdb();
   Future flushall();
   Future<bool> ping();
@@ -154,14 +159,14 @@ class _RedisClient implements RedisClient {
     client = new RedisNativeClient(connStr);
   }
 
-  RedisNativeClient get raw() => client;
+  RedisNativeClient get raw => client;
 
   //ADMIN
-  int get db() => client.db;
+  int get db => client.db;
   Future select(int db) => client.select(db);
-  Future<int> get dbsize() => client.dbsize;
-  Future<Date> get lastsave() => client.lastsave.transform((int unixTs) => new Date.fromMillisecondsSinceEpoch(unixTs * 1000, isUtc:true));
-  Future<Map> get info() => client.info;
+  Future<int> get dbsize => client.dbsize;
+  Future<Date> get lastsave => client.lastsave.transform((int unixTs) => new Date.fromMillisecondsSinceEpoch(unixTs * 1000, isUtc:true));
+  Future<Map> get info => client.info;
   Future flushdb() => client.flushdb();
   Future flushall() => client.flushall();
   Future<bool> ping() => client.ping();
@@ -204,8 +209,8 @@ class _RedisClient implements RedisClient {
   Future<bool> renamenx(String oldKey, String newKey) => client.renamenx(oldKey, newKey);
   Future<bool> expire(String key, int expireInSecs) => client.expire(key, expireInSecs);
   Future<bool> pexpire(String key, int expireInMs) => client.pexpire(key, expireInMs);
-  Future<bool> expireat(String key, Date date) => client.expireat(key, (date.toUtc().value / 1000).toInt());
-  Future<bool> pexpireat(String key, Date date) => client.pexpireat(key, date.toUtc.value);
+  Future<bool> expireat(String key, Date date) => client.expireat(key, date.toUtc().millisecondsSinceEpoch ~/ 1000);
+  Future<bool> pexpireat(String key, Date date) => client.pexpireat(key, date.toUtc().millisecondsSinceEpoch);
   Future<int> ttl(String key) => client.ttl(key);
   Future<int> pttl(String key) => client.pttl(key);
 
@@ -282,7 +287,7 @@ class _RedisClient implements RedisClient {
   Future<bool> hset(String hashId, String key, Object value) => client.hset(hashId, key, toBytes(value));
   Future<bool> hsetnx(String hashId, String key, Object value) => client.hsetnx(hashId, key, toBytes(value));
   Future hmset(String hashId, Map<String,Object> map) =>
-    client.hmset(hashId, map.getKeys().map(toBytes), map.getValues().map(toBytes));
+    client.hmset(hashId, map.keys.map(toBytes), map.values.map(toBytes));
   Future<int> hincrby(String hashId, String key, int incrBy) => client.hincrby(hashId, key, incrBy);
   Future<double> hincrbyfloat(String hashId, String key, double incrBy) => client.hincrbyfloat(hashId, key, incrBy);
   Future<Object> hget(String hashId, String key) => client.hget(hashId, key).transform(toObject);
@@ -321,8 +326,8 @@ class _RedisClient implements RedisClient {
   _Tuple<List<List<int>>> keyValueBytes(Map map){
     List<List<int>> keys = new List<List<int>>();
     List<List<int>> values = new List<List<int>>();
-    for(String key in map.getKeys()){
-      keys.add(key.charCodes());
+    for(String key in map.keys){
+      keys.add(key.charCodes);
       values.add(toBytes(map[key]));
     }
     return new _Tuple(keys,values);
@@ -354,7 +359,7 @@ class JsonEncoder implements BytesEncoder {
   static final String TRUE  = "true";
   static final String FALSE = "false";
 
-  List<int> toBytes(Object obj) => stringify(obj).charCodes();
+  List<int> toBytes(Object obj) => stringify(obj).charCodes;
 
   String stringify(Object obj) =>
       obj == null ?
@@ -362,7 +367,7 @@ class JsonEncoder implements BytesEncoder {
     : obj is String ?
       obj
     : obj is Date ?
-      "/Date(${obj.toUtc().value})/"
+      "/Date(${(obj as Date).toUtc().millisecondsSinceEpoch})/"
     : obj is bool || obj is num ?
       obj.toString() :
       JSON.stringify(obj);
@@ -388,7 +393,7 @@ class JsonEncoder implements BytesEncoder {
       if (str == TRUE)  return true;
       if (str == FALSE) return false;
       return str;
-    } catch(var e) { print("ERROR: $e"); }
+    } catch(e) { print("ERROR: $e"); }
     return bytes;
   }
 }

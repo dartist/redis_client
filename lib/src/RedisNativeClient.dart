@@ -1,20 +1,27 @@
-#library("RedisClient");
-#import("dart:io");
-#import("packages/DartMixins/Mixin.dart");
-#import("RedisConnection.dart");
+//part of redis_client;
+library redis_native_client;
 
-interface RedisNativeClient default _RedisNativeClient {
-  RedisNativeClient([String connStr]);
+import 'dart:io';
+import 'dart:json';
+import 'dart:math' as Math;
+import 'dart:scalarlist';
 
-  Map get stats();
+import 'package:dartmixins/mixin.dart';
 
-  int get db();
+import 'RedisConnection.dart';
+
+abstract class RedisNativeClient {
+  factory RedisNativeClient([String connStr]) => new _RedisNativeClient(connStr);
+
+  Map get stats;
+
+  int get db;
   Future select(int db);
-  Future<int> get dbsize();
-  Future<int> get lastsave();
+  Future<int> get dbsize;
+  Future<int> get lastsave;
   Future flushdb();
   Future flushall();
-  Future<Map> get info();
+  Future<Map> get info;
   Future<bool> ping();
   Future<List<int>> echo(List<int> value);
   Future save();
@@ -153,18 +160,18 @@ class _RedisNativeClient implements RedisNativeClient {
   }
 
   static String string(List<int> bytes) => bytes == null ? null : new String.fromCharCodes(bytes);
-  static List<int> toBytes(val) => val == null ? new List<int>() : val.toString().charCodes();
+  static List<int> toBytes(val) => val == null ? new List<int>() : val.toString().charCodes;
   static List<int> keyBytes(String key){
-    if (key == null || key.isEmpty()) throw new Exception("key is null");
-    return key.charCodes();
+    if (key == null || key.isEmpty) throw new Exception("key is null");
+    return key.charCodes;
   }
 
-  int get db() => conn.db;
+  int get db => conn.db;
   Future select(int db) => conn.select(db);
 
-  Future<int> get dbsize() => conn.sendExpectInt([_Cmd.DBSIZE]);
+  Future<int> get dbsize => conn.sendExpectInt([_Cmd.DBSIZE]);
 
-  Future<int> get lastsave() => conn.sendExpectInt([_Cmd.LASTSAVE]);
+  Future<int> get lastsave => conn.sendExpectInt([_Cmd.LASTSAVE]);
 
   Future flushdb() => conn.sendExpectSuccess([_Cmd.FLUSHDB]);
 
@@ -180,7 +187,7 @@ class _RedisNativeClient implements RedisNativeClient {
 
   Future quit() => conn.sendExpectSuccess([_Cmd.QUIT]);
 
-  Future<Map> get info(){
+  Future<Map> get info{
     return conn.sendExpectString([_Cmd.INFO])
       .transform((String lines){
          Map info = {};
@@ -204,7 +211,7 @@ class _RedisNativeClient implements RedisNativeClient {
   Future<List<int>> get(String key) =>
       conn.sendExpectData([_Cmd.GET, keyBytes(key)]);
 
-  Future<List<List<int>>> mget(List<String> keys) => keys.isEmpty() ? _emptyList() :
+  Future<List<List<int>>> mget(List<String> keys) => keys.isEmpty ? _emptyList() :
     conn.sendExpectMultiData(_Utils.mergeCommandWithStringArgs(_Cmd.MGET, keys));
 
   Future<List<int>> getset(String key, List<int> value) =>
@@ -221,7 +228,7 @@ class _RedisNativeClient implements RedisNativeClient {
 
   Future<bool> persist(String key) => conn.sendExpectIntSuccess([_Cmd.PERSIST, keyBytes(key)]);
 
-  Future mset(List<List<int>> keys, List<List<int>> values) => keys.isEmpty() ? _emptyValue() :
+  Future mset(List<List<int>> keys, List<List<int>> values) => keys.isEmpty ? _emptyValue() :
     conn.sendExpectSuccess(_Utils.mergeCommandWithKeysAndValues(_Cmd.MSET, keys, values));
 
   Future<bool> msetnx(List<List<int>> keys, List<List<int>> values) =>
@@ -231,7 +238,7 @@ class _RedisNativeClient implements RedisNativeClient {
 
   Future<int> del(String key) => conn.sendExpectInt([_Cmd.DEL, keyBytes(key)]);
 
-  Future<int> mdel(List<String> keys) => keys.isEmpty() ? _emptyValue() :
+  Future<int> mdel(List<String> keys) => keys.isEmpty ? _emptyValue() :
       conn.sendExpectInt(_Utils.mergeCommandWithStringArgs(_Cmd.DEL, keys));
 
   Future<int> incr(String key) => conn.sendExpectInt([_Cmd.INCR, keyBytes(key)]);
@@ -432,7 +439,7 @@ class _RedisNativeClient implements RedisNativeClient {
 
   Future<int> zrevrank(String setId, List<int> value) => conn.sendExpectInt([_Cmd.ZREVRANK, keyBytes(setId), value]);
 
-  Future<List<List<int>>> _zrange(List<int> cmdBytes, String setId, int min, int max, [bool withScores=false]){
+  Future<List<List<int>>> _zrange(List<int> cmdBytes, String setId, int min, int max, {bool withScores: false}){
     List<List<int>> cmdWithArgs = [cmdBytes, keyBytes(setId), toBytes(min), toBytes(max)];
     if (withScores) cmdWithArgs.add(_Cmd.WITHSCORES);
     return conn.sendExpectMultiData(cmdWithArgs);
@@ -465,13 +472,13 @@ class _RedisNativeClient implements RedisNativeClient {
       _zrangeByScore(_Cmd.ZRANGEBYSCORE, setId, min, max, skip, take);
 
   Future<List<List<int>>> zrangebyscoreWithScores(String setId, num min, num max, [int skip, int take]) =>
-      _zrangeByScore(_Cmd.ZRANGEBYSCORE, setId, min, max, skip, take, withScores:true);
+      _zrangeByScore(_Cmd.ZRANGEBYSCORE, setId, min, max, skip, take, true);
 
   Future<List<List<int>>> zrevrangebyscore(String setId, num min, num max, [int skip, int take]) =>
       _zrangeByScore(_Cmd.ZREVRANGEBYSCORE, setId, min, max, skip, take);
 
   Future<List<List<int>>> zrevrangebyscoreWithScores(String setId, num min, num max, [int skip, int take]) =>
-      _zrangeByScore(_Cmd.ZREVRANGEBYSCORE, setId, min, max, skip, take, withScores:true);
+      _zrangeByScore(_Cmd.ZREVRANGEBYSCORE, setId, min, max, skip, take, true);
 
   Future<int> zremrangebyrank(String setId, int min, int max) =>
       conn.sendExpectInt([_Cmd.ZREMRANGEBYRANK, keyBytes(setId), toBytes(min), toBytes(max)]);
@@ -502,7 +509,7 @@ class _RedisNativeClient implements RedisNativeClient {
   Future<bool> hsetnx(String hashId, String key, List<int> value) =>
       conn.sendExpectIntSuccess([_Cmd.HSETNX, keyBytes(hashId), keyBytes(key), value]);
 
-  Future hmset(String hashId, List<List<int>> keys, List<List<int>> values) => keys.isEmpty() ? _emptyValue() :
+  Future hmset(String hashId, List<List<int>> keys, List<List<int>> values) => keys.isEmpty ? _emptyValue() :
     conn.sendExpectSuccess(_Utils.mergeParamsWithKeysAndValues([_Cmd.HMSET, keyBytes(hashId)], keys, values));
 
   Future<int> hincrby(String hashId, String key, int incrBy) =>
@@ -514,7 +521,7 @@ class _RedisNativeClient implements RedisNativeClient {
   Future<List<int>> hget(String hashId, String key) =>
       conn.sendExpectData([_Cmd.HGET, keyBytes(hashId), keyBytes(key)]);
 
-  Future<List<List<int>>> hmget(String hashId, List<String> keys) => keys.isEmpty() ? _emptyList() :
+  Future<List<List<int>>> hmget(String hashId, List<String> keys) => keys.isEmpty ? _emptyList() :
       conn.sendExpectMultiData(_Utils.mergeCommandWithKeyAndStringArgs(_Cmd.HMGET, hashId, keys));
 
   Future<int> hdel(String hashId, String key) =>
@@ -535,7 +542,7 @@ class _RedisNativeClient implements RedisNativeClient {
   Future<List<List<int>>> hgetall(String hashId) =>
       conn.sendExpectMultiData([_Cmd.HGETALL, keyBytes(hashId)]);
 
-  Map get stats() => conn.stats;
+  Map get stats => conn.stats;
 
   void close() => conn.close();
 }
@@ -544,168 +551,168 @@ class _RedisNativeClient implements RedisNativeClient {
 class _Cmd {
 
   //ADMIN
-  static get DBSIZE() => "DBSIZE".charCodes();
-  static get INFO() => "INFO".charCodes();
-  static get LASTSAVE() => "LASTSAVE".charCodes();
-  static get PING() => "PING".charCodes();
-  static get ECHO() => "ECHO".charCodes();
-  static get SLAVEOF() => "SLAVEOF".charCodes();
-  static get NO() => "NO".charCodes();
-  static get ONE() => "ONE".charCodes();
-  static get CONFIG() => "CONFIG".charCodes(); //GET SET
-  static get RESETSTAT() => "RESETSTAT".charCodes();
-  static get TIME() => "TIME".charCodes();
-  static get DEBUG() => "DEBUG".charCodes(); //OBJECT SEGFAULT
-  static get SEGFAULT() => "SEGFAULT".charCodes();
-  static get RESTORE() => "RESTORE".charCodes();
-  static get MIGRATE() => "MIGRATE".charCodes();
-  static get MOVE() => "MOVE".charCodes();
-  static get OBJECT() => "OBJECT".charCodes(); //REFCOUNT ENCODING IDLETIME
-  static get REFCOUNT() => "REFCOUNT".charCodes();
-  static get ENCODING() => "ENCODING".charCodes();
-  static get IDLETIME() => "IDLETIME".charCodes();
-  static get SAVE() => "SAVE".charCodes();
-  static get BGSAVE() => "BGSAVE".charCodes();
-  static get SHUTDOWN() => "SHUTDOWN".charCodes();
-  static get BGREWRITEAOF() => "BGREWRITEAOF".charCodes();
-  static get QUIT() => "QUIT".charCodes();
-  static get FLUSHDB() => "FLUSHDB".charCodes();
-  static get FLUSHALL() => "FLUSHALL".charCodes();
-  static get KEYS() => "KEYS".charCodes();
-  static get SLOWLOG() => "SLOWLOG".charCodes();
+  static get DBSIZE => "DBSIZE".charCodes;
+  static get INFO => "INFO".charCodes;
+  static get LASTSAVE => "LASTSAVE".charCodes;
+  static get PING => "PING".charCodes;
+  static get ECHO => "ECHO".charCodes;
+  static get SLAVEOF => "SLAVEOF".charCodes;
+  static get NO => "NO".charCodes;
+  static get ONE => "ONE".charCodes;
+  static get CONFIG => "CONFIG".charCodes; //GET SET
+  static get RESETSTAT => "RESETSTAT".charCodes;
+  static get TIME => "TIME".charCodes;
+  static get DEBUG => "DEBUG".charCodes; //OBJECT SEGFAULT
+  static get SEGFAULT => "SEGFAULT".charCodes;
+  static get RESTORE => "RESTORE".charCodes;
+  static get MIGRATE => "MIGRATE".charCodes;
+  static get MOVE => "MOVE".charCodes;
+  static get OBJECT => "OBJECT".charCodes; //REFCOUNT ENCODING IDLETIME
+  static get REFCOUNT => "REFCOUNT".charCodes;
+  static get ENCODING => "ENCODING".charCodes;
+  static get IDLETIME => "IDLETIME".charCodes;
+  static get SAVE => "SAVE".charCodes;
+  static get BGSAVE => "BGSAVE".charCodes;
+  static get SHUTDOWN => "SHUTDOWN".charCodes;
+  static get BGREWRITEAOF => "BGREWRITEAOF".charCodes;
+  static get QUIT => "QUIT".charCodes;
+  static get FLUSHDB => "FLUSHDB".charCodes;
+  static get FLUSHALL => "FLUSHALL".charCodes;
+  static get KEYS => "KEYS".charCodes;
+  static get SLOWLOG => "SLOWLOG".charCodes;
 
   //Keys
-  static get TYPE() => "TYPE".charCodes();
-  static get STRLEN() => "STRLEN".charCodes();
-  static get SET() => "SET".charCodes();
-  static get GET() => "GET".charCodes();
-  static get DEL() => "DEL".charCodes();
-  static get SETEX() => "SETEX".charCodes();
-  static get PSETEX() => "PSETEX".charCodes();
-  static get SETNX() => "SETNX".charCodes();
-  static get PERSIST() => "PERSIST".charCodes();
-  static get MSET() => "MSET".charCodes();
-  static get MSETNX() => "MSETNX".charCodes();
-  static get GETSET() => "GETSET".charCodes();
-  static get EXISTS() => "EXISTS".charCodes();
-  static get INCR() => "INCR".charCodes();
-  static get INCRBY() => "INCRBY".charCodes();
-  static get INCRBYFLOAT() => "INCRBYFLOAT".charCodes();
-  static get DECR() => "DECR".charCodes();
-  static get DECRBY() => "DECRBY".charCodes();
-  static get APPEND() => "APPEND".charCodes();
-  static get SUBSTR() => "SUBSTR".charCodes();
-  static get GETRANGE() => "GETRANGE".charCodes();
-  static get SETRANGE() => "SETRANGE".charCodes();
-  static get GETBIT() => "GETBIT".charCodes();
-  static get SETBIT() => "SETBIT".charCodes();
-  static get RANDOMKEY() => "RANDOMKEY".charCodes();
-  static get RENAME() => "RENAME".charCodes();
-  static get RENAMENX() => "RENAMENX".charCodes();
-  static get EXPIRE() => "EXPIRE".charCodes();
-  static get PEXPIRE() => "PEXPIRE".charCodes();
-  static get EXPIREAT() => "EXPIREAT".charCodes();
-  static get PEXPIREAT() => "PEXPIREAT".charCodes();
-  static get TTL() => "TTL".charCodes();
-  static get PTTL() => "PTTL".charCodes();
+  static get TYPE => "TYPE".charCodes;
+  static get STRLEN => "STRLEN".charCodes;
+  static get SET => "SET".charCodes;
+  static get GET => "GET".charCodes;
+  static get DEL => "DEL".charCodes;
+  static get SETEX => "SETEX".charCodes;
+  static get PSETEX => "PSETEX".charCodes;
+  static get SETNX => "SETNX".charCodes;
+  static get PERSIST => "PERSIST".charCodes;
+  static get MSET => "MSET".charCodes;
+  static get MSETNX => "MSETNX".charCodes;
+  static get GETSET => "GETSET".charCodes;
+  static get EXISTS => "EXISTS".charCodes;
+  static get INCR => "INCR".charCodes;
+  static get INCRBY => "INCRBY".charCodes;
+  static get INCRBYFLOAT => "INCRBYFLOAT".charCodes;
+  static get DECR => "DECR".charCodes;
+  static get DECRBY => "DECRBY".charCodes;
+  static get APPEND => "APPEND".charCodes;
+  static get SUBSTR => "SUBSTR".charCodes;
+  static get GETRANGE => "GETRANGE".charCodes;
+  static get SETRANGE => "SETRANGE".charCodes;
+  static get GETBIT => "GETBIT".charCodes;
+  static get SETBIT => "SETBIT".charCodes;
+  static get RANDOMKEY => "RANDOMKEY".charCodes;
+  static get RENAME => "RENAME".charCodes;
+  static get RENAMENX => "RENAMENX".charCodes;
+  static get EXPIRE => "EXPIRE".charCodes;
+  static get PEXPIRE => "PEXPIRE".charCodes;
+  static get EXPIREAT => "EXPIREAT".charCodes;
+  static get PEXPIREAT => "PEXPIREAT".charCodes;
+  static get TTL => "TTL".charCodes;
+  static get PTTL => "PTTL".charCodes;
 
   //Transactions
-  static get MGET() => "MGET".charCodes();
-  static get WATCH() => "WATCH".charCodes();
-  static get UNWATCH() => "UNWATCH".charCodes();
-  static get MULTI() => "MULTI".charCodes();
-  static get EXEC() => "EXEC".charCodes();
-  static get DISCARD() => "DISCARD".charCodes();
+  static get MGET => "MGET".charCodes;
+  static get WATCH => "WATCH".charCodes;
+  static get UNWATCH => "UNWATCH".charCodes;
+  static get MULTI => "MULTI".charCodes;
+  static get EXEC => "EXEC".charCodes;
+  static get DISCARD => "DISCARD".charCodes;
 
   //SET
-  static get SMEMBERS() => "SMEMBERS".charCodes();
-  static get SADD() => "SADD".charCodes();
-  static get SREM() => "SREM".charCodes();
-  static get SPOP() => "SPOP".charCodes();
-  static get SMOVE() => "SMOVE".charCodes();
-  static get SCARD() => "SCARD".charCodes();
-  static get SISMEMBER() => "SISMEMBER".charCodes();
-  static get SINTER() => "SINTER".charCodes();
-  static get SINTERSTORE() => "SINTERSTORE".charCodes();
-  static get SUNION() => "SUNION".charCodes();
-  static get SUNIONSTORE() => "SUNIONSTORE".charCodes();
-  static get SDIFF() => "SDIFF".charCodes();
-  static get SDIFFSTORE() => "SDIFFSTORE".charCodes();
-  static get SRANDMEMBER() => "SRANDMEMBER".charCodes();
+  static get SMEMBERS => "SMEMBERS".charCodes;
+  static get SADD => "SADD".charCodes;
+  static get SREM => "SREM".charCodes;
+  static get SPOP => "SPOP".charCodes;
+  static get SMOVE => "SMOVE".charCodes;
+  static get SCARD => "SCARD".charCodes;
+  static get SISMEMBER => "SISMEMBER".charCodes;
+  static get SINTER => "SINTER".charCodes;
+  static get SINTERSTORE => "SINTERSTORE".charCodes;
+  static get SUNION => "SUNION".charCodes;
+  static get SUNIONSTORE => "SUNIONSTORE".charCodes;
+  static get SDIFF => "SDIFF".charCodes;
+  static get SDIFFSTORE => "SDIFFSTORE".charCodes;
+  static get SRANDMEMBER => "SRANDMEMBER".charCodes;
 
   //Sort Set/List
-  static get SORT() => "SORT".charCodes(); //BY LIMIT GET DESC ALPHA STORE
-  static get BY() => "BY".charCodes();
-  static get DESC() => "DESC".charCodes();
-  static get ALPHA() => "ALPHA".charCodes();
-  static get STORE() => "STORE".charCodes();
+  static get SORT => "SORT".charCodes; //BY LIMIT GET DESC ALPHA STORE
+  static get BY => "BY".charCodes;
+  static get DESC => "DESC".charCodes;
+  static get ALPHA => "ALPHA".charCodes;
+  static get STORE => "STORE".charCodes;
 
   //List
-  static get LRANGE() => "LRANGE".charCodes();
-  static get RPUSH() => "RPUSH".charCodes();
-  static get RPUSHX() => "RPUSHX".charCodes();
-  static get LPUSH() => "LPUSH".charCodes();
-  static get LPUSHX() => "LPUSHX".charCodes();
-  static get LTRIM() => "LTRIM".charCodes();
-  static get LREM() => "LREM".charCodes();
-  static get LLEN() => "LLEN".charCodes();
-  static get LINDEX() => "LINDEX".charCodes();
-  static get LINSERT() => "LINSERT".charCodes();
-  static get AFTER() => "AFTER".charCodes();
-  static get BEFORE() => "BEFORE".charCodes();
-  static get LSET() => "LSET".charCodes();
-  static get LPOP() => "LPOP".charCodes();
-  static get RPOP() => "RPOP".charCodes();
-  static get BLPOP() => "BLPOP".charCodes();
-  static get BRPOP() => "BRPOP".charCodes();
-  static get RPOPLPUSH() => "RPOPLPUSH".charCodes();
+  static get LRANGE => "LRANGE".charCodes;
+  static get RPUSH => "RPUSH".charCodes;
+  static get RPUSHX => "RPUSHX".charCodes;
+  static get LPUSH => "LPUSH".charCodes;
+  static get LPUSHX => "LPUSHX".charCodes;
+  static get LTRIM => "LTRIM".charCodes;
+  static get LREM => "LREM".charCodes;
+  static get LLEN => "LLEN".charCodes;
+  static get LINDEX => "LINDEX".charCodes;
+  static get LINSERT => "LINSERT".charCodes;
+  static get AFTER => "AFTER".charCodes;
+  static get BEFORE => "BEFORE".charCodes;
+  static get LSET => "LSET".charCodes;
+  static get LPOP => "LPOP".charCodes;
+  static get RPOP => "RPOP".charCodes;
+  static get BLPOP => "BLPOP".charCodes;
+  static get BRPOP => "BRPOP".charCodes;
+  static get RPOPLPUSH => "RPOPLPUSH".charCodes;
 
   //Sorted Sets
-  static get ZADD() => "ZADD".charCodes();
-  static get ZREM() => "ZREM".charCodes();
-  static get ZINCRBY() => "ZINCRBY".charCodes();
-  static get ZRANK() => "ZRANK".charCodes();
-  static get ZREVRANK() => "ZREVRANK".charCodes();
-  static get ZRANGE() => "ZRANGE".charCodes();
-  static get ZREVRANGE() => "ZREVRANGE".charCodes();
-  static get WITHSCORES() => "WITHSCORES".charCodes();
-  static get LIMIT() => "LIMIT".charCodes();
-  static get ZRANGEBYSCORE() => "ZRANGEBYSCORE".charCodes();
-  static get ZREVRANGEBYSCORE() => "ZREVRANGEBYSCORE".charCodes();
-  static get ZREMRANGEBYRANK() => "ZREMRANGEBYRANK".charCodes();
-  static get ZREMRANGEBYSCORE() => "ZREMRANGEBYSCORE".charCodes();
-  static get ZCARD() => "ZCARD".charCodes();
-  static get ZSCORE() => "ZSCORE".charCodes();
-  static get ZUNIONSTORE() => "ZUNIONSTORE".charCodes();
-  static get ZINTERSTORE() => "ZINTERSTORE".charCodes();
+  static get ZADD => "ZADD".charCodes;
+  static get ZREM => "ZREM".charCodes;
+  static get ZINCRBY => "ZINCRBY".charCodes;
+  static get ZRANK => "ZRANK".charCodes;
+  static get ZREVRANK => "ZREVRANK".charCodes;
+  static get ZRANGE => "ZRANGE".charCodes;
+  static get ZREVRANGE => "ZREVRANGE".charCodes;
+  static get WITHSCORES => "WITHSCORES".charCodes;
+  static get LIMIT => "LIMIT".charCodes;
+  static get ZRANGEBYSCORE => "ZRANGEBYSCORE".charCodes;
+  static get ZREVRANGEBYSCORE => "ZREVRANGEBYSCORE".charCodes;
+  static get ZREMRANGEBYRANK => "ZREMRANGEBYRANK".charCodes;
+  static get ZREMRANGEBYSCORE => "ZREMRANGEBYSCORE".charCodes;
+  static get ZCARD => "ZCARD".charCodes;
+  static get ZSCORE => "ZSCORE".charCodes;
+  static get ZUNIONSTORE => "ZUNIONSTORE".charCodes;
+  static get ZINTERSTORE => "ZINTERSTORE".charCodes;
 
   //Hash
-  static get HSET() => "HSET".charCodes();
-  static get HSETNX() => "HSETNX".charCodes();
-  static get HMSET() => "HMSET".charCodes();
-  static get HINCRBY() => "HINCRBY".charCodes();
-  static get HINCRBYFLOAT() => "HINCRBYFLOAT".charCodes();
-  static get HGET() => "HGET".charCodes();
-  static get HMGET() => "HMGET".charCodes();
-  static get HDEL() => "HDEL".charCodes();
-  static get HEXISTS() => "HEXISTS".charCodes();
-  static get HLEN() => "HLEN".charCodes();
-  static get HKEYS() => "HKEYS".charCodes();
-  static get HVALS() => "HVALS".charCodes();
-  static get HGETALL() => "HGETALL".charCodes();
+  static get HSET => "HSET".charCodes;
+  static get HSETNX => "HSETNX".charCodes;
+  static get HMSET => "HMSET".charCodes;
+  static get HINCRBY => "HINCRBY".charCodes;
+  static get HINCRBYFLOAT => "HINCRBYFLOAT".charCodes;
+  static get HGET => "HGET".charCodes;
+  static get HMGET => "HMGET".charCodes;
+  static get HDEL => "HDEL".charCodes;
+  static get HEXISTS => "HEXISTS".charCodes;
+  static get HLEN => "HLEN".charCodes;
+  static get HKEYS => "HKEYS".charCodes;
+  static get HVALS => "HVALS".charCodes;
+  static get HGETALL => "HGETALL".charCodes;
 
   //Pub/Sub
-  static get PUBLISH() => "PUBLISH".charCodes();
-  static get SUBSCRIBE() => "SUBSCRIBE".charCodes();
-  static get UNSUBSCRIBE() => "UNSUBSCRIBE".charCodes();
-  static get PSUBSCRIBE() => "PSUBSCRIBE".charCodes();
-  static get PUNSUBSCRIBE() => "PUNSUBSCRIBE".charCodes();
+  static get PUBLISH => "PUBLISH".charCodes;
+  static get SUBSCRIBE => "SUBSCRIBE".charCodes;
+  static get UNSUBSCRIBE => "UNSUBSCRIBE".charCodes;
+  static get PSUBSCRIBE => "PSUBSCRIBE".charCodes;
+  static get PUNSUBSCRIBE => "PUNSUBSCRIBE".charCodes;
 
   //Scripting
-  static get EVAL() => "EVAL".charCodes();
-  static get SCRIPT() => "SCRIPT".charCodes(); //EXISTS FLUSH KILL LOAD
-  static get KILL() => "KILL".charCodes();
-  static get LOAD() => "LOAD".charCodes();
+  static get EVAL => "EVAL".charCodes;
+  static get SCRIPT => "SCRIPT".charCodes; //EXISTS FLUSH KILL LOAD
+  static get KILL => "KILL".charCodes;
+  static get LOAD => "LOAD".charCodes;
 
 }
 
@@ -714,12 +721,15 @@ class _Utils {
     mergeParamsWithKeysAndValues([cmd], keys, values);
 
   static List<List<int>> mergeParamsWithKeysAndValues(List<List<int>> firstParams, List<List<int>> keys, List<List<int>> values) {
-    if (keys == null || keys.length == 0)
+    if (keys == null || keys.length == 0) {
       throw new Exception("keys is null");
-    if (values == null || values.length == 0)
+    }
+    if (values == null || values.length == 0) {
       throw new Exception("values is null");
-    if (keys.length != values.length)
+    }
+    if (keys.length != values.length) {
       throw new Exception("keys.length != values.length");
+    }
 
     int keyValueStartIndex = firstParams != null ? firstParams.length : 0;
 
@@ -740,15 +750,15 @@ class _Utils {
   }
 
   static List<List<int>> mergeCommandWithStringArgs(List<int> cmd, List<String> args) =>
-    mergeCommandWithArgs(cmd, args.map((x) => x.charCodes()));
+    mergeCommandWithArgs(cmd, args.map((x) => x.charCodes));
 
   static List<List<int>> mergeCommandWithKeyAndStringArgs(List<int> cmd, String key, List<String> args){
     args.insertRange(0, 1, key);
-    return mergeCommandWithArgs(cmd, args.map((x) => x.charCodes()));
+    return mergeCommandWithArgs(cmd, args.map((x) => x.charCodes));
   }
 
   static List<List<int>> mergeCommandWithKeyAndArgs(List<int> cmd, String key, List<List<int>> args){
-    args.insertRange(0, 1, key.charCodes());
+    args.insertRange(0, 1, key.charCodes);
     return mergeCommandWithArgs(cmd, args);
   }
 
