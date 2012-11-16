@@ -11,3 +11,8 @@ import 'src/InMemoryRedisClient.dart';
 import 'src/RedisClient.dart';
 import 'src/RedisConnection.dart';
 import 'src/RedisNativeClient.dart';
+
+export 'src/InMemoryRedisClient.dart';
+export 'src/RedisClient.dart';
+export 'src/RedisConnection.dart';
+export 'src/RedisNativeClient.dart';

@@ -1,11 +1,10 @@
 library RedisConnectionTests;
-import "../packages/DartMixins/DUnit.dart";
-import "../packages/DartMixins/Mixin.dart";
-import "../RedisConnection.dart";
-import "../RedisNativeClient.dart";
-import "../RedisClient.dart";
+
 import "dart:io";
 import "dart:isolate";
+import "DUnit.dart";
+import "package:dartmixins/mixin.dart";
+import "package:dartredisclient/redis_client.dart";
 
 RedisClientTests (){
   bool runLongRunningTests = true;
@@ -13,7 +12,7 @@ RedisClientTests (){
   RedisClient client = new RedisClient();
 
   module("RedisClient",
-    startup:(Function cb) {
+    (Function cb) {
       client.raw.flushall().then(cb);
     });
 
@@ -120,7 +119,7 @@ RedisClientTests (){
             isNull(val,"PEXPIRE: expires after 1s")));
       });
 
-      Date in1Sec = new Date.now().add(new Duration(0, 0, 0, 1, 0));
+      Date in1Sec = new Date.now().add(new Duration(seconds: 1));
       client.set("keyAt", "expires in 1 sec");
       client.expireat("keyAt", in1Sec).then((_){
         client.get("keyAt").then((val) => isNotNull(val,"EXPIREAT: doesn't expire immediately"));
@@ -309,7 +308,7 @@ RedisClientTests (){
 
     client.zmadd("zsetkey", items).then((len) => equal(len, items.length, "zmadd map with int,double keys and String values"));
     client.zscore("zsetkey", "C#").then((score) => equal(score, 3.5, "ZSCORE"));
-    client.zrange("zsetkey", 0, -1).then((values) => deepEqual(values, items.getKeys(), "ZRANGE"));
+    client.zrange("zsetkey", 0, -1).then((values) => deepEqual(values, items.keys, "ZRANGE"));
     client.zrangeWithScores("zsetkey", 0, -1).then((map) => deepEqual(map, items, "ZRANGE with scores"));
     client.zrank("zsetkey", "C#").then((x) => equal(x,3,"ZRANK"));
     client.zrevrank("zsetkey", "C#").then((x) => equal(x,1,"ZREVRANK"));
@@ -343,8 +342,8 @@ RedisClientTests (){
   asyncTest("HASH: ", (){
     Map<String,int> items = {"A":1,"B":2,"C":3,"D":4};
     client.hmset("hashkey", items);
-    client.hkeys("hashkey").then((keys) => deepEqual(keys,items.getKeys(),"HKEYS"));
-    client.hvals("hashkey").then((vals) => deepEqual(vals,items.getValues(),"HVALS"));
+    client.hkeys("hashkey").then((keys) => deepEqual(keys,items.keys,"HKEYS"));
+    client.hvals("hashkey").then((vals) => deepEqual(vals,items.values,"HVALS"));
     client.hgetall("hashkey").then((map) => deepEqual(map,items,"HGETALL"));
     client.hsetnx("hashkey", "D", 5).then((success) => ok(!success, "HSETNX doesn't set existing key"));
     client.hsetnx("hashkey", "E", 10).then((success) => ok(success, "HSETNX updates new key"));
