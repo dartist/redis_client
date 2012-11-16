@@ -1,10 +1,10 @@
-#library("RedisConnectionTests");
-#import("../packages/DartMixins/DUnit.dart");
-#import("../packages/DartMixins/Mixin.dart");
-#import("../RedisConnection.dart");
-#import("../RedisNativeClient.dart");
-#import("../RedisClient.dart");
-#import("dart:io");
+library RedisConnectionTests;
+import "../packages/DartMixins/DUnit.dart";
+import "../packages/DartMixins/Mixin.dart";
+import "../RedisConnection.dart";
+import "../RedisNativeClient.dart";
+import "../RedisClient.dart";
+import "dart:io";
 
 UseCaseTests() {
 

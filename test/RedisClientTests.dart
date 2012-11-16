@@ -1,11 +1,11 @@
-#library("RedisConnectionTests");
-#import("../packages/DartMixins/DUnit.dart");
-#import("../packages/DartMixins/Mixin.dart");
-#import("../RedisConnection.dart");
-#import("../RedisNativeClient.dart");
-#import("../RedisClient.dart");
-#import("dart:io");
-#import("dart:isolate");
+library RedisConnectionTests;
+import "../packages/DartMixins/DUnit.dart";
+import "../packages/DartMixins/Mixin.dart";
+import "../RedisConnection.dart";
+import "../RedisNativeClient.dart";
+import "../RedisClient.dart";
+import "dart:io";
+import "dart:isolate";
 
 RedisClientTests (){
   bool runLongRunningTests = true;

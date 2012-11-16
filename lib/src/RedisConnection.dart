@@ -1,15 +1,21 @@
-#library("RedisClient");
-#import("dart:io");
-#import("packages/DartMixins/Mixin.dart");
+//part of redis_client;
+library redis_connection;
 
-interface RedisConnection default _RedisConnection {
-  RedisConnection([String connStr]);
+import 'dart:io';
+import 'dart:json';
+import 'dart:math' as Math;
+import 'dart:scalarlist';
+
+import 'package:dartmixins/mixin.dart';
+
+abstract class RedisConnection {
+  factory RedisConnection([String connStr]) => new _RedisConnection(connStr);
 
   String password;
   String hostName;
   int port;
   int db;
-  Map get stats();
+  Map get stats;
 
   void parse([String connStr]);
 
@@ -26,7 +32,7 @@ interface RedisConnection default _RedisConnection {
   void close();
 }
 
-interface LogLevel {
+class LogLevel {
   static final int None = 0;
   static final int Error = 1;
   static final int Warn = 2;
@@ -35,7 +41,7 @@ interface LogLevel {
   static final int All = 5;
 }
 
-interface Pipeline {
+abstract class Pipeline {
   completeVoidQueuedCommand(Function expectFn);
   completeIntQueuedCommand(Function expectFn);
   completeBytesQueuedCommand(Function expectFn);
@@ -52,10 +58,11 @@ class ExpectRead {
   ExpectRead(Completer this.task, void this.reader(InputStream stream, Completer task));
 
   bool execute(SocketWrapper wrapper){
-    if (_socketBuffer == null)
+    if (_socketBuffer == null) {
       _socketBuffer = new SocketBuffer(wrapper);
-    else
+    } else {
       _socketBuffer.rewind();
+    }
 
     reader(_socketBuffer, task);
 
@@ -65,7 +72,7 @@ class ExpectRead {
 
 class _RedisConnection implements RedisConnection {
   Socket _socket;
-  SocketInputStream _inStream;
+  InputStream _inStream;
   SocketWrapper _wrapper;
 
   //Valid usages:
@@ -96,7 +103,7 @@ class _RedisConnection implements RedisConnection {
   int totalBufferResizes = 0;
   int totalBytesWritten = 0;
 
-  Map get stats() => $(_wrapper.stats).addAll({
+  Map get stats => $(_wrapper.stats).addAll({
     'bufferWrites':totalBuffersWrites,
     'flushes':totalBufferFlushes,
     'bytesWritten': totalBytesWritten,
@@ -107,7 +114,7 @@ class _RedisConnection implements RedisConnection {
     : cmdBuffer = new Int8List(32 * 1024),
       pendingReads = new Queue<ExpectRead>(),
       readChunks = new Queue<List>(),
-      endData = "\r\n".charCodes()
+      endData = "\r\n".charCodes
   {
     parse(connStr);
   }
@@ -116,11 +123,11 @@ class _RedisConnection implements RedisConnection {
     if (connStr == null) return;
     List<String> parts = $(connStr).splitOnLast("@");
     password = parts.length == 2 ? parts[0] : null;
-    parts = $(parts.last()).splitOnLast(":");
+    parts = $(parts.last).splitOnLast(":");
     bool hasPort = parts.length == 2;
     hostName = parts[0];
     if (hasPort) {
-      parts = $(parts.last()).splitOnLast("/");
+      parts = $(parts.last).splitOnLast("/");
       port = Math.parseInt(parts[0]);
       db = parts.length == 2 ? Math.parseInt(parts[1]) : 0;
     }
@@ -150,22 +157,23 @@ class _RedisConnection implements RedisConnection {
       logDebug("connected!");
       _wrapper.isClosed = false;
 
-      void complete(Object ignore) =>
+      complete(Object ignore) =>
         db > 0
         ? select(db).then((_) => task.complete(true))
         : task.complete(true);
 
-      if (password != null)
+      if (password != null) {
         auth(password).then(complete);
-      else
+      } else {
         complete(null);
+      }
     };
-    _inStream = new SocketInputStream(_socket);
+    _inStream = _socket.inputStream;
     _wrapper = new SocketWrapper(_socket, _inStream);
     _inStream.onClosed = () => close();
     _inStream.onError = (e) {
       logDebug('connect exception ${e}');
-      try { close(); } catch(Exception ex){}
+      try { close(); } on Exception catch(ex){}
       task.completeException(e);
     };
 
@@ -173,9 +181,9 @@ class _RedisConnection implements RedisConnection {
     return task.future;
   }
 
-  Future select(int _db) => sendExpectSuccess(["SELECT".charCodes(), (db = _db).toString().charCodes()]);
+  Future select(int _db) => sendExpectSuccess(["SELECT".charCodes, (db = _db).toString().charCodes]);
 
-  Future auth(String _password) => sendExpectSuccess(["AUTH".charCodes(), (password = _password).charCodes()]);
+  Future auth(String _password) => sendExpectSuccess(["AUTH".charCodes, (password = _password).charCodes]);
 
   onSocketData() {
     int available = _socket.available();
@@ -184,10 +192,10 @@ class _RedisConnection implements RedisConnection {
 
     while (true) {
       if (pendingReads.length == 0) return;
-      ExpectRead expectRead = pendingReads.first(); //peek + read next in queue
+      ExpectRead expectRead = pendingReads.first; //peek + read next in queue
       try{
         if (!expectRead.execute(_wrapper)) return;
-      }catch(var e){
+      }catch(e){
         logError("ERROR parsing read: $e");
       }
       pendingReads.removeFirst(); //pop if success
@@ -237,7 +245,7 @@ class _RedisConnection implements RedisConnection {
 
     List bytes = new Int8List(1 + strLinesLen + 2);
     bytes[0] = cmdPrefix.charCodeAt(0);
-    List strBytes = strLines.charCodes();
+    List strBytes = strLines.charCodes;
     bytes.setRange(1, strBytes.length, strBytes);
     bytes[1 + strLinesLen] = _Utils.CR;
     bytes[2 + strLinesLen] = _Utils.LF;
@@ -248,7 +256,7 @@ class _RedisConnection implements RedisConnection {
   void writeAllToSendBuffer(List<List> cmdWithArgs){
     writeToSendBuffer(getCmdBytes('*', cmdWithArgs.length));
     for (List safeBinaryValue in cmdWithArgs){
-      writeToSendBuffer(getCmdBytes(@'$', safeBinaryValue.length));
+      writeToSendBuffer(getCmdBytes(r'$', safeBinaryValue.length));
       writeToSendBuffer(safeBinaryValue);
       writeToSendBuffer(endData);
     }
@@ -278,10 +286,11 @@ class _RedisConnection implements RedisConnection {
     Completer task = new Completer();
     sendCommand(cmdWithArgs)
     .then((_){
-      if (pipeline != null)
+      if (pipeline != null) {
         pipeline.completeVoidQueuedCommand(_Utils.expectSuccess);
-      else
+      } else {
         queueRead(task, _Utils.expectSuccess);
+      }
     });
     return task.future;
   }
@@ -293,10 +302,11 @@ class _RedisConnection implements RedisConnection {
     Completer task = new Completer();
     sendCommand(cmdWithArgs)
     .then((_){
-      if (pipeline != null)
+      if (pipeline != null) {
         pipeline.completeIntQueuedCommand(_Utils.readInt);
-      else
+      } else {
         queueRead(task, _Utils.readInt);
+      }
     });
     return task.future;
   }
@@ -305,10 +315,11 @@ class _RedisConnection implements RedisConnection {
     Completer task = new Completer();
     sendCommand(cmdWithArgs)
     .then((_){
-      if (pipeline != null)
+      if (pipeline != null) {
         pipeline.completeBytesQueuedCommand(_Utils.readData);
-      else
+      } else {
         queueRead(task, _Utils.readData);
+      }
     });
     return task.future;
   }
@@ -317,10 +328,11 @@ class _RedisConnection implements RedisConnection {
     Completer task = new Completer();
     sendCommand(cmdWithArgs)
     .then((_){
-      if (pipeline != null)
+      if (pipeline != null) {
         pipeline.completeMultiBytesQueuedCommand(_Utils.readMultiData);
-      else
+      } else {
         queueRead(task, _Utils.readMultiData);
+      }
     });
     return task.future;
   }
@@ -335,15 +347,16 @@ class _RedisConnection implements RedisConnection {
     Completer task = new Completer();
     sendCommand(cmdWithArgs)
     .then((_){
-      if (pipeline != null)
+      if (pipeline != null) {
         pipeline.completeStringQueuedCommand(_Utils.expectCode);
-      else
+      } else {
         queueRead(task, _Utils.expectCode);
+      }
     });
     return task.future;
   }
 
-  bool get closed() => _inStream == null || _inStream.closed;
+  bool get closed => _inStream == null || _inStream.closed;
 
 
 
@@ -420,8 +433,9 @@ class _Utils {
     String line = readString(stream);
     logDebug("$c$line");
 
-    if (c == DASH)
+    if (c == DASH) {
       task.completeException(createError(parseError(line)));
+    }
 
     callback(c, line);
   }
@@ -435,8 +449,9 @@ class _Utils {
   static Function expectWordFn(String word) {
     return (InputStream stream, Completer task) {
       parseLine(stream, task, (int c, String line) {
-        if (line != word)
+        if (line != word) {
           task.completeException(createError("Expected $word got $line"));
+        }
         task.complete(null);
       });
     };
@@ -450,7 +465,7 @@ class _Utils {
         int ret = null;
         try {
           ret = Math.parseInt(line);
-        }catch (var e){
+        }catch (e){
           task.completeException(createError("Unknown reply in readInt: $c/$line"));
           return;
         }
@@ -469,7 +484,7 @@ class _Utils {
 
     int c = bytes[0];
     if (c == DOLLAR){
-      if (line == @"$-1") {
+      if (line == r"$-1") {
         task.complete(null);
         return;
       }
@@ -477,7 +492,7 @@ class _Utils {
       int count;
       try {
         count = Math.parseInt(line.substring(1));
-      }catch (var e){
+      }catch (e){
         task.completeException(createError("readData: Invalid length: $line: $e"));
         return null;
       }
@@ -508,7 +523,7 @@ class _Utils {
         int dataCount = null;
         try{
           dataCount = Math.parseInt(line);
-        }catch (var e){
+        }catch (e){
           task.completeException(createError("readMultiData: Unknown reply on integer response: $c$line: $e"));
           return;
         }
@@ -534,7 +549,7 @@ class _Utils {
 
         try{
           task.complete(ret);
-        }catch(var e){
+        }catch(e){
           logError("readMultiData: task.complete(ret): $e");
           throw e;
         }
@@ -547,7 +562,7 @@ class _Utils {
 
 class SocketWrapper {
   Socket socket;
-  SocketInputStream inStream;
+  InputStream inStream;
   bool isClosed;
 
   //stats
@@ -556,19 +571,19 @@ class SocketWrapper {
   int totalReadIntos = 0;
   int totalBytesRead = 0;
 
-  Map get stats() => {
+  Map get stats => {
     'rewinds': totalRewinds,
     'reads': totalReads,
     'bytesRead': totalBytesRead,
 //    'readIntos': totalReadIntos,
   };
 
-  SocketWrapper(Socket this.socket, SocketInputStream this.inStream);
+  SocketWrapper(Socket this.socket, InputStream this.inStream);
 
   //The Stream takes over the close event + manages the socket close lifecycle
-  bool get closed() => isClosed != null ? isClosed : inStream.closed;
+  bool get closed => isClosed != null ? isClosed : inStream.closed;
 
-  void pipe(OutputStream output, [bool close]) { inStream.pipe(output, close); }
+  void pipe(OutputStream output, {bool close: true}) { inStream.pipe(output, close: close); }
 }
 
 //Records what's read so can be replayed if all data hasn't been received.
@@ -584,7 +599,7 @@ class SocketBuffer implements InputStream {
       this._wrapper = _wrapper,
       _socket = _wrapper.socket;
 
-  int get remaining() => _buffer == null ? 0 : _buffer.length - _position;
+  int get remaining => _buffer == null ? 0 : _buffer.length - _position;
 
   //if a full response cannot be read from the stream, the client gives up,
   //rewinds the partially read buffer, and re-attempts processing the response on next onData event
@@ -605,8 +620,9 @@ class SocketBuffer implements InputStream {
 
   List<int> readBuffer([int len]){
     if (len == null) len = remaining;
-    if (len > remaining)
+    if (len > remaining) {
       throw new Exception("Can't read $len bytes with only $remaining remaining");
+    }
 
     List<int> buffer = new Int8List(len);
     buffer.setRange(0, len, buffer, _position);
@@ -618,11 +634,12 @@ class SocketBuffer implements InputStream {
   List<int> read([int len]) {
     int bytesToRead = remaining + available();
     if (bytesToRead == 0) return null;
-    if (len !== null) {
-      if (len <= 0)
+    if (len != null) {
+      if (len <= 0) {
         throw new Exception("Illegal length $len, available: $bytesToRead");
-      else if (bytesToRead > len)
+      } else if (bytesToRead > len) {
         bytesToRead = len;
+      }
     }
 //    print("SocketBuffer.read() $len / $bytesToRead ($remaining/${available()})");
     Int8List buffer = new Int8List(bytesToRead);
@@ -659,7 +676,7 @@ class SocketBuffer implements InputStream {
   int readInto(List<int> buffer, [int offset = 0, int len]) {
 //    print("readInto: ${buffer.length} off: $offset len: $len, closed: $closed");
     if (closed) return null;
-    if (len === null) len = buffer.length;
+    if (len == null) len = buffer.length;
     if (offset < 0) throw new Exception("Illegal offset $offset");
     if (len < 0) throw new Exception("Illegal length $len");
 
@@ -674,9 +691,9 @@ class SocketBuffer implements InputStream {
   }
 
   int available() => _socket.available();
-  void pipe(OutputStream output, [bool close]) { _wrapper.pipe(output, close); }
+  void pipe(OutputStream output, {bool close: true}) { _wrapper.pipe(output, close: close); }
   void close() => _socket.close();
-  bool get closed() => _wrapper.closed;
+  bool get closed => _wrapper.closed;
   void set onData(void callback()) { _socket.onData = callback; }
   void set onClosed(void callback()) { _socket.onClosed = callback; }
   void set onError(void callback(e)) { _socket.onError = callback; }
