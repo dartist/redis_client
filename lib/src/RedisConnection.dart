@@ -157,10 +157,13 @@ class _RedisConnection implements RedisConnection {
       logDebug("connected!");
       _wrapper.isClosed = false;
 
-      complete(Object ignore) =>
-        db > 0
-        ? select(db).then((_) => task.complete(true))
-        : task.complete(true);
+      void complete(Object ignore) {
+        if (db > 0) {
+          select(db).then((_) => task.complete(true));
+        } else {
+          task.complete(true);
+        }
+      };
 
       if (password != null) {
         auth(password).then(complete);
