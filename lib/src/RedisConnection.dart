@@ -228,7 +228,7 @@ class _RedisConnection implements RedisConnection {
       try{
         ExpectRead expectRead = _pendingReads.first; //peek + read next in queue
         
-        if (!expectRead.execute(_wrapper)) { //last line returns bool: return task.future.isComplete;
+        if (!expectRead.execute(_wrapper)) {
           print("EXIT");
           return;   
         }
