@@ -228,7 +228,10 @@ class _RedisConnection implements RedisConnection {
       try{
         ExpectRead expectRead = _pendingReads.first; //peek + read next in queue
         
-        if (!expectRead.execute(_wrapper)) return;   //return task.future.isComplete;
+        if (!expectRead.execute(_wrapper)) { //last line returns bool: return task.future.isComplete;
+          print("EXIT");
+          return;   
+        }
       }catch(e){
         print("ERROR: parsing read: $e");
       }
@@ -423,7 +426,7 @@ class _RedisConnection implements RedisConnection {
     if (_pendingReads.length > 0)
     {
       try { 
-        logError(() => "Trying to close connection with ${_pendingReads.length} pendingReads remaining");
+        logDebug(() => "Trying to close connection with ${_pendingReads.length} pendingReads remaining");
         onSocketData();
       } catch(e){
         logError(e);
