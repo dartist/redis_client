@@ -13,7 +13,9 @@ RedisClientTests (){
 
   module("RedisClient",
     (Function cb) {
-      client.raw.flushall().then(cb);
+      client.raw.flushall().then((_){
+        cb();
+      });
     });
 
   asyncTest("Connection: db SELECT", (){

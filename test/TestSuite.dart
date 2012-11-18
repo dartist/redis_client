@@ -6,10 +6,12 @@ import "UseCaseTests.dart";
 import "package:dartredisclient/redis_client.dart";
 
 main () {
+  
   RedisConnectionTests();
   JsonEncoderTests();
   RedisClientTests();
-//  UseCaseTests();
+  UseCaseTests();
 
   runAllTests(hidePassedTests:false);
+  
 }

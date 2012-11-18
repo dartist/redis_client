@@ -17,6 +17,10 @@ abstract class RedisConnection {
   int db;
   Map get stats;
 
+  void set onConnect(void callback());
+  void set onClosed(void callback());
+  void set onError(void callback(e));
+  
   void parse([String connStr]);
 
   Future select(int selectDb);
@@ -72,9 +76,8 @@ class ExpectRead {
 
 class _RedisConnection implements RedisConnection {
   Socket _socket;
-  InputStream _inStream;
   SocketWrapper _wrapper;
-
+  
   //Valid usages:
   //pass@host:port/db
   //pass@host:port
@@ -88,14 +91,14 @@ class _RedisConnection implements RedisConnection {
   bool connected;
   List endData;
   Queue<List> readChunks;
-  int logLevel = LogLevel.Error;
+  int logLevel = LogLevel.Error;//Error
 
   Int8List cmdBuffer;
   int cmdBufferIndex = 0;
   static final int breathingSpace = 32 * 1024; //To Reduce Reallocations
   Pipeline pipeline;
 
-  Queue<ExpectRead> pendingReads;
+  Queue<ExpectRead> _pendingReads;
 
   //stats
   int totalBuffersWrites = 0;
@@ -112,7 +115,7 @@ class _RedisConnection implements RedisConnection {
 
   _RedisConnection([String connStr])
     : cmdBuffer = new Int8List(32 * 1024),
-      pendingReads = new Queue<ExpectRead>(),
+      _pendingReads = new Queue<ExpectRead>(),
       readChunks = new Queue<List>(),
       endData = "\r\n".charCodes
   {
@@ -133,11 +136,24 @@ class _RedisConnection implements RedisConnection {
     }
   }
 
-  void logDebug (arg) {
-    if (logLevel >= LogLevel.Debug) print(arg);
+  Function _onConnect;
+  void set onConnect(void callback()) {
+    _onConnect = callback;
   }
-  void logError (arg) {
-    if (logLevel >= LogLevel.Error) print(arg);
+  Function _onClosed;
+  void set onClosed(void callback()) {
+    _onClosed = callback;
+  }
+  Function _onError;
+  void set onError(void callback(e)) {
+    _onError = callback;
+  }
+
+  void logDebug (Function arg) {
+    if (logLevel >= LogLevel.Debug) print(arg());
+  }
+  void logError (Function arg) {
+    if (logLevel >= LogLevel.Error) print(arg());
   }
   Exception createError(arg){
     logError(arg);
@@ -145,22 +161,29 @@ class _RedisConnection implements RedisConnection {
   }
 
   Future<bool> ensureConnected() {
-    logDebug("ensureConnected()");
+    logDebug(() => "ensureConnected()");
     Completer task = new Completer();
-    if (_wrapper != null && !_wrapper.closed) {
+    if (!closed) {
       task.complete(false);
       return task.future;
     }
 
+    logDebug(() => "Creating new Socket($hostName, $port)");
     _socket = new Socket(hostName, port);
+    _socket.onData = onSocketData;
     _socket.onConnect = () {
-      logDebug("connected!");
-      _wrapper.isClosed = false;
+      _connected = true;
+      logDebug(() => "connected!");
+      flushSendBuffer(); //Flush any pending writes accumulated before connection
 
       void complete(Object ignore) {
         if (db > 0) {
-          select(db).then((_) => task.complete(true));
+          select(db).then((_) {
+            if (_onConnect != null) _onConnect();
+            task.complete(true);
+          });
         } else {
+          if (_onConnect != null) _onConnect();
           task.complete(true);
         }
       };
@@ -171,16 +194,16 @@ class _RedisConnection implements RedisConnection {
         complete(null);
       }
     };
-    _inStream = _socket.inputStream;
-    _wrapper = new SocketWrapper(_socket, _inStream);
-    _inStream.onClosed = () => close();
-    _inStream.onError = (e) {
-      logDebug('connect exception ${e}');
-      try { close(); } on Exception catch(ex){}
+    _closed = false;
+    _wrapper = new SocketWrapper(_socket, () => closed, () => _available());
+    _socket.onClosed = () => close();
+    _socket.onError = (e) {
+      logDebug(() => 'connect exception ${e}');
+      try { close(); } catch(ex){ logError(() => ex); }
+      try { if (_onError != null) _onError(e); } catch(ex){}
       task.completeException(e);
     };
-
-    _socket.onData = onSocketData;
+    
     return task.future;
   }
 
@@ -188,25 +211,45 @@ class _RedisConnection implements RedisConnection {
 
   Future auth(String _password) => sendExpectSuccess(["AUTH".charCodes, (password = _password).charCodes]);
 
+  int _available() => _connected ? _socket.available() : 0;
+  
   onSocketData() {
-    int available = _socket.available();
-    logDebug("onSocketData: $available total bytes");
+    int available = _available();
     if (available == 0) return;
-
+    
     while (true) {
-      if (pendingReads.length == 0) return;
-      ExpectRead expectRead = pendingReads.first; //peek + read next in queue
+      if (_pendingReads.length == 0) return;
+      
+      if (closed)
+        throw logError(() => "onSocketData(): Cannot read from closed socket");
+
+      print("BEFORE: _pendingReads.length == ${_pendingReads.length}");
+
       try{
-        if (!expectRead.execute(_wrapper)) return;
+        ExpectRead expectRead = _pendingReads.first; //peek + read next in queue
+        
+        if (!expectRead.execute(_wrapper)) return;   //return task.future.isComplete;
       }catch(e){
-        logError("ERROR parsing read: $e");
+        print("ERROR: parsing read: $e");
       }
-      pendingReads.removeFirst(); //pop if success
+
+      print("AFTER: _pendingReads.length == ${_pendingReads.length}");
+      
+      //Why does execution continue from this point?
+      if (_pendingReads.length == 0) {
+        print("How did we get to this point?");
+        return;
+      }
+
+      _pendingReads.removeFirst(); //pop if success
     }
   }
 
   void cmdLog(args){
-    logDebug("cmdLog: $args");
+    logDebug(() {
+      var cmd = args.length > 0 ? new String.fromCharCodes(args[0]) : "";
+      return "cmdLog: [$cmd] $args";
+    });
   }
 
   Future sendCommand(List<List> cmdWithArgs){
@@ -224,14 +267,25 @@ class _RedisConnection implements RedisConnection {
   }
 
   bool flushSendBuffer(){
-    totalBufferFlushes++;
-    logDebug("flushSendBuffer(): ${_socket.available()}");
-
-    int maxAttempts = 100;
-    while ((cmdBufferIndex -= _socket.writeList(cmdBuffer, 0, cmdBufferIndex)) > 0 && --maxAttempts > 0);
-
-    resetSendBuffer();
-    return maxAttempts > 0;
+    try {
+      if (!_connected){
+        logDebug(() => "Deferring attempt to flushSendBuffer() since not connected yet");
+        return true;
+      }
+      totalBufferFlushes++;
+      logDebug(() => "flushSendBuffer(): ${_available()}");
+  
+      int maxAttempts = 100;
+      while ((cmdBufferIndex -= _socket.writeList(cmdBuffer, 0, cmdBufferIndex)) > 0 && --maxAttempts > 0);
+  
+      resetSendBuffer();
+      return maxAttempts > 0;
+    }
+    catch (e){
+      print(e);
+      logError(e);
+      return false;
+    }
   }
 
   void resetOnError(){
@@ -267,7 +321,7 @@ class _RedisConnection implements RedisConnection {
 
   void writeToSendBuffer(List cmdBytes){
     if ((cmdBufferIndex + cmdBytes.length) > cmdBuffer.length) {
-      logDebug("resizing sendBuffer $cmdBufferIndex + ${cmdBytes.length} + $breathingSpace");
+      logDebug(() => "resizing sendBuffer $cmdBufferIndex + ${cmdBytes.length} + $breathingSpace");
       totalBufferResizes++;
       Int8List newLargerBuffer = new Int8List(cmdBufferIndex + cmdBytes.length + breathingSpace);
       cmdBuffer.setRange(0, cmdBuffer.length, newLargerBuffer);
@@ -281,8 +335,8 @@ class _RedisConnection implements RedisConnection {
   }
 
   void queueRead(Completer task, void reader(InputStream stream, Completer task)){
-    pendingReads.add(new ExpectRead(task, reader));
-    logDebug("queueRead: #${pendingReads.length}");
+    _pendingReads.add(new ExpectRead(task, reader));
+    logDebug(() => "queueRead: #${_pendingReads.length}");
   }
 
   Future<Object> sendExpectSuccess(List<List> cmdWithArgs){
@@ -359,23 +413,35 @@ class _RedisConnection implements RedisConnection {
     return task.future;
   }
 
-  bool get closed => _inStream == null || _inStream.closed;
-
-
+  bool _connected = false;
+  bool _closed = false;
+  bool get closed => _closed || _wrapper == null;
 
   close() {
-    logDebug("closing..");
-    if (_inStream != null) _inStream.close();
+    logDebug(() => "closing..");
+    
+    if (_pendingReads.length > 0)
+    {
+      try { 
+        logError(() => "Trying to close connection with ${_pendingReads.length} pendingReads remaining");
+        onSocketData();
+      } catch(e){
+        logError(e);
+      }
+    }
+    
+    _connected = false;
+    _closed = true;
+    
     if (_socket != null){
       _socket.onData = null;
       _socket.onWrite = null;
       _socket.onError = null;
       _socket.close();
     }
-    if (_wrapper != null) _wrapper.isClosed = true;
-    _inStream = null;
     _socket = null;
     _wrapper = null;
+    if (_onClosed != null) _onClosed();
   }
 }
 
@@ -566,8 +632,13 @@ class _Utils {
 class SocketWrapper {
   Socket socket;
   InputStream inStream;
-  bool isClosed;
+  
+  Function _closed;
+  get closed => _closed();
 
+  Function _available;
+  int available() => _available();
+  
   //stats
   int totalRewinds = 0;
   int totalReads = 0;
@@ -578,15 +649,15 @@ class SocketWrapper {
     'rewinds': totalRewinds,
     'reads': totalReads,
     'bytesRead': totalBytesRead,
-//    'readIntos': totalReadIntos,
   };
 
-  SocketWrapper(Socket this.socket, InputStream this.inStream);
+  SocketWrapper(Socket this.socket, this._closed, this._available);
 
-  //The Stream takes over the close event + manages the socket close lifecycle
-  bool get closed => isClosed != null ? isClosed : inStream.closed;
+  void pipe(OutputStream output, {bool close: false}) { 
+    print("SocketWrapper.pipe() close:$close");
+    _pipe(socket, output, close:close);
+  }
 
-  void pipe(OutputStream output, {bool close: true}) { inStream.pipe(output, close: close); }
 }
 
 //Records what's read so can be replayed if all data hasn't been received.
@@ -693,11 +764,47 @@ class SocketBuffer implements InputStream {
     return bytesRead;
   }
 
-  int available() => _socket.available();
-  void pipe(OutputStream output, {bool close: true}) { _wrapper.pipe(output, close: close); }
+  int available() => _wrapper.available();
+  void pipe(OutputStream output, {bool close: true}) { _wrapper.pipe(output, close:close); }
   void close() => _socket.close();
   bool get closed => _wrapper.closed;
   void set onData(void callback()) { _socket.onData = callback; }
   void set onClosed(void callback()) { _socket.onClosed = callback; }
   void set onError(void callback(e)) { _socket.onError = callback; }
+}
+
+void _pipe(Socket input, OutputStream output, {bool close}) {
+  Function pipeDataHandler;
+  Function pipeCloseHandler;
+  Function pipeNoPendingWriteHandler;
+
+  Function _inputCloseHandler;
+
+  pipeDataHandler = () {
+    List<int> data;
+    while ((data = input.read()) !== null) {
+      if (!output.write(data)) {
+        input.onData = null;
+        output.onNoPendingWrites = pipeNoPendingWriteHandler;
+        break;
+      }
+    }
+  };
+
+  pipeCloseHandler = () {
+    if (close) output.close();
+    if (_inputCloseHandler !== null) {
+      _inputCloseHandler();
+    }
+  };
+
+  pipeNoPendingWriteHandler = () {
+    input.onData = pipeDataHandler;
+    output.onNoPendingWrites = null;
+  };
+
+  //_inputCloseHandler = input._clientCloseHandler; //from original _pipe
+  input.onData = pipeDataHandler;
+  input.onClosed = pipeCloseHandler;
+  output.onNoPendingWrites = null;
 }

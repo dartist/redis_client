@@ -13,6 +13,10 @@ import 'RedisConnection.dart';
 abstract class RedisNativeClient {
   factory RedisNativeClient([String connStr]) => new _RedisNativeClient(connStr);
 
+  void set onConnect(void callback());
+  void set onClosed(void callback());
+  void set onError(void callback(e));
+
   Map get stats;
 
   int get db;
@@ -153,6 +157,15 @@ class _RedisNativeClient implements RedisNativeClient {
 
   _RedisNativeClient([String this.connStr]) {
     conn = new RedisConnection(connStr);
+    conn.onConnect = () { 
+      if (_onConnect != null) _onConnect(); 
+    };
+    conn.onClosed = () { 
+      if (_onClosed != null) _onClosed(); 
+    };
+    conn.onError = (e) { 
+      if (_onError != null) _onError(e); 
+    };
 
     _emptyValue = () { Completer<Object> task = new Completer<Object>(); task.complete(null); return task.future; };
     _emptyList = () { Completer<List> task = new Completer<List>(); task.complete(const []); return task.future; };
@@ -164,6 +177,19 @@ class _RedisNativeClient implements RedisNativeClient {
   static List<int> keyBytes(String key){
     if (key == null || key.isEmpty) throw new Exception("key is null");
     return key.charCodes;
+  }
+
+  Function _onConnect;
+  void set onConnect(void callback()) {
+    _onConnect = callback;
+  }
+  Function _onClosed;
+  void set onClosed(void callback()) {
+    _onClosed = callback;
+  }
+  Function _onError;
+  void set onError(void callback(e)) {
+    _onError = callback;
   }
 
   int get db => conn.db;

@@ -56,7 +56,7 @@ ok(actual, msg) =>
 
 Function _start;
 Function _next;
-start() => _start();
+start() { if (_start != null) _start(); }
 
 raises(actualFn, expectedTypeFn, msg) {
   try {
