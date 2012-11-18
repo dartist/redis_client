@@ -223,27 +223,18 @@ class _RedisConnection implements RedisConnection {
       if (closed)
         throw logError(() => "onSocketData(): Cannot read from closed socket");
 
-      print("BEFORE: _pendingReads.length == ${_pendingReads.length}");
-
       try{
         ExpectRead expectRead = _pendingReads.first; //peek + read next in queue
         
-        if (!expectRead.execute(_wrapper)) {
-          print("EXIT");
-          return;   
-        }
+        if (!expectRead.execute(_wrapper)) 
+          return;        
       }catch(e){
-        print("ERROR: parsing read: $e");
+        logError(() => "ERROR: parsing read: $e");
       }
 
-      print("AFTER: _pendingReads.length == ${_pendingReads.length}");
-      
-      //Why does execution continue from this point?
-      if (_pendingReads.length == 0) {
-        print("How did we get to this point?");
+      if (_pendingReads.length == 0) 
         return;
-      }
-
+      
       _pendingReads.removeFirst(); //pop if success
     }
   }

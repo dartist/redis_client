@@ -13,5 +13,4 @@ main () {
   UseCaseTests();
 
   runAllTests(hidePassedTests:false);
-  
 }
