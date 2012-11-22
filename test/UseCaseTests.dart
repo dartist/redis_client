@@ -6,14 +6,12 @@ import "package:dartredisclient/redis_client.dart";
 
 UseCaseTests() {
 
-
   module("UseCases");
 
   asyncTest("Simple Demo",(){
+
     RedisClient client = new RedisClient();
-    print("Simple Demo");
     client.flushall();
-    print("Simple Demo 2");
     
     var items = ["B","A","A","C","D","B","E"];
     var itemScores = {"B":2,"A":1,"C":3,"D":4,"E":5};

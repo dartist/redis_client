@@ -8,9 +8,9 @@ import "package:dartredisclient/redis_client.dart";
 main () {
   
   RedisConnectionTests();
+  UseCaseTests();
   JsonEncoderTests();
   RedisClientTests();
-  UseCaseTests();
 
   runAllTests(hidePassedTests:false);
 }

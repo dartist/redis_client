@@ -13,18 +13,26 @@ class _TestTuple {
 }
 
 Map<String,List<_TestTuple>> _moduleTests;
-Map<String,Function> _modulesStartup;
-Map<String,Function> _modulesTeardown;
+Map<String,Function> _modulesSetUp;
+Map<String,Function> _modulesTearDown;
+Map<String,Function> _modulesTeardownFixture;
 String _moduleName;
-module (name, [Function startup(Function cb), Function teardown]) {
+
+module (name, {
+  Function setUp(Function cb), 
+  Function tearDown,
+  Function tearDownFixture }) {
+  
   if (_moduleTests == null) _moduleTests = new Map<String,List<_TestTuple>>();
-  if (_modulesStartup == null) _modulesStartup = new Map<String,Function>();
-  if (_modulesTeardown == null) _modulesTeardown = new Map<String,Function>();
+  if (_modulesSetUp == null) _modulesSetUp = new Map<String,Function>();
+  if (_modulesTearDown == null) _modulesTearDown = new Map<String,Function>();
+  if (_modulesTeardownFixture == null) _modulesTeardownFixture = new Map<String,Function>();
 
   _moduleName = name;
   _moduleTests.putIfAbsent(_moduleName, () => new List<_TestTuple>());
-  _modulesStartup[_moduleName] = startup;
-  _modulesTeardown[_moduleName] = teardown;
+  _modulesSetUp[_moduleName] = setUp;
+  _modulesTearDown[_moduleName] = tearDown;
+  _modulesTeardownFixture[_moduleName] = tearDownFixture;
 }
 
 test(name, Function assertions) {
@@ -88,6 +96,9 @@ runAllTests({bool hidePassedTests: false}){
   _end(){
     print("\nTests completed in ${sw.elapsedMilliseconds}ms");
     print("$totalTests tests of $totalPassed passed, $totalFailed failed.");
+    
+    Function teardown = _modulesTeardownFixture[moduleName];
+    if (teardown != null) teardown();
   }
 
   _next = (){
@@ -136,14 +147,13 @@ runAllTests({bool hidePassedTests: false}){
         }
       }
       if (error != null) print(error);
-      Function teardown = _modulesTeardown[moduleName];
+      Function teardown = _modulesTearDown[moduleName];
       if (teardown != null) teardown();
       _next();
     };
 
     try {
-
-      Function startup = _modulesStartup[moduleName];
+      Function startup = _modulesSetUp[moduleName];
       if (startup != null) {
         startup(([k]) => _test.func());
       }

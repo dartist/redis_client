@@ -5,6 +5,7 @@ import 'dart:io';
 import 'dart:json';
 import 'dart:math' as Math;
 import 'dart:scalarlist';
+import 'dart:isolate';
 
 import 'package:dartmixins/mixin.dart';
 
@@ -196,7 +197,7 @@ class _RedisConnection implements RedisConnection {
     };
     _closed = false;
     _wrapper = new SocketWrapper(_socket, () => closed, () => _available());
-    _socket.onClosed = () => close();
+    _socket.onClosed = close;
     _socket.onError = (e) {
       logDebug(() => 'connect exception ${e}');
       try { close(); } catch(ex){ logError(() => ex); }
@@ -212,8 +213,12 @@ class _RedisConnection implements RedisConnection {
   Future auth(String _password) => sendExpectSuccess(["AUTH".charCodes, (password = _password).charCodes]);
 
   int _available() => _connected ? _socket.available() : 0;
+
+  onSocketData(){
+    processSocketData("onSocketData");
+  }
   
-  onSocketData() {
+  processSocketData(callsite){
     int available = _available();
     if (available == 0) return;
     
@@ -226,15 +231,13 @@ class _RedisConnection implements RedisConnection {
       try{
         ExpectRead expectRead = _pendingReads.first; //peek + read next in queue
         
-        if (!expectRead.execute(_wrapper)) 
-          return;        
+        if (!expectRead.execute(_wrapper)) {
+          return;   
+        }
       }catch(e){
-        logError(() => "ERROR: parsing read: $e");
+        logError(() => "ERROR $callsite: parsing read: $e");
       }
 
-      if (_pendingReads.length == 0) 
-        return;
-      
       _pendingReads.removeFirst(); //pop if success
     }
   }
@@ -276,7 +279,6 @@ class _RedisConnection implements RedisConnection {
       return maxAttempts > 0;
     }
     catch (e){
-      print(e);
       logError(e);
       return false;
     }
@@ -412,13 +414,17 @@ class _RedisConnection implements RedisConnection {
   bool get closed => _closed || _wrapper == null;
 
   close() {
+    new Timer(1, (timer) => _close()); //Close on next event-loop
+  }
+  
+  _close(){
     logDebug(() => "closing..");
     
     if (_pendingReads.length > 0)
     {
       try { 
         logDebug(() => "Trying to close connection with ${_pendingReads.length} pendingReads remaining");
-        onSocketData();
+        processSocketData("close");
       } catch(e){
         logError(e);
       }
@@ -431,11 +437,13 @@ class _RedisConnection implements RedisConnection {
       _socket.onData = null;
       _socket.onWrite = null;
       _socket.onError = null;
+      _socket.onClosed = null;
       _socket.close();
     }
     _socket = null;
     _wrapper = null;
     if (_onClosed != null) _onClosed();
+    
   }
 }
 
@@ -450,11 +458,11 @@ class _Utils {
 
   static final NoMoreData = null;
 
-  static void logDebug(arg){
-    //print("$arg");
+  static void logDebug (Function arg) {
+    //print(arg());
   }
-  static void logError(arg){
-    print("$arg");
+  static void logError (Function arg) {
+    print(arg());
   }
 
   static Exception createError(arg){
@@ -468,7 +476,7 @@ class _Utils {
   }
 
   static List<int> readLine(InputStream stream){
-    logDebug("readLine: ${stream.available()} total bytes");
+    logDebug(() => "readLine: ${stream.available()} total bytes");
     List<int> buffer = new List<int>();
     List<int> ret;
     int c;
@@ -489,12 +497,12 @@ class _Utils {
       : redisError.substring(4);
 
   static void parseLine(InputStream stream, Completer task, void callback(int charPrefix, String line)){
-    logDebug("parseLine: ${stream.available()} total bytes");
+    logDebug(() => "parseLine: ${stream.available()} total bytes");
     int c = readByte(stream);
     if (c == NoMoreData) return NoMoreData;
 
     String line = readString(stream);
-    logDebug("$c$line");
+    logDebug(() => "$c$line");
 
     if (c == DASH) {
       task.completeException(createError(parseError(line)));
@@ -542,7 +550,7 @@ class _Utils {
   static void readData(InputStream stream, Completer task){
     List<int> bytes = readLine(stream);
     String line = new String.fromCharCodes(bytes);
-    logDebug("readData: $line");
+    logDebug(() => "readData: $line");
     if (bytes.length == 0) return NoMoreData;
 
     int c = bytes[0];
@@ -613,7 +621,7 @@ class _Utils {
         try{
           task.complete(ret);
         }catch(e){
-          logError("readMultiData: task.complete(ret): $e");
+          logError(() => "readMultiData: task.complete(ret): $e");
           throw e;
         }
       } else {
@@ -648,7 +656,6 @@ class SocketWrapper {
   SocketWrapper(Socket this.socket, this._closed, this._available);
 
   void pipe(OutputStream output, {bool close: false}) { 
-    print("SocketWrapper.pipe() close:$close");
     _pipe(socket, output, close:close);
   }
 

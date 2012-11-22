@@ -6,6 +6,7 @@ main() {
   RedisClient client = new RedisClient();
   client.flushall();
   client.info.then((info) {
+    print("info: $info");
     client.close();
   });
 }

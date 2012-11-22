@@ -12,10 +12,15 @@ RedisClientTests (){
   RedisClient client = new RedisClient();
 
   module("RedisClient",
-    (Function cb) {
+    setUp:(Function cb) {
       client.raw.flushall().then((_){
         cb();
       });
+    },
+    tearDownFixture:(){
+      print("\nRedisClient stats:");
+      print(client.raw.stats);
+      client.close();
     });
 
   asyncTest("Connection: db SELECT", (){
@@ -364,9 +369,4 @@ RedisClientTests (){
     });
   });
 
-  new Timer(3000, (_) {
-    print("\nRedisClient stats:");
-    print(client.raw.stats);
-    client.close();
-  });
 }
