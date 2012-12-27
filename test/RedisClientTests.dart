@@ -1,4 +1,4 @@
-library RedisConnectionTests;
+library RedisClientTests;
 
 import "dart:io";
 import "dart:isolate";

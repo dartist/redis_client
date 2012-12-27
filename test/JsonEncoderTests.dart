@@ -1,4 +1,4 @@
-library RedisConnectionTests;
+library jsonEncoderTests;
 
 import "dart:json";
 import "DUnit.dart";
