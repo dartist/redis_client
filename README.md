@@ -13,26 +13,12 @@ The Redis Client API is now feature complete with support for all ADMIN tasks as
 
 Follow [@demisbellot](http://twitter.com/demisbellot) for project updates.
 
-## Download 
+## Adding Dependencies with Pubspec 
+    dependencies:
+      dartredisclient:
+        git: git://github.com/mythz/DartRedisClient.git
 
-This will be made available on the Dart Package Manager when its ready, until then you can easily make use of this library by adding it as a submodule at your projects root:
-
-    git submodule add git@github.com:mythz/DartRedisClient.git vendor/RedisClient
-    cd vendor/RedisClient
-    git submodule init
-    git submodule update    
-
-Then you can pull future project updates with a git pull in the submodule directory, e.g:
-
-    git pull origin master    
-
-If you prefer not to add a submodule you can just copy these files into the same directory: 
-
-  - [vendor/Mixins/Mixin.dart](https://github.com/mythz/DartMixins/blob/master/Mixin.dart)
-  - [RedisConnection.dart](https://github.com/mythz/DartRedisClient/blob/master/RedisConnection.dart)
-  - [RedisNativeClient.dart](https://github.com/mythz/DartRedisClient/blob/master/RedisNativeClient.dart)
-  - [RedisClient.dart](https://github.com/mythz/DartRedisClient/blob/master/RedisClient.dart)
-    
+ 
 ## Example Usage
 
       RedisClient client = new RedisClient("password@localhost:6379/0");
@@ -382,6 +368,7 @@ Adding automatic failover support in v3.0, sharding, fast RPC direct-pipeline us
 ## Contributors
 
   - [mythz](https://github.com/mythz) (Demis Bellot)
+  - [financeCoding](https://github.com/financeCoding) (Adam Singer)
 
 
 ### Feedback 
