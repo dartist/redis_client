@@ -6,3 +6,7 @@
 *.ear
 
 packages/
+pubspec.lock
+test/packages
+.children
+.project
