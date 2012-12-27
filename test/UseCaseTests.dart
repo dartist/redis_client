@@ -1,4 +1,4 @@
-library RedisConnectionTests;
+library UseCaseTests;
 import "dart:io";
 import "DUnit.dart";
 import "package:dartmixins/mixin.dart";
@@ -12,7 +12,7 @@ UseCaseTests() {
 
     RedisClient client = new RedisClient();
     client.flushall();
-    
+
     var items = ["B","A","A","C","D","B","E"];
     var itemScores = {"B":2,"A":1,"C":3,"D":4,"E":5};
 

@@ -1,4 +1,4 @@
-library RedisConnectionTests;
+library jsonEncoderTests;
 
 import "dart:json";
 import "DUnit.dart";
@@ -24,7 +24,7 @@ JsonEncoderTests() {
     equal(enc.stringify([]), "[]", "can encode empty List");
     equal(enc.stringify({'A':1}), '{"A":1}', "can encode Map");
     equal(enc.stringify(['A']), '["A"]', "can encode List");
-    equal(enc.stringify(new Date(2012,05,09,0,0,0,0)), "/Date(1336536000000)/", "can encode Date");
+    equal(enc.stringify(new Date(2012,05,09,0,0,0,0)), "/Date(1336546800000)/", "can encode Date");
   });
 
   test("Encoder: deserialize", (){

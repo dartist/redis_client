@@ -21,7 +21,7 @@ abstract class RedisConnection {
   void set onConnect(void callback());
   void set onClosed(void callback());
   void set onError(void callback(e));
-  
+
   void parse([String connStr]);
 
   Future select(int selectDb);
@@ -78,7 +78,7 @@ class ExpectRead {
 class _RedisConnection implements RedisConnection {
   Socket _socket;
   SocketWrapper _wrapper;
-  
+
   //Valid usages:
   //pass@host:port/db
   //pass@host:port
@@ -204,7 +204,7 @@ class _RedisConnection implements RedisConnection {
       try { if (_onError != null) _onError(e); } catch(ex){}
       task.completeException(e);
     };
-    
+
     return task.future;
   }
 
@@ -217,22 +217,22 @@ class _RedisConnection implements RedisConnection {
   onSocketData(){
     processSocketData("onSocketData");
   }
-  
+
   processSocketData(callsite){
     int available = _available();
     if (available == 0) return;
-    
+
     while (true) {
       if (_pendingReads.length == 0) return;
-      
+
       if (closed)
         throw logError(() => "onSocketData(): Cannot read from closed socket");
 
       try{
         ExpectRead expectRead = _pendingReads.first; //peek + read next in queue
-        
+
         if (!expectRead.execute(_wrapper)) {
-          return;   
+          return;
         }
       }catch(e){
         logError(() => "ERROR $callsite: parsing read: $e");
@@ -271,10 +271,10 @@ class _RedisConnection implements RedisConnection {
       }
       totalBufferFlushes++;
       logDebug(() => "flushSendBuffer(): ${_available()}");
-  
+
       int maxAttempts = 100;
       while ((cmdBufferIndex -= _socket.writeList(cmdBuffer, 0, cmdBufferIndex)) > 0 && --maxAttempts > 0);
-  
+
       resetSendBuffer();
       return maxAttempts > 0;
     }
@@ -416,23 +416,23 @@ class _RedisConnection implements RedisConnection {
   close() {
     new Timer(1, (timer) => _close()); //Close on next event-loop
   }
-  
+
   _close(){
     logDebug(() => "closing..");
-    
+
     if (_pendingReads.length > 0)
     {
-      try { 
+      try {
         logDebug(() => "Trying to close connection with ${_pendingReads.length} pendingReads remaining");
         processSocketData("close");
       } catch(e){
         logError(e);
       }
     }
-    
+
     _connected = false;
     _closed = true;
-    
+
     if (_socket != null){
       _socket.onData = null;
       _socket.onWrite = null;
@@ -443,7 +443,7 @@ class _RedisConnection implements RedisConnection {
     _socket = null;
     _wrapper = null;
     if (_onClosed != null) _onClosed();
-    
+
   }
 }
 
@@ -634,13 +634,13 @@ class _Utils {
 class SocketWrapper {
   Socket socket;
   InputStream inStream;
-  
+
   Function _closed;
   get closed => _closed();
 
   Function _available;
   int available() => _available();
-  
+
   //stats
   int totalRewinds = 0;
   int totalReads = 0;
@@ -655,7 +655,7 @@ class SocketWrapper {
 
   SocketWrapper(Socket this.socket, this._closed, this._available);
 
-  void pipe(OutputStream output, {bool close: false}) { 
+  void pipe(OutputStream output, {bool close: false}) {
     _pipe(socket, output, close:close);
   }
 
@@ -783,7 +783,7 @@ void _pipe(Socket input, OutputStream output, {bool close}) {
 
   pipeDataHandler = () {
     List<int> data;
-    while ((data = input.read()) !== null) {
+    while ((data = input.read()) != null) {
       if (!output.write(data)) {
         input.onData = null;
         output.onNoPendingWrites = pipeNoPendingWriteHandler;
@@ -794,7 +794,7 @@ void _pipe(Socket input, OutputStream output, {bool close}) {
 
   pipeCloseHandler = () {
     if (close) output.close();
-    if (_inputCloseHandler !== null) {
+    if (_inputCloseHandler != null) {
       _inputCloseHandler();
     }
   };
