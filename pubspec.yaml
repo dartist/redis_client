@@ -2,6 +2,6 @@ name: dartredisclient
 description: A high-performance async/non-blocking Redis client for Dart.
 authors: ["Demis Bellot", "Adam Singer <financeCoding@gmail.com>"]
 homepage: https://github.com/Dartist/RedisClient.git
-version: 0.1.1-dev
+version: 0.1.2-dev
 dependencies:
   dartmixins: ">=0.0.1 <0.0.2"
