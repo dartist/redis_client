@@ -9,14 +9,14 @@ A high-performance async/non-blocking Redis client for Dart. This project includ
 As all operations are async they return [Futures](http://api.dartlang.org/dart_core/Future.html) for better handling of asynchronous operations. 
 
 ### v1.0 Released
-The Redis Client API is now feature complete with support for all ADMIN tasks as well as all KEYS, LISTS, SETS, SORTED SETS and HASH collections [including tests for all operations](https://github.com/mythz/DartRedisClient/blob/master/tests/RedisClientTests.dart).
+The Redis Client API is now feature complete with support for all ADMIN tasks as well as all KEYS, LISTS, SETS, SORTED SETS and HASH collections [including tests for all operations](https://github.com/Dartist/RedisClient/blob/master/test/RedisClientTests.dart).
 
 Follow [@demisbellot](http://twitter.com/demisbellot) for project updates.
 
 ## Adding Dependencies with Pubspec 
     dependencies:
       dartredisclient:
-        git: git://github.com/mythz/DartRedisClient.git
+        git: git://github.com/Dartist/RedisClient.git
 
  
 ## Example Usage
@@ -58,7 +58,7 @@ Which generates the following output:
       Redis Server info: {# Server: null, redis_version: 2.5.9, ... db0: keys=7,expires=0}
       Redis Client info: {rewinds: 0, reads: 246, bytesRead: 3152, bufferWrites: 239, flushes: 14, bytesWritten: 740}
 
-More examples can be found in 150+ tests in [RedisClientTests.dart](https://github.com/mythz/DartRedisClient/blob/master/tests/RedisClientTests.dart) - [latest testrun](https://gist.github.com/2698702).
+More examples can be found in 150+ tests in [RedisClientTests.dart](https://github.com/Dartist/RedisClient/blob/master/tests/RedisClientTests.dart) - [latest testrun](https://gist.github.com/2698702).
 
 ## API
 
@@ -66,7 +66,7 @@ More examples can be found in 150+ tests in [RedisClientTests.dart](https://gith
 
 A high-level interface with pluggable encoders/decoders providing API for native Dart types.
 
-All methods with **Object** types allow you to pass and return any object, i.e. any int, double, bool, String, Date's persisted will return native int, double, bool, String, Date types out. Any complex types including Lists, Maps are serialized as JSON and auto-deserialized as well. Examples of this built-in serialization support are visible in the [JsonEncoderTests.dart](https://github.com/mythz/DartRedisClient/blob/master/tests/JsonEncoderTests.dart)
+All methods with **Object** types allow you to pass and return any object, i.e. any int, double, bool, String, Date's persisted will return native int, double, bool, String, Date types out. Any complex types including Lists, Maps are serialized as JSON and auto-deserialized as well. Examples of this built-in serialization support are visible in the [JsonEncoderTests.dart](https://github.com/Dartist/RedisClient/blob/master/tests/JsonEncoderTests.dart)
 
     interface RedisClient default _RedisClient {
         RedisClient([String connStr]);
