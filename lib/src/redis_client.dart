@@ -1,14 +1,5 @@
-//part of redis_client;
-library redis_client;
+part of redis_client;
 
-import 'dart:io';
-import 'dart:json';
-import 'dart:math' as Math;
-import 'dart:scalarlist';
-
-import 'package:dartmixins/mixin.dart';
-
-import 'RedisNativeClient.dart';
 
 abstract class BytesEncoder {
   factory BytesEncoder() => new JsonEncoder();
@@ -24,7 +15,7 @@ abstract class RedisClient {
   //ADMIN
   int get db;
   Future select(int db);
-  Future<Date> get lastsave;
+  Future<DateTime> get lastsave;
   Future<int> get dbsize;
   Future<Map> get info;
   Future flushdb();
@@ -69,8 +60,8 @@ abstract class RedisClient {
   Future<bool> renamenx(String oldKey, String newKey);
   Future<bool> expire(String key, int expireInSecs);
   Future<bool> pexpire(String key, int expireInMs);
-  Future<bool> expireat(String key, Date date);
-  Future<bool> pexpireat(String key, Date date);
+  Future<bool> expireat(String key, DateTime date);
+  Future<bool> pexpireat(String key, DateTime date);
   Future<int> ttl(String key);
   Future<int> pttl(String key);
 
@@ -165,7 +156,7 @@ class _RedisClient implements RedisClient {
   int get db => client.db;
   Future select(int db) => client.select(db);
   Future<int> get dbsize => client.dbsize;
-  Future<Date> get lastsave => client.lastsave.transform((int unixTs) => new Date.fromMillisecondsSinceEpoch(unixTs * 1000, isUtc:true));
+  Future<DateTime> get lastsave => client.lastsave.transform((int unixTs) => new DateTime.fromMillisecondsSinceEpoch(unixTs * 1000, isUtc:true));
   Future<Map> get info => client.info;
   Future flushdb() => client.flushdb();
   Future flushall() => client.flushall();
@@ -209,8 +200,8 @@ class _RedisClient implements RedisClient {
   Future<bool> renamenx(String oldKey, String newKey) => client.renamenx(oldKey, newKey);
   Future<bool> expire(String key, int expireInSecs) => client.expire(key, expireInSecs);
   Future<bool> pexpire(String key, int expireInMs) => client.pexpire(key, expireInMs);
-  Future<bool> expireat(String key, Date date) => client.expireat(key, date.toUtc().millisecondsSinceEpoch ~/ 1000);
-  Future<bool> pexpireat(String key, Date date) => client.pexpireat(key, date.toUtc().millisecondsSinceEpoch);
+  Future<bool> expireat(String key, DateTime date) => client.expireat(key, date.toUtc().millisecondsSinceEpoch ~/ 1000);
+  Future<bool> pexpireat(String key, DateTime date) => client.pexpireat(key, date.toUtc().millisecondsSinceEpoch);
   Future<int> ttl(String key) => client.ttl(key);
   Future<int> pttl(String key) => client.pttl(key);
 
@@ -314,7 +305,7 @@ class _RedisClient implements RedisClient {
     Map<Object,double> map = new Map<String,double>();
     for (int i=0; i<multiData.length; i+= 2){
       Object key = toObject(multiData[i]);
-      map[key] = Math.parseDouble(toStr(multiData[i + 1]));
+      map[key] = double.parse(toStr(multiData[i + 1]));
     }
     return map;
   }
@@ -327,7 +318,7 @@ class _RedisClient implements RedisClient {
     List<List<int>> keys = new List<List<int>>();
     List<List<int>> values = new List<List<int>>();
     for(String key in map.keys){
-      keys.add(key.charCodes);
+      keys.add(key.runes);
       values.add(toBytes(map[key]));
     }
     return new _Tuple(keys,values);
@@ -366,8 +357,8 @@ class JsonEncoder implements BytesEncoder {
       ""
     : obj is String ?
       obj
-    : obj is Date ?
-      "/Date(${(obj as Date).toUtc().millisecondsSinceEpoch})/"
+    : obj is DateTime ?
+      "/Date(${(obj as DateTime).toUtc().millisecondsSinceEpoch})/"
     : obj is bool || obj is num ?
       obj.toString() :
       JSON.stringify(obj);
@@ -387,8 +378,8 @@ class JsonEncoder implements BytesEncoder {
     try{
       String str = new String.fromCharCodes(bytes);
       if (str.startsWith(DATE_PREFIX)) {
-        int epoch = Math.parseInt(str.substring(DATE_PREFIX.length, str.length - DATE_SUFFIX.length));
-        return new Date.fromMillisecondsSinceEpoch(epoch, isUtc: true);
+        int epoch = int.parse(str.substring(DATE_PREFIX.length, str.length - DATE_SUFFIX.length));
+        return new DateTime.fromMillisecondsSinceEpoch(epoch, isUtc: true);
       }
       if (str == TRUE)  return true;
       if (str == FALSE) return false;

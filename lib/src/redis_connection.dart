@@ -1,13 +1,4 @@
-//part of redis_client;
-library redis_connection;
-
-import 'dart:io';
-import 'dart:json';
-import 'dart:math' as Math;
-import 'dart:scalarlist';
-import 'dart:isolate';
-
-import 'package:dartmixins/mixin.dart';
+part of redis_client;
 
 abstract class RedisConnection {
   factory RedisConnection([String connStr]) => new _RedisConnection(connStr);
@@ -662,7 +653,7 @@ class SocketWrapper {
 }
 
 //Records what's read so can be replayed if all data hasn't been received.
-class SocketBuffer implements InputStream {
+class SocketBuffer implements IOSink {
   List<int> _buffer;
   int _position = 0;
   List<List<int>> _chunks;

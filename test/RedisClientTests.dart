@@ -4,7 +4,7 @@ import "dart:io";
 import "dart:isolate";
 import "DUnit.dart";
 import "package:dartmixins/mixin.dart";
-import "package:dartredisclient/redis_client.dart";
+import "package:redis_client/redis_client.dart";
 
 RedisClientTests (){
   bool runLongRunningTests = true;

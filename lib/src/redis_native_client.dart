@@ -1,14 +1,5 @@
-//part of redis_client;
-library redis_native_client;
+part of redis_client;
 
-import 'dart:io';
-import 'dart:json';
-import 'dart:math' as Math;
-import 'dart:scalarlist';
-
-import 'package:dartmixins/mixin.dart';
-
-import 'RedisConnection.dart';
 
 abstract class RedisNativeClient {
   factory RedisNativeClient([String connStr]) => new _RedisNativeClient(connStr);
