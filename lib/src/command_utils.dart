@@ -39,7 +39,7 @@ class _CommandUtils {
     mergeCommandWithArgs(cmd, args.map((x) => x.charCodes));
 
   static List<List<int>> mergeCommandWithKeyAndStringArgs(List<int> cmd, String key, List<String> args){
-    args.insertRange(0, 1, key);
+    args.insert(0, key);
     return mergeCommandWithArgs(cmd, args.map((x) => x.charCodes));
   }
 
