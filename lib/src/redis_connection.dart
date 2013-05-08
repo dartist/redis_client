@@ -1,7 +1,8 @@
 part of redis_client;
 
-abstract class RedisConnection {
-  factory RedisConnection([String connStr]) => new _RedisConnection(connStr);
+
+abstract class RedisConnectionINT {
+
 
   String password;
   String hostName;
@@ -28,74 +29,69 @@ abstract class RedisConnection {
   void close();
 }
 
-class LogLevel {
-  static final int None = 0;
-  static final int Error = 1;
-  static final int Warn = 2;
-  static final int Info = 3;
-  static final int Debug = 4;
-  static final int All = 5;
-}
 
-abstract class Pipeline {
-  completeVoidQueuedCommand(Function expectFn);
-  completeIntQueuedCommand(Function expectFn);
-  completeBytesQueuedCommand(Function expectFn);
-  completeMultiBytesQueuedCommand(Function expectFn);
-  completeStringQueuedCommand(Function expectFn);
-}
+/// The [RedisConnection] wraps the Socket, and provides an API to communicate
+/// to redis.
+///
+/// You instantiate a [RedisConnection] with:
+///
+///     new RedisConnection(connectionString);
+///
+/// where `connectionString` can be any of following:
+///
+/// - `'pass@host:port/db'`
+/// - `'pass@host:port'`
+/// - `'pass@host'`
+/// - `'host'`
+/// - `null` defaults to `'localhost:6379/0'`
+class RedisConnection {
 
-class ExpectRead {
-  Completer task;
-  Function reader;
-  List<int> buffer;
-  SocketBuffer _socketBuffer;
-
-  ExpectRead(Completer this.task, void this.reader(InputStream stream, Completer task));
-
-  bool execute(SocketWrapper wrapper){
-    if (_socketBuffer == null) {
-      _socketBuffer = new SocketBuffer(wrapper);
-    } else {
-      _socketBuffer.rewind();
-    }
-
-    reader(_socketBuffer, task);
-
-    return task.future.isComplete;
-  }
-}
-
-class _RedisConnection implements RedisConnection {
+  /// The wrapped [Socket].
   Socket _socket;
+
   SocketWrapper _wrapper;
 
-  //Valid usages:
-  //pass@host:port/db
-  //pass@host:port
-  //pass@host
-  //host
-  //null => localhost:6379/0
-  String password;
   String hostName = "localhost";
-  int port = 6379;
-  int db = 0;
-  bool connected;
-  List endData;
-  Queue<List> readChunks;
-  int logLevel = LogLevel.Error;//Error
 
-  Int8List cmdBuffer;
-  int cmdBufferIndex = 0;
-  static final int breathingSpace = 32 * 1024; //To Reduce Reallocations
+  String password;
+
+  int port = 6379;
+
+  int db = 0;
+
+  /// Whether there is an active connection to the socket.
+  bool connected;
+
+
+  /// The character sequence that ends data.
+  ///
+  /// `\r\n`
+  const List<int> _endData = [ 13, 10 ];
+
+
+  int logLevel = LogLevel.Error;
+
+  Int8List _cmdBuffer = new Int8List(32 * 1024);
+
+  int _cmdBufferIndex = 0;
+
+  // To Reduce Reallocations
+  static final int breathingSpace = 32 * 1024;
+
   Pipeline pipeline;
 
-  Queue<ExpectRead> _pendingReads;
+  Queue<ExpectRead> _pendingReads = new Queue<ExpectRead>();
 
-  //stats
+  /// Statistics
   int totalBuffersWrites = 0;
+
+  /// Statistics
   int totalBufferFlushes = 0;
+
+  /// Statistics
   int totalBufferResizes = 0;
+
+  /// Statistics
   int totalBytesWritten = 0;
 
   Map get stats => $(_wrapper.stats).addAll({
@@ -105,12 +101,7 @@ class _RedisConnection implements RedisConnection {
     'bufferResizes': totalBufferResizes,
   });
 
-  _RedisConnection([String connStr])
-    : cmdBuffer = new Int8List(32 * 1024),
-      _pendingReads = new Queue<ExpectRead>(),
-      readChunks = new Queue<List>(),
-      endData = "\r\n".charCodes
-  {
+  RedisConnection([String connStr]) {
     parse(connStr);
   }
 
@@ -123,8 +114,8 @@ class _RedisConnection implements RedisConnection {
     hostName = parts[0];
     if (hasPort) {
       parts = $(parts.last).splitOnLast("/");
-      port = Math.parseInt(parts[0]);
-      db = parts.length == 2 ? Math.parseInt(parts[1]) : 0;
+      port = int.parse(parts[0]);
+      db = parts.length == 2 ? int.parse(parts[1]) : 0;
     }
   }
 
@@ -264,7 +255,7 @@ class _RedisConnection implements RedisConnection {
       logDebug(() => "flushSendBuffer(): ${_available()}");
 
       int maxAttempts = 100;
-      while ((cmdBufferIndex -= _socket.writeList(cmdBuffer, 0, cmdBufferIndex)) > 0 && --maxAttempts > 0);
+      while ((_cmdBufferIndex -= _socket.writeList(_cmdBuffer, 0, _cmdBufferIndex)) > 0 && --maxAttempts > 0);
 
       resetSendBuffer();
       return maxAttempts > 0;
@@ -280,7 +271,7 @@ class _RedisConnection implements RedisConnection {
   }
 
   void resetSendBuffer() {
-    cmdBufferIndex = 0;
+    _cmdBufferIndex = 0;
   }
 
   List getCmdBytes(String cmdPrefix, int noOfLines){
@@ -302,20 +293,20 @@ class _RedisConnection implements RedisConnection {
     for (List safeBinaryValue in cmdWithArgs){
       writeToSendBuffer(getCmdBytes(r'$', safeBinaryValue.length));
       writeToSendBuffer(safeBinaryValue);
-      writeToSendBuffer(endData);
+      writeToSendBuffer(_endData);
     }
   }
 
   void writeToSendBuffer(List cmdBytes){
-    if ((cmdBufferIndex + cmdBytes.length) > cmdBuffer.length) {
-      logDebug(() => "resizing sendBuffer $cmdBufferIndex + ${cmdBytes.length} + $breathingSpace");
+    if ((_cmdBufferIndex + cmdBytes.length) > _cmdBuffer.length) {
+      logDebug(() => "resizing sendBuffer $_cmdBufferIndex + ${cmdBytes.length} + $breathingSpace");
       totalBufferResizes++;
-      Int8List newLargerBuffer = new Int8List(cmdBufferIndex + cmdBytes.length + breathingSpace);
-      cmdBuffer.setRange(0, cmdBuffer.length, newLargerBuffer);
-      cmdBuffer = newLargerBuffer;
+      Int8List newLargerBuffer = new Int8List(_cmdBufferIndex + cmdBytes.length + breathingSpace);
+      _cmdBuffer.setRange(0, _cmdBuffer.length, newLargerBuffer);
+      _cmdBuffer = newLargerBuffer;
     }
-    cmdBuffer.setRange(cmdBufferIndex, cmdBytes.length, cmdBytes);
-    cmdBufferIndex += cmdBytes.length;
+    _cmdBuffer.setRange(_cmdBufferIndex, cmdBytes.length, cmdBytes);
+    _cmdBufferIndex += cmdBytes.length;
 
     totalBuffersWrites++;
     totalBytesWritten += cmdBytes.length;
@@ -435,6 +426,47 @@ class _RedisConnection implements RedisConnection {
     _wrapper = null;
     if (_onClosed != null) _onClosed();
 
+  }
+}
+
+
+
+
+class LogLevel {
+  static final int None = 0;
+  static final int Error = 1;
+  static final int Warn = 2;
+  static final int Info = 3;
+  static final int Debug = 4;
+  static final int All = 5;
+}
+
+abstract class Pipeline {
+  completeVoidQueuedCommand(Function expectFn);
+  completeIntQueuedCommand(Function expectFn);
+  completeBytesQueuedCommand(Function expectFn);
+  completeMultiBytesQueuedCommand(Function expectFn);
+  completeStringQueuedCommand(Function expectFn);
+}
+
+class ExpectRead {
+  Completer task;
+  Function reader;
+  List<int> buffer;
+  SocketBuffer _socketBuffer;
+
+  ExpectRead(Completer this.task, void this.reader(InputStream stream, Completer task));
+
+  bool execute(SocketWrapper wrapper){
+    if (_socketBuffer == null) {
+      _socketBuffer = new SocketBuffer(wrapper);
+    } else {
+      _socketBuffer.rewind();
+    }
+
+    reader(_socketBuffer, task);
+
+    return task.future.isComplete;
   }
 }
 
