@@ -5,3 +5,4 @@ homepage: https://github.com/Dartist/RedisClient.git
 version: 0.1.3
 dependencies:
   dartmixins: ">=0.0.3 <0.0.4"
+  logging: any
