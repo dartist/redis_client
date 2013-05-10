@@ -13,24 +13,40 @@ class RedisClient {
 
   String connectionString;
 
+  /// The [RedisConnection] used to communicate with the Redis server.
   RedisConnection connection;
+
+  /// The future that gets resolved as soon as the connection is available.
+  Future<RedisConnection> connectionFuture;
+
 
   /// Instance of [RawRedisCommands] which [RedisClient] wraps to provide a more
   /// high-level API.
   RawRedisCommands raw;
 
+
+  /// Used to serialize and deserialize the values stored inside Redis.
   RedisSerializer serializer;
 
-  factory RedisClient.connect([ String connectionString ]) {
-    new RedisClient(connectionString);
+
+
+
+  /// Returns a [Future] for a [RedisClient].
+  static Future<RedisClient> connect([ String connectionString ]) {
+    var redisClient = new RedisClient._(connectionString);
+    return redisClient.connectionFuture.then((_) => redisClient);
   }
 
+
   /// Creates the [RedisConnection] and an instance of [RawRedisCommands].
-  RedisClient([String this.connectionString]) {
-    connection = new RedisConnection(connectionString);
+  RedisClient._(String this.connectionString) {
+    connectionFuture = RedisConnection.connect(connectionString)
+        .then((conn) => this.connection = conn);
+
     raw = new RawRedisCommands(this);
     serializer = new RedisSerializer();
   }
+
 
 
 

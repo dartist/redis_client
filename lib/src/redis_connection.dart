@@ -1,41 +1,16 @@
 part of redis_client;
 
 
-abstract class RedisConnectionINT {
-
-
-  String password;
-  String hostName;
-  int port;
-  int db;
-  Map get stats;
-
-  void set onConnect(void callback());
-  void set onClosed(void callback());
-  void set onError(void callback(e));
-
-  void parse([String connStr]);
-
-  Future select(int selectDb);
-  Future<String> sendExpectCode(List<List> cmdWithArgs);
-  Future<Object> sendExpectSuccess(List<List> cmdWithArgs);
-  Future<int> sendExpectInt(List<List> cmdWithArgs);
-  Future<bool> sendExpectIntSuccess(List<List> cmdWithArgs);
-  Future<List<int>> sendExpectData(List<List> cmdWithArgs);
-  Future<List<List<int>>> sendExpectMultiData(List<List> cmdWithArgs);
-  Future<String> sendExpectString(List<List> cmdWithArgs);
-  Future<double> sendExpectDouble(List<List> cmdWithArgs);
-
-  void close();
-}
-
 
 /// The [RedisConnection] wraps the Socket, and provides an API to communicate
 /// to redis.
 ///
 /// You instantiate a [RedisConnection] with:
 ///
-///     new RedisConnection(connectionString);
+///     RedisConnection.connect(connectionString)
+///         .then((RedisConnection connection) {
+///           // Use your connection
+///         });
 ///
 /// where `connectionString` can be any of following:
 ///
@@ -44,23 +19,94 @@ abstract class RedisConnectionINT {
 /// - `'pass@host'`
 /// - `'host'`
 /// - `null` defaults to `'localhost:6379/0'`
-class RedisConnection {
+abstract class RedisConnection {
+
+
+  /// Create a new [RedisConnection] with given connectionString.
+  static Future<RedisConnection> connect(String connectionString) => _RedisConnection.connect(connectionString);
+
+
+
+  /// The connectionString from which the connection settings have been
+  /// extruded.
+  ///
+  /// Once this string has been parsed, it isn't used anymore.
+  String connectionString;
+
+  /// Redis connection hostname
+  String hostname;
+
+  /// Redis connection password
+  String password;
+
+  /// Redis connection port
+  int port;
+
+  /// Redis database
+  int db;
+
+
+
+  /// Closes the connection.
+  Future close();
+
+
+  Map get stats;
+
+
+  Future select([ int db ]);
+
+  Future<String> sendExpectCode(List<List> cmdWithArgs);
+
+  Future<Object> sendExpectSuccess(List<List> cmdWithArgs);
+
+  Future<int> sendExpectInt(List<List> cmdWithArgs);
+
+  Future<bool> sendExpectIntSuccess(List<List> cmdWithArgs);
+
+  Future<List<int>> sendExpectData(List<List> cmdWithArgs);
+
+  Future<List<List<int>>> sendExpectMultiData(List<List> cmdWithArgs);
+
+  Future<String> sendExpectString(List<List> cmdWithArgs);
+
+  Future<double> sendExpectDouble(List<List> cmdWithArgs);
+
+
+}
+
+
+/// The actual implementation of the [RedisConnection].
+class _RedisConnection implements RedisConnection {
+
+
+  // Connection settings
+
+  final String connectionString;
+
+  final String hostname;
+
+  final String password;
+
+  final int port;
+
+  final int db;
+
+
+
 
   /// The wrapped [Socket].
   Socket _socket;
 
   SocketWrapper _wrapper;
 
-  String hostName = "localhost";
 
-  String password;
+  /// The completer that resolves the future as soon as the RedisConnection
+  /// is connected.
+  final Completer<RedisConnection> _connectedCompleter = new Completer<RedisConnection>();
 
-  int port = 6379;
-
-  int db = 0;
-
-  /// Whether there is an active connection to the socket.
-  bool connected;
+  /// Gets resolved as soon as the connection is up.
+  Future<RedisConnection> connected;
 
 
   /// The character sequence that ends data.
@@ -69,7 +115,10 @@ class RedisConnection {
   const List<int> _endData = [ 13, 10 ];
 
 
-  int logLevel = LogLevel.Error;
+  /// Used to output debug information
+  Logger logger = new Logger("redis_client");
+
+
 
   Int8List _cmdBuffer = new Int8List(32 * 1024);
 
@@ -101,104 +150,85 @@ class RedisConnection {
     'bufferResizes': totalBufferResizes,
   });
 
-  RedisConnection([String connStr]) {
-    parse(connStr);
+
+  /// Creates a [_RedisConnection], and returns the future for a connection.
+  static Future<RedisConnection> connect(String connectionString) {
+    var settings = new ConnectionSettings(connectionString);
+
+    var redisConnection = new _RedisConnection(settings.connectionString, settings.hostname, settings.password, settings.port, settings.db);
+
+    return redisConnection.connected.then((_) => redisConnection);
   }
 
-  void parse([String connStr]){
-    if (connStr == null) return;
-    List<String> parts = $(connStr).splitOnLast("@");
-    password = parts.length == 2 ? parts[0] : null;
-    parts = $(parts.last).splitOnLast(":");
-    bool hasPort = parts.length == 2;
-    hostName = parts[0];
-    if (hasPort) {
-      parts = $(parts.last).splitOnLast("/");
-      port = int.parse(parts[0]);
-      db = parts.length == 2 ? int.parse(parts[1]) : 0;
-    }
+
+  /// Create a new [RedisConnection] with given connectionString.
+  _RedisConnection(this.connectionString, this.hostname, this.password, this.port, this.db) {
+
+    logger.info("Creating socket connection ($hostname, $port)");
+
+    this.connected = Socket.connect(hostname, port)
+        .then((Socket socket) {
+          logger.info("Connected");
+
+          // Setting up all the listeners so Redis responses can be interpreted.
+          socket.listen(_onStreamData, _onStreamError, _onStreamDone);
+
+          if (password != null) return _authenticate();
+        })
+        .then((_) {
+          if (db > 0) return select();
+        })
+        // The RedisConnection has connected successfully.
+
+        .catchError(_onSocketError);
+
   }
 
-  Function _onConnect;
-  void set onConnect(void callback()) {
-    _onConnect = callback;
-  }
-  Function _onClosed;
-  void set onClosed(void callback()) {
-    _onClosed = callback;
-  }
-  Function _onError;
-  void set onError(void callback(e)) {
-    _onError = callback;
+
+
+  /// Selects configured database.
+  ///
+  /// If db is provided the configuration [db] will be set to it.
+  Future select([ int db ]) {
+    if (db != null) this.db = db;
+    sendExpectSuccess([ "SELECT", db.toString() ]);
   }
 
-  void logDebug (Function arg) {
-    if (logLevel >= LogLevel.Debug) print(arg());
-  }
-  void logError (Function arg) {
-    if (logLevel >= LogLevel.Error) print(arg());
-  }
-  Exception createError(arg){
-    logError(arg);
-    return new Exception(arg);
-  }
+  /// Authenticates with configured password.
+  Future _authenticate(String _password) => sendExpectSuccess([ "AUTH", password ]);
 
-  Future<bool> ensureConnected() {
-    logDebug(() => "ensureConnected()");
-    Completer task = new Completer();
-    if (!closed) {
-      task.complete(false);
-      return task.future;
-    }
 
-    logDebug(() => "Creating new Socket($hostName, $port)");
-    _socket = new Socket(hostName, port);
-    _socket.onData = onSocketData;
-    _socket.onConnect = () {
-      _connected = true;
-      logDebug(() => "connected!");
-      flushSendBuffer(); //Flush any pending writes accumulated before connection
 
-      void complete(Object ignore) {
-        if (db > 0) {
-          select(db).then((_) {
-            if (_onConnect != null) _onConnect();
-            task.complete(true);
-          });
-        } else {
-          if (_onConnect != null) _onConnect();
-          task.complete(true);
-        }
-      };
+  /// Gets called when the socket has an error.
+  void _onSocketError() {
 
-      if (password != null) {
-        auth(password).then(complete);
-      } else {
-        complete(null);
-      }
-    };
-    _closed = false;
-    _wrapper = new SocketWrapper(_socket, () => closed, () => _available());
-    _socket.onClosed = close;
-    _socket.onError = (e) {
-      logDebug(() => 'connect exception ${e}');
-      try { close(); } catch(ex){ logError(() => ex); }
-      try { if (_onError != null) _onError(e); } catch(ex){}
-      task.completeException(e);
-    };
-
-    return task.future;
   }
 
-  Future select(int _db) => sendExpectSuccess(["SELECT".charCodes, (db = _db).toString().charCodes]);
-
-  Future auth(String _password) => sendExpectSuccess(["AUTH".charCodes, (password = _password).charCodes]);
-
-  int _available() => _connected ? _socket.available() : 0;
-
-  onSocketData(){
+  /// Handles new data received from stream.
+  void _onStreamData(List<int> data) {
     processSocketData("onSocketData");
   }
+
+  /// Handles stream errors
+  void _onStreamError(String error) {
+
+  }
+
+  /// Gets called when the stream closes.
+  void _onStreamDone() {
+
+  }
+
+
+
+  /// Logs the error and creates and returns an Exception.
+  Exception createError(err){
+    logger.warning(err);
+    return new Exception(err);
+  }
+
+  int _available() => connected ? _socket.available() : 0;
+
 
   processSocketData(callsite){
     int available = _available();
@@ -225,10 +255,8 @@ class RedisConnection {
   }
 
   void cmdLog(args){
-    logDebug(() {
-      var cmd = args.length > 0 ? new String.fromCharCodes(args[0]) : "";
-      return "cmdLog: [$cmd] $args";
-    });
+    var cmd = args.length > 0 ? new String.fromCharCodes(args[0]) : "";
+    logger.info ("cmdLog: [$cmd] $args");
   }
 
   Future sendCommand(List<List> cmdWithArgs){
@@ -247,12 +275,12 @@ class RedisConnection {
 
   bool flushSendBuffer(){
     try {
-      if (!_connected){
-        logDebug(() => "Deferring attempt to flushSendBuffer() since not connected yet");
+      if (!connected){
+        logger.info("Deferring attempt to flushSendBuffer() since not connected yet");
         return true;
       }
       totalBufferFlushes++;
-      logDebug(() => "flushSendBuffer(): ${_available()}");
+      logger.info("flushSendBuffer(): ${_available()}");
 
       int maxAttempts = 100;
       while ((_cmdBufferIndex -= _socket.writeList(_cmdBuffer, 0, _cmdBufferIndex)) > 0 && --maxAttempts > 0);
@@ -299,7 +327,7 @@ class RedisConnection {
 
   void writeToSendBuffer(List cmdBytes){
     if ((_cmdBufferIndex + cmdBytes.length) > _cmdBuffer.length) {
-      logDebug(() => "resizing sendBuffer $_cmdBufferIndex + ${cmdBytes.length} + $breathingSpace");
+      logger.info("resizing sendBuffer $_cmdBufferIndex + ${cmdBytes.length} + $breathingSpace");
       totalBufferResizes++;
       Int8List newLargerBuffer = new Int8List(_cmdBufferIndex + cmdBytes.length + breathingSpace);
       _cmdBuffer.setRange(0, _cmdBuffer.length, newLargerBuffer);
@@ -314,7 +342,7 @@ class RedisConnection {
 
   void queueRead(Completer task, void reader(InputStream stream, Completer task)){
     _pendingReads.add(new ExpectRead(task, reader));
-    logDebug(() => "queueRead: #${_pendingReads.length}");
+    logger.info("queueRead: #${_pendingReads.length}");
   }
 
   Future<Object> sendExpectSuccess(List<List> cmdWithArgs){
@@ -400,19 +428,19 @@ class RedisConnection {
   }
 
   _close(){
-    logDebug(() => "closing..");
+    logger.info("closing..");
 
     if (_pendingReads.length > 0)
     {
       try {
-        logDebug(() => "Trying to close connection with ${_pendingReads.length} pendingReads remaining");
+        logger.info("Trying to close connection with ${_pendingReads.length} pendingReads remaining");
         processSocketData("close");
       } catch(e){
         logError(e);
       }
     }
 
-    _connected = false;
+    connected = false;
     _closed = true;
 
     if (_socket != null){
@@ -685,7 +713,7 @@ class SocketWrapper {
 }
 
 //Records what's read so can be replayed if all data hasn't been received.
-class SocketBuffer implements IOSink {
+class SocketBuffer implements Stream {
   List<int> _buffer;
   int _position = 0;
   List<List<int>> _chunks;
@@ -699,8 +727,9 @@ class SocketBuffer implements IOSink {
 
   int get remaining => _buffer == null ? 0 : _buffer.length - _position;
 
-  //if a full response cannot be read from the stream, the client gives up,
-  //rewinds the partially read buffer, and re-attempts processing the response on next onData event
+  /// If a full response cannot be read from the stream, the client gives up,
+  /// rewinds the partially read buffer, and re-attempts processing the response
+  /// on next onData event
   void rewind(){
     _wrapper.totalRewinds++;
 
