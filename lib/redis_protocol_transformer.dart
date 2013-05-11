@@ -11,22 +11,22 @@ import "dart:async";
 abstract class RedisReply {
 
   /// A reply type
-  static final int STATUS = RedisProtocolTransformer.PLUS;
+  static const int STATUS = RedisProtocolTransformer.PLUS;
 
   /// A reply type
-  static final int ERROR = RedisProtocolTransformer.DASH;
+  static const int ERROR = RedisProtocolTransformer.DASH;
 
   /// A reply type
-  static final int INTEGER = RedisProtocolTransformer.COLON;
+  static const int INTEGER = RedisProtocolTransformer.COLON;
 
   /// A reply type
-  static final int BULK = RedisProtocolTransformer.DOLLAR;
+  static const int BULK = RedisProtocolTransformer.DOLLAR;
 
   /// A reply type
-  static final int MULTI_BULK = RedisProtocolTransformer.ASTERIX;
+  static const int MULTI_BULK = RedisProtocolTransformer.ASTERIX;
 
   /// A list of all defined types.
-  static final List<int> TYPES = [ STATUS, ERROR, INTEGER, BULK, MULTI_BULK ];
+  static const List<int> TYPES = const [ STATUS, ERROR, INTEGER, BULK, MULTI_BULK ];
 
 
 }
@@ -92,23 +92,23 @@ class InvalidRedisResponseError extends RedisProtocolTransformerException {
  */
 class RedisProtocolTransformer extends StreamEventTransformer<List<int>, RedisReply> {
 
-  static final int CR = 13;
-  static final int LF = 10;
+  static const int CR = 13;
+  static const int LF = 10;
 
   /// Charcode for status replies
-  static final int PLUS = 43;
+  static const int PLUS = 43;
 
   /// Charcode for error replies
-  static final int DASH = 45;
+  static const int DASH = 45;
 
   /// Charcode for integer replies
-  static final int COLON = 58;
+  static const int COLON = 58;
 
   /// Charcode for bulk replies
-  static final int DOLLAR = 36;
+  static const int DOLLAR = 36;
 
   /// Charcode for multi bulk replies
-  static final int ASTERIX = 42;
+  static const int ASTERIX = 42;
 
   /**
    * If the transformer has alrady received data, this will hold the reply type.
