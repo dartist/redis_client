@@ -1,56 +1,11 @@
+library redis_protocol_transformer;
+
 
 import "dart:async";
+import "dart:typed_data";
 
+part 'redis_replies.dart';
 
-/**
- * Base class for redis replies.
- *
- * Every time a new redis reply is received, this class is instantiated,
- * and returned with the corresponding data.
- */
-abstract class RedisReply {
-
-  /// A reply type
-  static const int STATUS = RedisProtocolTransformer.PLUS;
-
-  /// A reply type
-  static const int ERROR = RedisProtocolTransformer.DASH;
-
-  /// A reply type
-  static const int INTEGER = RedisProtocolTransformer.COLON;
-
-  /// A reply type
-  static const int BULK = RedisProtocolTransformer.DOLLAR;
-
-  /// A reply type
-  static const int MULTI_BULK = RedisProtocolTransformer.ASTERIX;
-
-  /// A list of all defined types.
-  static const List<int> TYPES = const [ STATUS, ERROR, INTEGER, BULK, MULTI_BULK ];
-
-
-}
-
-
-class StatusReply extends RedisReply {
-
-}
-
-class ErrorReply extends RedisReply {
-
-}
-
-class IntegerReply extends RedisReply {
-
-}
-
-class BulkReply extends RedisReply {
-
-}
-
-class MultiBulkReply extends RedisReply {
-
-}
 
 
 
@@ -118,11 +73,9 @@ class RedisProtocolTransformer extends StreamEventTransformer<List<int>, RedisRe
   static const int ASTERIX = 42;
 
   /**
-   * If the transformer has alrady received data, this will hold the reply type.
-   *
-   * Can be any of [RedisReply.STATUS], [RedisReply.ERROR], [RedisReply.INTEGER], [RedisReply.BULK], [RedisReply.MULTI_BULK]
+   * If the transformer has alrady received data, this will hold the [RedisReply].
    */
-  int _currentReplyType;
+  RedisReply _currentReply;
 
   /// Converts a list of char codes to a String
   String _charCodesToString(List<int> bytes) => new String.fromCharCodes(bytes);
@@ -139,40 +92,47 @@ class RedisProtocolTransformer extends StreamEventTransformer<List<int>, RedisRe
     // I'm not entirely sure this is necessary, but better be safe.
     if (data.length == 0) return;
 
-    if (_currentReplyType == null) {
+    if (_currentReply == null) {
       // This is a fresh RedisReply. How exciting!
       int replyType = data.first;
 
+      // Check if it's a valid replyType character
       if (!RedisReply.TYPES.contains(replyType)) {
         this.handleError(new InvalidRedisResponseError("The type character was incorrect (${_charCodeToString(replyType)})."), output);
         return;
       }
 
-      _currentReplyType = replyType;
-
-      // TODO: If the reply type is Status, Error or String, check if the CRLF
-      // terminator has been submitted. If yes, create the RedisReply and
-      // add it.
-
-      // TODO: Otherwise, Check if the data equals or exceeds the expected number
-      // of bytes.
-
+      // Now instantiate the correct RedisReply
+      switch (replyType) {
+        case RedisReply.STATUS:
+          _currentReply = new StatusReply();
+          break;
+        default: throw new UnimplementedError("This Redis reply type is not yet implemented");
+      }
     }
-    else {
-      // Continuing a reply.
 
-      // TODO: If it's a Status, Error or String reply, check if the CRLF is in
-      // the new data set. Do nothing if not.
+    List<int> unconsumedData = _currentReply._consumeData(data);
 
-      // TODO: Otherwise check if enough data has been submitted.
+    // Make sure that unconsumedData can't be returned unless the reply is actually done.
+    assert(unconsumedData == null || _currentReply.done);
+
+    if (_currentReply.done) {
+      // Reply is done!
+      output.add(_currentReply);
+      _currentReply = null;
+      if (unconsumedData != null && !unconsumedData.isEmpty) {
+        handleData(unconsumedData, output);
+      }
     }
   }
 
-  /// Closes the [EventSink] and adds an error before if there was some incomplete
-  /// data
+  /**
+   * Closes the [EventSink] and adds an error before if there was some
+   * incomplete data
+   */
   void handleDone(EventSink<RedisReply> output) {
 
-    if (_currentReplyType != null) {
+    if (_currentReply != null) {
       // Apparently some data has already been sent, but the stream is done.
       this.handleError(new UnexpectedRedisClosureError("Some data has already been sent but was not complete."), output);
     }
