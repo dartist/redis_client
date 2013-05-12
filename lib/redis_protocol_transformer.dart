@@ -83,6 +83,13 @@ class InvalidRedisResponseError extends RedisProtocolTransformerException {
 
 }
 
+/// This exception is thrown whenever the redis stream closed unexpectedly
+class UnexpectedRedisClosureError extends RedisProtocolTransformerException {
+
+  final String _baseMessage = "The redis connection closed unexpectedly";
+
+}
+
 
 /**
  * The [RedisProtocolTransformer] transforms a redis stream into [RedisReply]
@@ -137,7 +144,8 @@ class RedisProtocolTransformer extends StreamEventTransformer<List<int>, RedisRe
       int replyType = data.first;
 
       if (!RedisReply.TYPES.contains(replyType)) {
-        return this.handleError(new InvalidRedisResponseError("The type character was incorrect (${_charCodeToString(replyType)}."), output);
+        this.handleError(new InvalidRedisResponseError("The type character was incorrect (${_charCodeToString(replyType)})."), output);
+        return;
       }
 
       _currentReplyType = replyType;
@@ -160,12 +168,15 @@ class RedisProtocolTransformer extends StreamEventTransformer<List<int>, RedisRe
     }
   }
 
-  void handleError(Error error, EventSink<RedisReply> output) {
-    output.addError(error);
-  }
-
+  /// Closes the [EventSink] and adds an error before if there was some incomplete
+  /// data
   void handleDone(EventSink<RedisReply> output) {
-    // TODO: Check if there is still data that can form a RedisReply.
+
+    if (_currentReplyType != null) {
+      // Apparently some data has already been sent, but the stream is done.
+      this.handleError(new UnexpectedRedisClosureError("Some data has already been sent but was not complete."), output);
+    }
+
     output.close();
   }
 }
