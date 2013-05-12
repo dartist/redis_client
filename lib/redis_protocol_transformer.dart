@@ -2,6 +2,7 @@ library redis_protocol_transformer;
 
 
 import "dart:async";
+import "dart:collection";
 import "dart:typed_data";
 
 part 'redis_replies.dart';
@@ -53,9 +54,6 @@ class UnexpectedRedisClosureError extends RedisProtocolTransformerException {
  * [redis protocol documentation](http://redis.io/topics/protocol).
  */
 class RedisProtocolTransformer extends StreamEventTransformer<List<int>, RedisReply> {
-
-  static const int CR = 13;
-  static const int LF = 10;
 
   /// Charcode for status replies
   static const int PLUS = 43;
