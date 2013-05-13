@@ -5,6 +5,7 @@ import "dart:async";
 import "dart:collection";
 import "dart:typed_data";
 import "dart:utf";
+import "package:meta/meta.dart";
 
 part 'redis_replies.dart';
 

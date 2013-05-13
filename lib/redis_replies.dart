@@ -64,12 +64,20 @@ abstract class RedisReply {
       _data = new List<int>(dataSize - 2);
       int cursor = 0;
 
-      for (var i = 0; i < _dataBlocks.length; i++) {
+      bool lastBlockOnlyLF = false;
+      if (_dataBlocks.last.length == 1 && _dataBlocks.last.first == _OneLineReply.LF) {
+        lastBlockOnlyLF = true;
+      }
+
+
+      int blocksToGoThrough = lastBlockOnlyLF ? _dataBlocks.length - 1 :  _dataBlocks.length;
+
+      for (var i = 0; i < blocksToGoThrough; i++) {
         var dataBlock = _dataBlocks[i];
 
-        if (i == _dataBlocks.length - 1) {
-          // Last block, so remove CR LF
-          dataBlock = new UnmodifiableListView(dataBlock.getRange(0, dataBlock.length - 2));
+        if (i == blocksToGoThrough - 1) {
+          // Last block, so remove CR LF (or only CR if the last LF block has been skipped)
+          dataBlock = new UnmodifiableListView(dataBlock.getRange(0, dataBlock.length - (lastBlockOnlyLF ? 1 : 2)));
         }
         _data.setAll(cursor, dataBlock);
         cursor += dataBlock.length;
@@ -117,7 +125,8 @@ abstract class _OneLineReply extends RedisReply {
    * Removes the leading type character and checks if the data contains
    * the ending CR LF characters.
    */
-  List<int> consumeData(List<int> data) {
+  @override
+  List<int> _consumeData(List<int> data) {
     assert(!done);
 
     int start = 0;

@@ -7,3 +7,4 @@ dependencies:
   dartmixins: ">=0.0.3 <0.0.4"
   logging: any
   unittest: any
+  meta: any
