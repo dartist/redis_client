@@ -4,6 +4,7 @@ library redis_protocol_transformer;
 import "dart:async";
 import "dart:collection";
 import "dart:typed_data";
+import "dart:utf";
 
 part 'redis_replies.dart';
 
@@ -104,6 +105,12 @@ class RedisProtocolTransformer extends StreamEventTransformer<List<int>, RedisRe
       switch (replyType) {
         case RedisReply.STATUS:
           _currentReply = new StatusReply();
+          break;
+        case RedisReply.ERROR:
+          _currentReply = new ErrorReply();
+          break;
+        case RedisReply.INTEGER:
+          _currentReply = new IntegerReply();
           break;
         default: throw new UnimplementedError("This Redis reply type is not yet implemented");
       }
