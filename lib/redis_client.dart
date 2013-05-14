@@ -2,6 +2,7 @@ library redis_client;
 
 import 'dart:io';
 import 'dart:json';
+import 'dart:utf';
 import 'dart:math' as Math;
 import 'dart:typed_data';
 import 'dart:isolate';

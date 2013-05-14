@@ -90,7 +90,7 @@ class RedisClient {
   /// Converts a String to a list of UTF8 bytes.
   static List<int> keyBytes(String key) {
     if (key == null || key.isEmpty) throw new Exception("key is null");
-    return key.runes.toList();
+    return encodeUtf8(key);
   }
 
   /// Wrapper for [RedisConnection.db]
