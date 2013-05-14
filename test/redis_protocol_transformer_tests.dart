@@ -1,6 +1,7 @@
 library redis_client_tests;
 
 import 'dart:async';
+import 'dart:utf';
 
 import 'package:unittest/unittest.dart';
 
@@ -29,7 +30,7 @@ class MockSink extends Mock implements EventSink<RedisReply> {
 main() {
 
 
-  group("RedisProtocolTransformer", () {
+  group("RedisProtocolTransformer:", () {
 
     group("Exceptions", () {
       test("should be able to instantiated all exceptions", () {
@@ -45,19 +46,19 @@ main() {
 
         var rpt = new RedisProtocolTransformer();
 
-        rpt.handleData("+Status message\r\n".runes.toList(growable: false), sink);
+        rpt.handleData(encodeUtf8("+Status message\r\n"), sink);
         expect(sink.replies.length, equals(1));
         expect(sink.replies.last.runtimeType, equals(StatusReply));
         StatusReply tested1 = sink.replies.last;
         expect(tested1.status, equals("Status message"));
 
-        rpt.handleData("-Error message\r\n".runes.toList(growable: false), sink);
+        rpt.handleData(encodeUtf8("-Error message\r\n"), sink);
         expect(sink.replies.length, equals(2));
         expect(sink.replies.last.runtimeType, equals(ErrorReply));
         ErrorReply tested2 = sink.replies.last;
         expect(tested2.error, equals("Error message"));
 
-        rpt.handleData(":12345\r\n".runes.toList(growable: false), sink);
+        rpt.handleData(encodeUtf8(":12345\r\n"), sink);
         expect(sink.replies.length, equals(3));
         expect(sink.replies.last.runtimeType, equals(IntegerReply));
         IntegerReply tested3 = sink.replies.last;
@@ -68,9 +69,9 @@ main() {
 
         var rpt = new RedisProtocolTransformer();
 
-        rpt.handleData("+".runes.toList(growable: false), sink);
+        rpt.handleData(encodeUtf8("+"), sink);
         expect(sink.replies.length, equals(0));
-        rpt.handleData("Hi there\r\n".runes.toList(growable: false), sink);
+        rpt.handleData(encodeUtf8("Hi there\r\n"), sink);
         expect(sink.replies.length, equals(1));
         expect(sink.replies[0].runtimeType, equals(StatusReply));
         StatusReply testedStatus = sink.replies[0];
@@ -82,7 +83,7 @@ main() {
 
         var rpt = new RedisProtocolTransformer();
 
-        rpt.handleData("+Status message\r\n:132\r\n-Error message\r\n".runes.toList(growable: false), sink);
+        rpt.handleData(encodeUtf8("+Status message\r\n:132\r\n-Error message\r\n"), sink);
         expect(sink.replies.length, equals(3));
         expect(sink.replies[0].runtimeType, equals(StatusReply));
         expect(sink.replies[1].runtimeType, equals(IntegerReply));
@@ -101,19 +102,19 @@ main() {
 
         var rpt = new RedisProtocolTransformer();
 
-        rpt.handleData("+Status m".runes.toList(growable: false), sink);
+        rpt.handleData(encodeUtf8("+Status m"), sink);
         expect(sink.replies.length, equals(0));
 
-        rpt.handleData("essage\r".runes.toList(growable: false), sink);
+        rpt.handleData(encodeUtf8("essage\r"), sink);
         // Shouldn't be handled yet because of the missing \n
         expect(sink.replies.length, equals(0));
 
-        rpt.handleData("\n:1234\r\n-Start of err".runes.toList(growable: false), sink);
+        rpt.handleData(encodeUtf8("\n:1234\r\n-Start of err"), sink);
 
         // Should have handled the status and the integer
         expect(sink.replies.length, equals(2));
 
-        rpt.handleData("or end\r\n".runes.toList(growable: false), sink);
+        rpt.handleData(encodeUtf8("or end\r\n"), sink);
 
         expect(sink.replies.length, equals(3));
 
@@ -137,7 +138,7 @@ main() {
 
         var rpt = new RedisProtocolTransformer();
 
-        rpt.handleData("\$6\r\nfoobar\r\n".runes.toList(growable: false), sink);
+        rpt.handleData(encodeUtf8("\$6\r\nfoobar\r\n"), sink);
 
         expect(sink.replies.length, equals(1));
         expect(sink.replies.first.runtimeType, equals(BulkReply));
@@ -150,7 +151,7 @@ main() {
 
         var rpt = new RedisProtocolTransformer();
 
-        rpt.handleData("\$6\r\nfoobar\r\n\$8\r\nfoobars2\r\n".runes.toList(growable: false), sink);
+        rpt.handleData(encodeUtf8("\$6\r\nfoobar\r\n\$8\r\nfoobars2\r\n"), sink);
 
         expect(sink.replies.length, equals(2));
         expect(sink.replies.first.runtimeType, equals(BulkReply));
@@ -165,23 +166,23 @@ main() {
 
         var rpt = new RedisProtocolTransformer();
 
-        rpt.handleData("\$6\r\nfoo".runes.toList(growable: false), sink);
+        rpt.handleData(encodeUtf8("\$6\r\nfoo"), sink);
 
         expect(sink.replies.length, equals(0));
 
-        rpt.handleData("bar\r".runes.toList(growable: false), sink);
+        rpt.handleData(encodeUtf8("bar\r"), sink);
 
         expect(sink.replies.length, equals(0));
 
-        rpt.handleData("\n\$4\r\ntest\r\n\$".runes.toList(growable: false), sink);
+        rpt.handleData(encodeUtf8("\n\$4\r\ntest\r\n\$"), sink);
 
         expect(sink.replies.length, equals(2));
 
-        rpt.handleData("3\r\nend\r\n\$1".runes.toList(growable: false), sink);
+        rpt.handleData(encodeUtf8("3\r\nend\r\n\$1"), sink);
 
         expect(sink.replies.length, equals(3));
 
-        rpt.handleData("1\r\nabcdefghijk\r\n".runes.toList(growable: false), sink);
+        rpt.handleData(encodeUtf8("1\r\nabcdefghijk\r\n"), sink);
 
         expect(sink.replies.length, equals(4));
 
@@ -202,6 +203,44 @@ main() {
       });
     });
 
+    group("Mixed replies", () {
+      test("should properly be handled (one line and bulk replies together)", () {
+        var sink = new MockSink();
+
+        var rpt = new RedisProtocolTransformer();
+
+        rpt.handleData(encodeUtf8("\$6\r\nfoo"), sink);
+        rpt.handleData(encodeUtf8("bar\r\n+Mess"), sink);
+        rpt.handleData(encodeUtf8("age"), sink);
+        rpt.handleData(encodeUtf8("\r\n-Error message\r\n:12345\r"), sink);
+        rpt.handleData(encodeUtf8("\n"), sink);
+
+        expect(sink.replies.length, equals(4));
+
+        BulkReply tested1 = sink.replies[0];
+        StatusReply tested2 = sink.replies[1];
+        ErrorReply tested3 = sink.replies[2];
+        IntegerReply tested4 = sink.replies[3];
+
+        expect(tested1.string, equals("foobar"));
+        expect(tested2.status, equals("Message"));
+        expect(tested3.error, equals("Error message"));
+        expect(tested4.integer, equals(12345));
+      });
+    });
+    group("UTF8", () {
+      test("should properly be handled in bulk and one line replies", () {
+        var sink = new MockSink();
+
+        var rpt = new RedisProtocolTransformer();
+
+        rpt.handleData(encodeUtf8("\$9\r\nfo¢b€r\r\n"), sink);
+
+        BulkReply tested1 = sink.replies[0];
+        expect(tested1.string, equals("fo¢b€r"));
+
+     });
+    });
   });
 
 }
