@@ -228,6 +228,45 @@ main() {
         expect(tested4.integer, equals(12345));
       });
     });
+
+    group("MultiBulkReplies", () {
+      test("should properly handle one MultiBulkReply with mixed Replies.", () {
+        var sink = new MockSink();
+
+        var rpt = new RedisProtocolTransformer();
+
+        rpt.handleData(encodeUtf8("\*4\r\n:5\r"), sink);
+        rpt.handleData(encodeUtf8("\n-Error\r\n+Status\r\n\$6\r"), sink);
+        rpt.handleData(encodeUtf8("\nfoobar"), sink);
+
+        expect(sink.replies.length, equals(0));
+
+        rpt.handleData(encodeUtf8("\r\n"), sink);
+
+        expect(sink.replies.length, equals(1));
+
+        MultiBulkReply mbr = sink.replies.last;
+
+        expect(mbr.replies.length, equals(4));
+
+        expect(mbr.replies[0].runtimeType, equals(IntegerReply));
+        expect(mbr.replies[1].runtimeType, equals(ErrorReply));
+        expect(mbr.replies[2].runtimeType, equals(StatusReply));
+        expect(mbr.replies[3].runtimeType, equals(BulkReply));
+
+        IntegerReply tested1 = mbr.replies[0];
+        ErrorReply tested2 = mbr.replies[1];
+        StatusReply tested3 = mbr.replies[2];
+        BulkReply tested4 = mbr.replies[3];
+
+        expect(tested1.integer, equals(5));
+        expect(tested2.error, "Error");
+        expect(tested3.status, "Status");
+        expect(tested4.string, "foobar");
+
+      });
+    });
+
     group("UTF8", () {
       test("should properly be handled in bulk and one line replies", () {
         var sink = new MockSink();

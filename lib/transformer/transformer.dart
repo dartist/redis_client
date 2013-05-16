@@ -88,29 +88,12 @@ class RedisProtocolTransformer extends StreamEventTransformer<List<int>, RedisRe
 
     if (_currentReply == null) {
       // This is a fresh RedisReply. How exciting!
-      int replyType = data.first;
 
-      // Check if it's a valid replyType character
-      if (!RedisReply.TYPES.contains(replyType)) {
-        this.handleError(new InvalidRedisResponseError("The type character was incorrect (${_charCodeToString(replyType)})."), output);
-        return;
+      try {
+        _currentReply = new RedisReply.fromType(data.first);
       }
-
-      // Now instantiate the correct RedisReply
-      switch (replyType) {
-        case RedisReply.STATUS:
-          _currentReply = new StatusReply();
-          break;
-        case RedisReply.ERROR:
-          _currentReply = new ErrorReply();
-          break;
-        case RedisReply.INTEGER:
-          _currentReply = new IntegerReply();
-          break;
-        case RedisReply.BULK:
-          _currentReply = new BulkReply();
-          break;
-        default: throw new UnimplementedError("This Redis reply type is not yet implemented");
+      on RedisProtocolTransformerException catch (e) {
+        this.handleError(e, output);
       }
     }
 
