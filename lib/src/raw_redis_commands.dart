@@ -2,23 +2,25 @@ part of redis_client;
 
 
 
-/// This is the class that holds the raw commands that access redis.
-///
-/// That means that it has to be called with binary data, and returns binary
-/// data as well (instead of providing Strings or other dart objects).
-///
-/// You should rarely need to access this functions. If you do, you'll probably
-/// want to get the object from [RedisClient.raw].
-///
-/// [RedisClient] creates an instance of this class in the constructor, and
-/// provides high level methods for those methods.
+/**
+ * This is the class that holds the raw commands that access redis.
+ *
+ * That means that it has to be called with binary data, and returns binary
+ * data as well (instead of providing Strings or other dart objects).
+ *
+ * You should rarely need to access this functions. If you do, you'll probably
+ * want to get the object from [RedisClient.raw].
+ *
+ * [RedisClient] creates an instance of this class in the constructor, and
+ * provides high level methods for those methods.
+ */
 class RawRedisCommands {
 
-  RedisClient client;
+  final RedisClient client;
 
-  RedisConnection connection;
+  RedisConnection get connection => client.connection;
 
-  RawRedisCommands(RedisClient this.client) : connection = this.client.connection;
+  RawRedisCommands(RedisClient this.client);
 
   /// Converts an object to the bytes.
   static List<int> toBytes(dynamic val) {
@@ -103,7 +105,6 @@ class RawRedisCommands {
 
   /// LIST
   /// ====
-
 
   Future<List<List<int>>> lrange(String listId, int startingFrom, int endingAt) => connection.sendExpectMultiData([Cmd.LRANGE, RedisClient.keyBytes(listId), toBytes(startingFrom), toBytes(endingAt)]);
 

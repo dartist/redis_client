@@ -1,4 +1,4 @@
-
+part of redis_client;
 
 /// All available commands.
 ///

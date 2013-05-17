@@ -2,13 +2,28 @@ part of redis_client;
 
 
 
-/// The [RedisClient] is a high level class to access your redis server.
-///
-/// If you need to access the lower level functions for some reason, you can
-/// access the [RawRedisCommands] with [RedisClient.raw].
-///
-/// For a list of all available commands, please visit the
-/// [redis documentation](http://redis.io/commands).
+/**
+ * The [RedisClient] is a high level class to access your redis server.
+ *
+ * You create a [RedisClient] like this:
+ *
+ *     var connectionString = "localhost:6379";
+ *     RedisClient.connect(connectionString)
+ *         .then((RedisClient client) {
+ *           // Use your client here. Eg.:
+ *           client.set("test", "value").then((_) => print("success"));
+ *         });
+ *
+ * [RedisClient] creates a [RedisConnection] internally, and just forwards the
+ * `connectionString` to it. So please refer to the [RedisConnection]
+ * doc for a list of valid connection strings.
+ *
+ * If you need to access the lower level functions for some reason, you can
+ * access the [RawRedisCommands] with [RedisClient.raw].
+ *
+ * To see how the binary redis socket works and detailed list of available
+ * commands, please visit [redis documentation](http://redis.io/commands).
+ */
 class RedisClient {
 
   String connectionString;
@@ -510,7 +525,15 @@ class RedisClient {
 }
 
 
+class RedisClientException implements Exception {
 
+  String message;
+
+  RedisClientException(this.message);
+
+  String toString() => "RedisClientException: $message";
+
+}
 
 
 class _Tuple<E> {

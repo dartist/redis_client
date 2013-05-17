@@ -4,7 +4,7 @@
  *
  * It converts a binary stream from a redis socket to [RedisReply] objects.
  *
- * You can pass it as a transformer to a Socket like this:
+ * You can use the transformer in a Socket like this:
  *
  *     socket.transform(new RedisProtocolTransformer()).listen((RedisReply reply) { });
  *

@@ -39,11 +39,11 @@ abstract class RedisReply {
    *
    *  Valid replies are:
    *
-   *  - [ErrorReply]
-   *  - [StatusReply]
-   *  - [IntegerReply]
-   *  - [BulkReply]
-   *  - [MultiBulkReply]
+   *  - [ErrorReply] (`"-"`)
+   *  - [StatusReply] (`"+"`)
+   *  - [IntegerReply] (`":"`)
+   *  - [BulkReply] (`"$"`)
+   *  - [MultiBulkReply] (`"*"`)
    */
   factory RedisReply.fromType(int replyTypeChar) {
 
