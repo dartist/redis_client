@@ -30,6 +30,6 @@ part 'src/command_utils.dart';
 part 'src/redis_client.dart';
 part 'src/raw_redis_commands.dart';
 part 'src/redis_connection.dart';
-part 'src/connection_settings.dart';
+part 'src/redis_connection_settings.dart';
 //part 'src/in_memory_redis_client.dart';
 

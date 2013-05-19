@@ -3,7 +3,7 @@ part of redis_client;
 
 
 /// Parses the connection string.
-class ConnectionSettings {
+class RedisConnectionSettings {
 
   final String connectionString;
 
@@ -19,7 +19,7 @@ class ConnectionSettings {
   ///
   /// See the [RedisConnection] class documentation on which connectionStrings
   /// are allowed.
-  ConnectionSettings(String this.connectionString){
+  RedisConnectionSettings(String this.connectionString){
     List<String> parts = connectionString.split("@");
 
     if (parts.length == 2) password = parts.first;

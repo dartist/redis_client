@@ -149,7 +149,7 @@ class _RedisConnection implements RedisConnection {
    * connection strings.
    */
   static Future<RedisConnection> connect(String connectionString) {
-    var settings = new ConnectionSettings(connectionString);
+    var settings = new RedisConnectionSettings(connectionString);
 
     var redisConnection = new _RedisConnection(settings.connectionString, settings.hostname, settings.password, settings.port, settings.db);
 
@@ -184,6 +184,9 @@ class _RedisConnection implements RedisConnection {
 
   }
 
+
+  /// Closes the connection.
+  Future close() => _socket.close();
 
 
   /// Selects configured database.
