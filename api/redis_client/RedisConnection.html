@@ -1,0 +1,243 @@
+        <!DOCTYPE html>
+        <html>
+        <head>
+                <meta charset="utf-8">
+        <title>RedisConnection abstract class / redis_client Library / Dart Documentation</title>
+        <link rel="stylesheet" type="text/css"
+            href="../styles.css">
+        <link href="//fonts.googleapis.com/css?family=Open+Sans:400,600,700,800" rel="stylesheet" type="text/css">
+        <link rel="shortcut icon" href="../favicon.ico">
+        
+        </head>
+        <body data-library="redis_client" data-type="RedisConnection">
+        <div class="page">
+        <div class="header">
+          <a href="../index.html"><div class="logo"></div></a>
+          <a href="../index.html">Dart Documentation</a>
+         &rsaquo; <a href="../redis_client.html">redis_client</a> &rsaquo; <a href="../redis_client/RedisConnection.html">RedisConnection</a>        <div id="search-box">
+          <input type="search" name="q" id="q" autocomplete="off"
+              class="search-input" placeholder="Search API">
+        </div>
+        
+      </div>
+      <div class="drop-down" id="drop-down"></div>
+      
+        <div class="nav">
+        
+</div>
+<div class="content">
+        <h2><strong>RedisConnection</strong>
+          abstract class
+        </h2>
+        
+<button id="show-inherited" class="show-inherited">Hide inherited</button>
+<div class="doc">
+<p>The <a class="crossref" href="../redis_client/RedisConnection.html">RedisConnection</a> wraps the Socket, and provides an API to communicate
+to redis.</p>
+<p>You instantiate a <a class="crossref" href="../redis_client/RedisConnection.html">RedisConnection</a> with:</p>
+<pre><code>RedisConnection.connect(connectionString)
+    .then((RedisConnection connection) {
+      // Use your connection
+    });
+</code></pre>
+<p>where <code>connectionString</code> can be any of following:</p><ul><li><code>'pass@host:port/db'</code></li><li><code>'pass@host:port'</code></li><li><code>'pass@host'</code></li><li><code>'host'</code></li><li><code>null</code> defaults to <code>'localhost:6379/0'</code></li></ul>
+<pre class="source">
+abstract class RedisConnection {
+
+
+ /// Create a new [RedisConnection] with given connectionString.
+ static Future&lt;RedisConnection&gt; connect(String connectionString) =&gt; _RedisConnection.connect(connectionString);
+
+
+
+ /// The connectionString from which the connection settings have been
+ /// extruded.
+ ///
+ /// Once this string has been parsed, it isn't used anymore.
+ String connectionString;
+
+ /// Redis connection hostname
+ String hostname;
+
+ /// Redis connection password
+ String password;
+
+ /// Redis connection port
+ int port;
+
+ /// Redis database
+ int db;
+
+
+
+ /// Closes the connection.
+ Future close();
+
+
+ Map get stats;
+
+
+ Future select([ int db ]);
+
+ /// Convenient method to send [String] commands.
+ Receiver send(List&lt;String&gt; cmdWithArgs);
+
+ /// Sends the commands already in binary.
+ Receiver rawSend(List&lt;List&lt;int&gt;&gt; cmdWithArgs);
+
+//
+//  Future&lt;String&gt; sendExpectCode(List&lt;List&gt; cmdWithArgs);
+//
+//  Future&lt;Object&gt; sendExpectSuccess(List&lt;List&gt; cmdWithArgs);
+//
+//  Future&lt;int&gt; sendExpectInt(List&lt;List&gt; cmdWithArgs);
+//
+//  Future&lt;bool&gt; sendExpectIntSuccess(List&lt;List&gt; cmdWithArgs);
+//
+//  Future&lt;List&lt;int&gt;&gt; sendExpectData(List&lt;List&gt; cmdWithArgs);
+//
+//  Future&lt;List&lt;List&lt;int&gt;&gt;&gt; sendExpectMultiData(List&lt;List&gt; cmdWithArgs);
+//
+//  Future&lt;String&gt; sendExpectString(List&lt;List&gt; cmdWithArgs);
+//
+//  Future&lt;double&gt; sendExpectDouble(List&lt;List&gt; cmdWithArgs);
+
+
+}
+</pre>
+</div>
+<div>
+<h3>Static Methods</h3>
+<div class="method"><h4 id="connect">
+<button class="show-code">Code</button>
+Future&lt;<a href="../redis_client/RedisConnection.html">RedisConnection</a>&gt; <strong>connect</strong>(String connectionString) <a class="anchor-link" href="#connect"
+              title="Permalink to RedisConnection.connect">#</a></h4>
+<div class="doc">
+<p>Create a new <a class="crossref" href="../redis_client/RedisConnection.html">RedisConnection</a> with given connectionString.</p>
+<pre class="source">
+static Future&lt;RedisConnection&gt; connect(String connectionString) =&gt; _RedisConnection.connect(connectionString);
+</pre>
+</div>
+</div>
+</div>
+<div>
+<h3>Properties</h3>
+<div class="field"><h4 id="connectionString">
+<button class="show-code">Code</button>
+String         <strong>connectionString</strong> <a class="anchor-link"
+            href="#connectionString"
+            title="Permalink to RedisConnection.connectionString">#</a>
+        </h4>
+        <div class="doc">
+<p>The connectionString from which the connection settings have been
+extruded.</p>
+<p>Once this string has been parsed, it isn't used anymore.</p>
+<pre class="source">
+String connectionString
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="db">
+<button class="show-code">Code</button>
+int         <strong>db</strong> <a class="anchor-link"
+            href="#db"
+            title="Permalink to RedisConnection.db">#</a>
+        </h4>
+        <div class="doc">
+<p>Redis database</p>
+<pre class="source">
+int db
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="hostname">
+<button class="show-code">Code</button>
+String         <strong>hostname</strong> <a class="anchor-link"
+            href="#hostname"
+            title="Permalink to RedisConnection.hostname">#</a>
+        </h4>
+        <div class="doc">
+<p>Redis connection hostname</p>
+<pre class="source">
+String hostname
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="password">
+<button class="show-code">Code</button>
+String         <strong>password</strong> <a class="anchor-link"
+            href="#password"
+            title="Permalink to RedisConnection.password">#</a>
+        </h4>
+        <div class="doc">
+<p>Redis connection password</p>
+<pre class="source">
+String password
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="port">
+<button class="show-code">Code</button>
+int         <strong>port</strong> <a class="anchor-link"
+            href="#port"
+            title="Permalink to RedisConnection.port">#</a>
+        </h4>
+        <div class="doc">
+<p>Redis connection port</p>
+<pre class="source">
+int port
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="stats">
+<button class="show-code">Code</button>
+final Map         <strong>stats</strong> <a class="anchor-link"
+            href="#stats"
+            title="Permalink to RedisConnection.stats">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+Map get stats;
+</pre>
+</div>
+</div>
+</div>
+<div>
+<h3>Methods</h3>
+<div class="method"><h4 id="close">
+abstract Future <strong>close</strong>() <a class="anchor-link" href="#close"
+              title="Permalink to RedisConnection.close">#</a></h4>
+<div class="doc">
+<p>Closes the connection.</p>
+</div>
+</div>
+<div class="method"><h4 id="rawSend">
+abstract <a href="../redis_client/Receiver.html">Receiver</a> <strong>rawSend</strong>(List&lt;List&lt;int&gt;&gt; cmdWithArgs) <a class="anchor-link" href="#rawSend"
+              title="Permalink to RedisConnection.rawSend">#</a></h4>
+<div class="doc">
+<p>Sends the commands already in binary.</p>
+</div>
+</div>
+<div class="method"><h4 id="select">
+abstract Future <strong>select</strong>([int db]) <a class="anchor-link" href="#select"
+              title="Permalink to RedisConnection.select">#</a></h4>
+<div class="doc">
+</div>
+</div>
+<div class="method"><h4 id="send">
+abstract <a href="../redis_client/Receiver.html">Receiver</a> <strong>send</strong>(List&lt;String&gt; cmdWithArgs) <a class="anchor-link" href="#send"
+              title="Permalink to RedisConnection.send">#</a></h4>
+<div class="doc">
+<p>Convenient method to send <code>String</code> commands.</p>
+</div>
+</div>
+</div>
+        </div>
+        <div class="clear"></div>
+        </div>
+        <div class="footer">
+          <div>This page was generated at 2013-05-20 18:04:29.533</div>
+        </div>
+        <script async src="../client-live-nav.js"></script>
+        </body></html>
+        

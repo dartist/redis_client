@@ -1,0 +1,113 @@
+        <!DOCTYPE html>
+        <html>
+        <head>
+                <meta charset="utf-8">
+        <title>redis_protocol_transformer Library / Dart Documentation</title>
+        <link rel="stylesheet" type="text/css"
+            href="styles.css">
+        <link href="//fonts.googleapis.com/css?family=Open+Sans:400,600,700,800" rel="stylesheet" type="text/css">
+        <link rel="shortcut icon" href="favicon.ico">
+        
+        </head>
+        <body data-library="redis_protocol_transformer">
+        <div class="page">
+        <div class="header">
+          <a href="index.html"><div class="logo"></div></a>
+          <a href="index.html">Dart Documentation</a>
+         &rsaquo; <a href="redis_protocol_transformer.html">redis_protocol_transformer</a>        <div id="search-box">
+          <input type="search" name="q" id="q" autocomplete="off"
+              class="search-input" placeholder="Search API">
+        </div>
+        
+      </div>
+      <div class="drop-down" id="drop-down"></div>
+      
+        <div class="nav">
+        
+</div>
+<div class="content">
+<h2><strong>redis_protocol_transformer</strong> library</h2>
+<div class="doc"><p>This is a <code>StreamTransformer</code> for redis Socket replies.</p>
+<p>It converts a binary stream from a redis socket to <a class="crossref" href="redis_protocol_transformer/RedisReply.html">RedisReply</a> objects.</p>
+<p>You can use the transformer in a Socket like this:</p>
+<pre><code>socket.transform(new RedisProtocolTransformer()).listen((RedisReply reply) { });
+</code></pre>
+<p>There are five types of <a class="crossref" href="redis_protocol_transformer/RedisReply.html">RedisReply</a>s:</p><ul><li><a class="crossref" href="redis_protocol_transformer/ErrorReply.html">ErrorReply</a></li><li><a class="crossref" href="redis_protocol_transformer/StatusReply.html">StatusReply</a></li><li><a class="crossref" href="redis_protocol_transformer/IntegerReply.html">IntegerReply</a></li><li><a class="crossref" href="redis_protocol_transformer/BulkReply.html">BulkReply</a></li><li><a class="crossref" href="redis_protocol_transformer/MultiBulkReply.html">MultiBulkReply</a></li></ul></div>
+<div>
+<h3>Abstract Classes</h3>
+          <div class="type">
+          <h4>
+            <a href="redis_protocol_transformer/RedisReply.html"><strong>RedisReply</strong></a>
+          </h4>
+          </div>
+          
+</div>
+<div>
+<h3>Classes</h3>
+          <div class="type">
+          <h4>
+            <a href="redis_protocol_transformer/BulkReply.html"><strong>BulkReply</strong></a>
+          </h4>
+          </div>
+          
+          <div class="type">
+          <h4>
+            <a href="redis_protocol_transformer/ErrorReply.html"><strong>ErrorReply</strong></a>
+          </h4>
+          </div>
+          
+          <div class="type">
+          <h4>
+            <a href="redis_protocol_transformer/IntegerReply.html"><strong>IntegerReply</strong></a>
+          </h4>
+          </div>
+          
+          <div class="type">
+          <h4>
+            <a href="redis_protocol_transformer/MultiBulkReply.html"><strong>MultiBulkReply</strong></a>
+          </h4>
+          </div>
+          
+          <div class="type">
+          <h4>
+            <a href="redis_protocol_transformer/RedisProtocolTransformer.html"><strong>RedisProtocolTransformer</strong></a>
+          </h4>
+          </div>
+          
+          <div class="type">
+          <h4>
+            <a href="redis_protocol_transformer/StatusReply.html"><strong>StatusReply</strong></a>
+          </h4>
+          </div>
+          
+</div>
+<div>
+<h3>Exceptions</h3>
+          <div class="type">
+          <h4>
+            <a href="redis_protocol_transformer/InvalidRedisResponseError.html"><strong>InvalidRedisResponseError</strong></a>
+          </h4>
+          </div>
+          
+          <div class="type">
+          <h4>
+            <a href="redis_protocol_transformer/RedisProtocolTransformerException.html"><strong>RedisProtocolTransformerException</strong></a>
+          </h4>
+          </div>
+          
+          <div class="type">
+          <h4>
+            <a href="redis_protocol_transformer/UnexpectedRedisClosureError.html"><strong>UnexpectedRedisClosureError</strong></a>
+          </h4>
+          </div>
+          
+</div>
+        </div>
+        <div class="clear"></div>
+        </div>
+        <div class="footer">
+          <div>This page was generated at 2013-05-20 18:04:29.731</div>
+        </div>
+        <script async src="client-live-nav.js"></script>
+        </body></html>
+        

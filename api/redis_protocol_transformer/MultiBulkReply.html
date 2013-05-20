@@ -1,0 +1,170 @@
+        <!DOCTYPE html>
+        <html>
+        <head>
+                <meta charset="utf-8">
+        <title>MultiBulkReply class / redis_protocol_transformer Library / Dart Documentation</title>
+        <link rel="stylesheet" type="text/css"
+            href="../styles.css">
+        <link href="//fonts.googleapis.com/css?family=Open+Sans:400,600,700,800" rel="stylesheet" type="text/css">
+        <link rel="shortcut icon" href="../favicon.ico">
+        
+        </head>
+        <body data-library="redis_protocol_transformer" data-type="MultiBulkReply">
+        <div class="page">
+        <div class="header">
+          <a href="../index.html"><div class="logo"></div></a>
+          <a href="../index.html">Dart Documentation</a>
+         &rsaquo; <a href="../redis_protocol_transformer.html">redis_protocol_transformer</a> &rsaquo; <a href="../redis_protocol_transformer/MultiBulkReply.html">MultiBulkReply</a>        <div id="search-box">
+          <input type="search" name="q" id="q" autocomplete="off"
+              class="search-input" placeholder="Search API">
+        </div>
+        
+      </div>
+      <div class="drop-down" id="drop-down"></div>
+      
+        <div class="nav">
+        
+</div>
+<div class="content">
+        <h2><strong>MultiBulkReply</strong>
+          class
+        </h2>
+        
+<button id="show-inherited" class="show-inherited">Hide inherited</button>
+<div class="doc">
+<p>This class differs a bit from the oder RedisReplies in that it actually
+holds a list of mulitple <a class="crossref" href="../redis_protocol_transformer/RedisReply.html">RedisReply</a>s.</p>
+<pre class="source">
+class MultiBulkReply extends RedisReply {
+
+ final _OneLineDataConsumer _initialLineDataConsumer = new _OneLineDataConsumer();
+
+ /// The number of replies this multi bulk reply returns.
+ int _numberOfReplies;
+
+ /// Returns true if all replies have successfully been returned.
+ bool get done {
+   // Not even the inital first line has been received.
+   if (_numberOfReplies == null) return false;
+
+   // Not all replies have been received.
+   if (_replies.length != _numberOfReplies) return false;
+
+   // If the last reply is done, the [MultiBulkReply] is done.
+   return _replies.last.done;
+ }
+
+
+ /// Holds the list of [RedisReply]s.
+ List&lt;RedisReply&gt; _replies = &lt;RedisReply&gt;[ ];
+
+ List&lt;RedisReply&gt; get replies {
+   return _replies;
+ }
+
+ RedisReply get _lastReply =&gt; _replies.length &gt; 0 ? _replies.last : null;
+
+ /**
+  * Consumes the first line with an [_OneLineDataConsumer], retrieves the
+  * number of replies from it.
+  */
+ @override
+ List&lt;int&gt; _consumeData(List&lt;int&gt; data) {
+
+   if (!_initialLineDataConsumer.done) {
+     _initialLineDataConsumer.consumeData(data);
+
+     // Can be null
+     data = _initialLineDataConsumer.unconsumedData;
+
+     if (data == null) {
+       // Stop here.
+       return null;
+     }
+   }
+
+   // The initialLineConsumer has done it's job the last time or this time.
+   // Now all replies have to be received.
+   if (_replies.length == 0) {
+     // The first line has completely been received.
+     _numberOfReplies = int.parse(new String.fromCharCodes(_initialLineDataConsumer.data));
+   }
+
+   var lastReply = _lastReply;
+
+   if (lastReply == null || lastReply.done) {
+     // Need to create a new reply
+     lastReply = new RedisReply.fromType(data.first);
+     _replies.add(lastReply);
+   }
+
+   var unconsumedData = lastReply._consumeData(data);
+
+   if (lastReply.done) {
+     if (_replies.length == _numberOfReplies) {
+       // All replies have been received.
+       return unconsumedData;
+     }
+     else {
+       _consumeData(unconsumedData);
+     }
+   }
+
+   // Since the last reply is not done, there can't be any unconsumed data.
+   return null;
+ }
+
+}
+</pre>
+</div>
+<h3>Extends</h3>
+<p>
+<span class="type-box"><span class="icon-class"></span><a href="../redis_protocol_transformer/RedisReply.html">RedisReply</a></span>&nbsp;&gt;&nbsp;<span class="type-box"><span class="icon-class"></span><strong>MultiBulkReply</strong></span></p>
+<div>
+<h3>Properties</h3>
+<div class="field"><h4 id="done">
+<button class="show-code">Code</button>
+final bool         <strong>done</strong> <a class="anchor-link"
+            href="#done"
+            title="Permalink to MultiBulkReply.done">#</a>
+        </h4>
+        <div class="doc">
+<p>Returns true if all replies have successfully been returned.</p>
+<pre class="source">
+bool get done {
+ // Not even the inital first line has been received.
+ if (_numberOfReplies == null) return false;
+
+ // Not all replies have been received.
+ if (_replies.length != _numberOfReplies) return false;
+
+ // If the last reply is done, the [MultiBulkReply] is done.
+ return _replies.last.done;
+}
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="replies">
+<button class="show-code">Code</button>
+final List&lt;<a href="../redis_protocol_transformer/RedisReply.html">RedisReply</a>&gt;         <strong>replies</strong> <a class="anchor-link"
+            href="#replies"
+            title="Permalink to MultiBulkReply.replies">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+List&lt;RedisReply&gt; get replies {
+ return _replies;
+}
+</pre>
+</div>
+</div>
+</div>
+        </div>
+        <div class="clear"></div>
+        </div>
+        <div class="footer">
+          <div>This page was generated at 2013-05-20 18:04:29.736</div>
+        </div>
+        <script async src="../client-live-nav.js"></script>
+        </body></html>
+        

@@ -1,0 +1,178 @@
+        <!DOCTYPE html>
+        <html>
+        <head>
+                <meta charset="utf-8">
+        <title>BulkReply class / redis_protocol_transformer Library / Dart Documentation</title>
+        <link rel="stylesheet" type="text/css"
+            href="../styles.css">
+        <link href="//fonts.googleapis.com/css?family=Open+Sans:400,600,700,800" rel="stylesheet" type="text/css">
+        <link rel="shortcut icon" href="../favicon.ico">
+        
+        </head>
+        <body data-library="redis_protocol_transformer" data-type="BulkReply">
+        <div class="page">
+        <div class="header">
+          <a href="../index.html"><div class="logo"></div></a>
+          <a href="../index.html">Dart Documentation</a>
+         &rsaquo; <a href="../redis_protocol_transformer.html">redis_protocol_transformer</a> &rsaquo; <a href="../redis_protocol_transformer/BulkReply.html">BulkReply</a>        <div id="search-box">
+          <input type="search" name="q" id="q" autocomplete="off"
+              class="search-input" placeholder="Search API">
+        </div>
+        
+      </div>
+      <div class="drop-down" id="drop-down"></div>
+      
+        <div class="nav">
+        
+</div>
+<div class="content">
+        <h2><strong>BulkReply</strong>
+          class
+        </h2>
+        
+<button id="show-inherited" class="show-inherited">Hide inherited</button>
+<div class="doc">
+<p>Used for bulk replies</p>
+<pre class="source">
+class BulkReply extends RedisReply {
+
+ final _OneLineDataConsumer _initialLineDataConsumer = new _OneLineDataConsumer();
+
+ _BytesDataConsumer _dataConsumer;
+
+
+ /**
+  *  Specifies if this reply has been fully received.
+  */
+ bool get done {
+   if (_dataConsumer == null) return false;
+   else return _dataConsumer.done;
+ }
+
+ /**
+  * Consumes the first line with an [_OneLineDataConsumer], retrieves the
+  * byteLength from it, and consumes the rest of the data with a
+  * [_BytesDataConsumer].
+  */
+ @override
+ List&lt;int&gt; _consumeData(List&lt;int&gt; data) {
+
+   if (!_initialLineDataConsumer.done) {
+     _initialLineDataConsumer.consumeData(data);
+
+     // Can be null
+     data = _initialLineDataConsumer.unconsumedData;
+
+     if (data == null) {
+       // Stop here.
+       return null;
+     }
+   }
+
+   // The initialLineConsumer has done it's job the last time or this time.
+   // Either way, now it's time for the _dataConsumer to do it's job.
+   if (_dataConsumer == null) {
+     // Need to create the data consumer
+     int byteLength = int.parse(new String.fromCharCodes(_initialLineDataConsumer.data));
+     _dataConsumer = new _BytesDataConsumer(byteLength);
+   }
+
+   _dataConsumer.consumeData(data);
+
+   if (_dataConsumer.done &amp;&amp; _dataConsumer.unconsumedData != null) {
+     return _dataConsumer.unconsumedData;
+   }
+   else {
+     return null;
+   }
+ }
+
+
+ /// Returns the raw bytes of this reply.
+ List&lt;int&gt; get bytes {
+   assert(_dataConsumer != null);
+   // [_DataConsumer.data] checks if this reply is [done] and fails if not.
+   return _dataConsumer.data;
+ }
+
+
+ String _dataAsString;
+
+ /// Returns the reply as String.
+ String get string {
+   if (_dataAsString == null) {
+     _dataAsString = decodeUtf8(bytes);
+   }
+   return _dataAsString;
+ }
+
+
+}
+</pre>
+</div>
+<h3>Extends</h3>
+<p>
+<span class="type-box"><span class="icon-class"></span><a href="../redis_protocol_transformer/RedisReply.html">RedisReply</a></span>&nbsp;&gt;&nbsp;<span class="type-box"><span class="icon-class"></span><strong>BulkReply</strong></span></p>
+<div>
+<h3>Properties</h3>
+<div class="field"><h4 id="bytes">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>bytes</strong> <a class="anchor-link"
+            href="#bytes"
+            title="Permalink to BulkReply.bytes">#</a>
+        </h4>
+        <div class="doc">
+<p>Returns the raw bytes of this reply.</p>
+<pre class="source">
+List&lt;int&gt; get bytes {
+ assert(_dataConsumer != null);
+ // [_DataConsumer.data] checks if this reply is [done] and fails if not.
+ return _dataConsumer.data;
+}
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="done">
+<button class="show-code">Code</button>
+final bool         <strong>done</strong> <a class="anchor-link"
+            href="#done"
+            title="Permalink to BulkReply.done">#</a>
+        </h4>
+        <div class="doc">
+<p> Specifies if this reply has been fully received.</p>
+<pre class="source">
+bool get done {
+ if (_dataConsumer == null) return false;
+ else return _dataConsumer.done;
+}
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="string">
+<button class="show-code">Code</button>
+final String         <strong>string</strong> <a class="anchor-link"
+            href="#string"
+            title="Permalink to BulkReply.string">#</a>
+        </h4>
+        <div class="doc">
+<p>Returns the reply as String.</p>
+<pre class="source">
+String get string {
+ if (_dataAsString == null) {
+   _dataAsString = decodeUtf8(bytes);
+ }
+ return _dataAsString;
+}
+</pre>
+</div>
+</div>
+</div>
+        </div>
+        <div class="clear"></div>
+        </div>
+        <div class="footer">
+          <div>This page was generated at 2013-05-20 18:04:29.741</div>
+        </div>
+        <script async src="../client-live-nav.js"></script>
+        </body></html>
+        

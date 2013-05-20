@@ -1,0 +1,211 @@
+        <!DOCTYPE html>
+        <html>
+        <head>
+                <meta charset="utf-8">
+        <title>JsonRedisSerializer class / redis_client Library / Dart Documentation</title>
+        <link rel="stylesheet" type="text/css"
+            href="../styles.css">
+        <link href="//fonts.googleapis.com/css?family=Open+Sans:400,600,700,800" rel="stylesheet" type="text/css">
+        <link rel="shortcut icon" href="../favicon.ico">
+        
+        </head>
+        <body data-library="redis_client" data-type="JsonRedisSerializer">
+        <div class="page">
+        <div class="header">
+          <a href="../index.html"><div class="logo"></div></a>
+          <a href="../index.html">Dart Documentation</a>
+         &rsaquo; <a href="../redis_client.html">redis_client</a> &rsaquo; <a href="../redis_client/JsonRedisSerializer.html">JsonRedisSerializer</a>        <div id="search-box">
+          <input type="search" name="q" id="q" autocomplete="off"
+              class="search-input" placeholder="Search API">
+        </div>
+        
+      </div>
+      <div class="drop-down" id="drop-down"></div>
+      
+        <div class="nav">
+        
+</div>
+<div class="content">
+        <h2><strong>JsonRedisSerializer</strong>
+          class
+        </h2>
+        
+<button id="show-inherited" class="show-inherited">Hide inherited</button>
+<div class="doc">
+<pre class="source">
+class JsonRedisSerializer implements RedisSerializer {
+
+ static final int OBJECT_START = 123; // {
+ static final int ARRAY_START  = 91;  // [
+ static final int ZERO         = 48;  // 0
+ static final int NINE         = 57;  // 9
+ static final int SIGN         = 45;  // -
+
+ static final String DATE_PREFIX = "/Date(";
+ static final String DATE_SUFFIX = ")/";
+ static final String TRUE  = "true";
+ static final String FALSE = "false";
+
+ List&lt;int&gt; serialize(Object obj) =&gt; encodeUtf8(stringify(obj));
+
+
+ Object deserialize(List&lt;int&gt; bytes) {
+   if (bytes == null || bytes.length == 0) return null;
+
+   return parse(decodeUtf8(bytes));
+ }
+
+
+}
+</pre>
+</div>
+<h3>Implements</h3>
+<p>
+<span class="type-box"><span class="icon-class"></span><a href="../redis_client/RedisSerializer.html">RedisSerializer</a></span></p>
+<div>
+<h3>Static Properties</h3>
+<div class="field"><h4 id="ARRAY_START">
+<button class="show-code">Code</button>
+final int         <strong>ARRAY_START</strong> <a class="anchor-link"
+            href="#ARRAY_START"
+            title="Permalink to JsonRedisSerializer.ARRAY_START">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static final int ARRAY_START  = 91
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="DATE_PREFIX">
+<button class="show-code">Code</button>
+final String         <strong>DATE_PREFIX</strong> <a class="anchor-link"
+            href="#DATE_PREFIX"
+            title="Permalink to JsonRedisSerializer.DATE_PREFIX">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static final String DATE_PREFIX = "/Date("
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="DATE_SUFFIX">
+<button class="show-code">Code</button>
+final String         <strong>DATE_SUFFIX</strong> <a class="anchor-link"
+            href="#DATE_SUFFIX"
+            title="Permalink to JsonRedisSerializer.DATE_SUFFIX">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static final String DATE_SUFFIX = ")/"
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="FALSE">
+<button class="show-code">Code</button>
+final String         <strong>FALSE</strong> <a class="anchor-link"
+            href="#FALSE"
+            title="Permalink to JsonRedisSerializer.FALSE">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static final String FALSE = "false"
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="NINE">
+<button class="show-code">Code</button>
+final int         <strong>NINE</strong> <a class="anchor-link"
+            href="#NINE"
+            title="Permalink to JsonRedisSerializer.NINE">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static final int NINE         = 57
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="OBJECT_START">
+<button class="show-code">Code</button>
+final int         <strong>OBJECT_START</strong> <a class="anchor-link"
+            href="#OBJECT_START"
+            title="Permalink to JsonRedisSerializer.OBJECT_START">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static final int OBJECT_START = 123
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="SIGN">
+<button class="show-code">Code</button>
+final int         <strong>SIGN</strong> <a class="anchor-link"
+            href="#SIGN"
+            title="Permalink to JsonRedisSerializer.SIGN">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static final int SIGN         = 45
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="TRUE">
+<button class="show-code">Code</button>
+final String         <strong>TRUE</strong> <a class="anchor-link"
+            href="#TRUE"
+            title="Permalink to JsonRedisSerializer.TRUE">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static final String TRUE  = "true"
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="ZERO">
+<button class="show-code">Code</button>
+final int         <strong>ZERO</strong> <a class="anchor-link"
+            href="#ZERO"
+            title="Permalink to JsonRedisSerializer.ZERO">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static final int ZERO         = 48
+</pre>
+</div>
+</div>
+</div>
+<div>
+<h3>Methods</h3>
+<div class="method"><h4 id="deserialize">
+<button class="show-code">Code</button>
+Object <strong>deserialize</strong>(List&lt;int&gt; bytes) <a class="anchor-link" href="#deserialize"
+              title="Permalink to JsonRedisSerializer.deserialize">#</a></h4>
+<div class="doc">
+<pre class="source">
+Object deserialize(List&lt;int&gt; bytes) {
+ if (bytes == null || bytes.length == 0) return null;
+
+ return parse(decodeUtf8(bytes));
+}
+</pre>
+</div>
+</div>
+<div class="method"><h4 id="serialize">
+<button class="show-code">Code</button>
+List&lt;int&gt; <strong>serialize</strong>(Object obj) <a class="anchor-link" href="#serialize"
+              title="Permalink to JsonRedisSerializer.serialize">#</a></h4>
+<div class="doc">
+<pre class="source">
+List&lt;int&gt; serialize(Object obj) =&gt; encodeUtf8(stringify(obj));
+</pre>
+</div>
+</div>
+</div>
+        </div>
+        <div class="clear"></div>
+        </div>
+        <div class="footer">
+          <div>This page was generated at 2013-05-20 18:04:29.716</div>
+        </div>
+        <script async src="../client-live-nav.js"></script>
+        </body></html>
+        

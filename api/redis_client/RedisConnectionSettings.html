@@ -1,0 +1,175 @@
+        <!DOCTYPE html>
+        <html>
+        <head>
+                <meta charset="utf-8">
+        <title>RedisConnectionSettings class / redis_client Library / Dart Documentation</title>
+        <link rel="stylesheet" type="text/css"
+            href="../styles.css">
+        <link href="//fonts.googleapis.com/css?family=Open+Sans:400,600,700,800" rel="stylesheet" type="text/css">
+        <link rel="shortcut icon" href="../favicon.ico">
+        
+        </head>
+        <body data-library="redis_client" data-type="RedisConnectionSettings">
+        <div class="page">
+        <div class="header">
+          <a href="../index.html"><div class="logo"></div></a>
+          <a href="../index.html">Dart Documentation</a>
+         &rsaquo; <a href="../redis_client.html">redis_client</a> &rsaquo; <a href="../redis_client/RedisConnectionSettings.html">RedisConnectionSettings</a>        <div id="search-box">
+          <input type="search" name="q" id="q" autocomplete="off"
+              class="search-input" placeholder="Search API">
+        </div>
+        
+      </div>
+      <div class="drop-down" id="drop-down"></div>
+      
+        <div class="nav">
+        
+</div>
+<div class="content">
+        <h2><strong>RedisConnectionSettings</strong>
+          class
+        </h2>
+        
+<button id="show-inherited" class="show-inherited">Hide inherited</button>
+<div class="doc">
+<p>Parses the connection string.</p>
+<pre class="source">
+class RedisConnectionSettings {
+
+ final String connectionString;
+
+ String hostname = "localhost";
+
+ String password;
+
+ int port = 6379;
+
+ int db = 0;
+
+ /// Parses provided connection string and sets the corresponding settings.
+ ///
+ /// See the [RedisConnection] class documentation on which connectionStrings
+ /// are allowed.
+ RedisConnectionSettings(String this.connectionString){
+   List&lt;String&gt; parts = connectionString.split("@");
+
+   if (parts.length == 2) password = parts.first;
+
+   parts = parts.last.split(":");
+   bool hasPort = parts.length == 2;
+
+   hostname = parts.first;
+
+   if (hasPort) {
+     parts = parts.last.split("/");
+     port = int.parse(parts.first);
+     if (parts.length == 2) db = int.parse(parts.last);
+   }
+ }
+
+}
+</pre>
+</div>
+<div>
+<h3>Constructors</h3>
+<div class="method"><h4 id="RedisConnectionSettings">
+<button class="show-code">Code</button>
+new <strong>RedisConnectionSettings</strong>(String connectionString) <a class="anchor-link" href="#RedisConnectionSettings"
+              title="Permalink to RedisConnectionSettings.RedisConnectionSettings">#</a></h4>
+<div class="doc">
+<p>Parses provided connection string and sets the corresponding settings.</p>
+<p>See the <a class="crossref" href="../redis_client/RedisConnection.html">RedisConnection</a> class documentation on which connectionStrings
+are allowed.</p>
+<pre class="source">
+RedisConnectionSettings(String this.connectionString){
+ List&lt;String&gt; parts = connectionString.split("@");
+
+ if (parts.length == 2) password = parts.first;
+
+ parts = parts.last.split(":");
+ bool hasPort = parts.length == 2;
+
+ hostname = parts.first;
+
+ if (hasPort) {
+   parts = parts.last.split("/");
+   port = int.parse(parts.first);
+   if (parts.length == 2) db = int.parse(parts.last);
+ }
+}
+</pre>
+</div>
+</div>
+</div>
+<div>
+<h3>Properties</h3>
+<div class="field"><h4 id="connectionString">
+<button class="show-code">Code</button>
+final String         <strong>connectionString</strong> <a class="anchor-link"
+            href="#connectionString"
+            title="Permalink to RedisConnectionSettings.connectionString">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+final String connectionString
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="db">
+<button class="show-code">Code</button>
+int         <strong>db</strong> <a class="anchor-link"
+            href="#db"
+            title="Permalink to RedisConnectionSettings.db">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+int db = 0
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="hostname">
+<button class="show-code">Code</button>
+String         <strong>hostname</strong> <a class="anchor-link"
+            href="#hostname"
+            title="Permalink to RedisConnectionSettings.hostname">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+String hostname = "localhost"
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="password">
+<button class="show-code">Code</button>
+String         <strong>password</strong> <a class="anchor-link"
+            href="#password"
+            title="Permalink to RedisConnectionSettings.password">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+String password
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="port">
+<button class="show-code">Code</button>
+int         <strong>port</strong> <a class="anchor-link"
+            href="#port"
+            title="Permalink to RedisConnectionSettings.port">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+int port = 6379
+</pre>
+</div>
+</div>
+</div>
+        </div>
+        <div class="clear"></div>
+        </div>
+        <div class="footer">
+          <div>This page was generated at 2013-05-20 18:04:29.483</div>
+        </div>
+        <script async src="../client-live-nav.js"></script>
+        </body></html>
+        

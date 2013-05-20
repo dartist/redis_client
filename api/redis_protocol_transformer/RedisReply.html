@@ -1,0 +1,230 @@
+        <!DOCTYPE html>
+        <html>
+        <head>
+                <meta charset="utf-8">
+        <title>RedisReply abstract class / redis_protocol_transformer Library / Dart Documentation</title>
+        <link rel="stylesheet" type="text/css"
+            href="../styles.css">
+        <link href="//fonts.googleapis.com/css?family=Open+Sans:400,600,700,800" rel="stylesheet" type="text/css">
+        <link rel="shortcut icon" href="../favicon.ico">
+        
+        </head>
+        <body data-library="redis_protocol_transformer" data-type="RedisReply">
+        <div class="page">
+        <div class="header">
+          <a href="../index.html"><div class="logo"></div></a>
+          <a href="../index.html">Dart Documentation</a>
+         &rsaquo; <a href="../redis_protocol_transformer.html">redis_protocol_transformer</a> &rsaquo; <a href="../redis_protocol_transformer/RedisReply.html">RedisReply</a>        <div id="search-box">
+          <input type="search" name="q" id="q" autocomplete="off"
+              class="search-input" placeholder="Search API">
+        </div>
+        
+      </div>
+      <div class="drop-down" id="drop-down"></div>
+      
+        <div class="nav">
+        
+</div>
+<div class="content">
+        <h2><strong>RedisReply</strong>
+          abstract class
+        </h2>
+        
+<button id="show-inherited" class="show-inherited">Hide inherited</button>
+<div class="doc">
+<p>Base class for redis replies.</p>
+<p>Every time a new redis reply is received, this class is instantiated,
+and returned with the corresponding data.</p>
+<pre class="source">
+abstract class RedisReply {
+
+ /// A reply type
+ static const int STATUS = RedisProtocolTransformer.PLUS;
+
+ /// A reply type
+ static const int ERROR = RedisProtocolTransformer.DASH;
+
+ /// A reply type
+ static const int INTEGER = RedisProtocolTransformer.COLON;
+
+ /// A reply type
+ static const int BULK = RedisProtocolTransformer.DOLLAR;
+
+ /// A reply type
+ static const int MULTI_BULK = RedisProtocolTransformer.ASTERIX;
+
+
+ /// Specifies if this reply has been fully received.
+ bool get done;
+
+
+ /// Consumes the data and returns the uncosumed data if any, null otherwise.
+ List&lt;int&gt; _consumeData(List&lt;int&gt; data);
+
+ /// Default constructor does nothing.
+ RedisReply();
+
+ /**
+  *  Factory constructor for [RedisReply] implementations.
+  *
+  *  Valid replies are:
+  *
+  *  - [ErrorReply] (`"-"`)
+  *  - [StatusReply] (`"+"`)
+  *  - [IntegerReply] (`":"`)
+  *  - [BulkReply] (`"$"`)
+  *  - [MultiBulkReply] (`"*"`)
+  */
+ factory RedisReply.fromType(int replyTypeChar) {
+
+   // Now instantiate the correct RedisReply
+   switch (replyTypeChar) {
+     case RedisReply.STATUS:     return new StatusReply();
+     case RedisReply.ERROR:      return new ErrorReply();
+     case RedisReply.INTEGER:    return new IntegerReply();
+     case RedisReply.BULK:       return new BulkReply();
+     case RedisReply.MULTI_BULK: return new MultiBulkReply();
+     default:
+       throw new InvalidRedisResponseError("The type character was incorrect (${new String.fromCharCode(replyTypeChar)}).");
+   }
+
+ }
+
+}
+</pre>
+</div>
+<h3>Subclasses</h3>
+<p>
+<span class="type-box"><span class="icon-class"></span><a href="../redis_protocol_transformer/BulkReply.html">BulkReply</a></span>, <span class="type-box"><span class="icon-class"></span><a href="../redis_protocol_transformer/MultiBulkReply.html">MultiBulkReply</a></span></p>
+<div>
+<h3>Static Properties</h3>
+<div class="field"><h4 id="BULK">
+<button class="show-code">Code</button>
+const int         <strong>BULK</strong> <a class="anchor-link"
+            href="#BULK"
+            title="Permalink to RedisReply.BULK">#</a>
+        </h4>
+        <div class="doc">
+<p>A reply type</p>
+<pre class="source">
+static const int BULK = RedisProtocolTransformer.DOLLAR
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="ERROR">
+<button class="show-code">Code</button>
+const int         <strong>ERROR</strong> <a class="anchor-link"
+            href="#ERROR"
+            title="Permalink to RedisReply.ERROR">#</a>
+        </h4>
+        <div class="doc">
+<p>A reply type</p>
+<pre class="source">
+static const int ERROR = RedisProtocolTransformer.DASH
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="INTEGER">
+<button class="show-code">Code</button>
+const int         <strong>INTEGER</strong> <a class="anchor-link"
+            href="#INTEGER"
+            title="Permalink to RedisReply.INTEGER">#</a>
+        </h4>
+        <div class="doc">
+<p>A reply type</p>
+<pre class="source">
+static const int INTEGER = RedisProtocolTransformer.COLON
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="MULTI_BULK">
+<button class="show-code">Code</button>
+const int         <strong>MULTI_BULK</strong> <a class="anchor-link"
+            href="#MULTI_BULK"
+            title="Permalink to RedisReply.MULTI_BULK">#</a>
+        </h4>
+        <div class="doc">
+<p>A reply type</p>
+<pre class="source">
+static const int MULTI_BULK = RedisProtocolTransformer.ASTERIX
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="STATUS">
+<button class="show-code">Code</button>
+const int         <strong>STATUS</strong> <a class="anchor-link"
+            href="#STATUS"
+            title="Permalink to RedisReply.STATUS">#</a>
+        </h4>
+        <div class="doc">
+<p>A reply type</p>
+<pre class="source">
+static const int STATUS = RedisProtocolTransformer.PLUS
+</pre>
+</div>
+</div>
+</div>
+<div>
+<h3>Constructors</h3>
+<div class="method"><h4 id="RedisReply">
+<button class="show-code">Code</button>
+new <strong>RedisReply</strong>() <a class="anchor-link" href="#RedisReply"
+              title="Permalink to RedisReply.RedisReply">#</a></h4>
+<div class="doc">
+<p>Default constructor does nothing.</p>
+<pre class="source">
+RedisReply();
+</pre>
+</div>
+</div>
+<div class="method"><h4 id="RedisReply.fromType">
+<button class="show-code">Code</button>
+factory <strong>RedisReply.fromType</strong>(int replyTypeChar) <a class="anchor-link" href="#RedisReply.fromType"
+              title="Permalink to RedisReply.RedisReply.fromType">#</a></h4>
+<div class="doc">
+<p> Factory constructor for <a class="crossref" href="../redis_protocol_transformer/RedisReply.html#RedisReply">RedisReply</a> implementations.</p>
+<p> Valid replies are:</p><ul><li><a href="`"-"`">ErrorReply</a></li><li><a href="`"+"`">StatusReply</a></li><li><a href="`":"`">IntegerReply</a></li><li><a href="`"$"`">BulkReply</a></li><li><a href="`"*"`">MultiBulkReply</a></li></ul>
+<pre class="source">
+factory RedisReply.fromType(int replyTypeChar) {
+
+ // Now instantiate the correct RedisReply
+ switch (replyTypeChar) {
+   case RedisReply.STATUS:     return new StatusReply();
+   case RedisReply.ERROR:      return new ErrorReply();
+   case RedisReply.INTEGER:    return new IntegerReply();
+   case RedisReply.BULK:       return new BulkReply();
+   case RedisReply.MULTI_BULK: return new MultiBulkReply();
+   default:
+     throw new InvalidRedisResponseError("The type character was incorrect (${new String.fromCharCode(replyTypeChar)}).");
+ }
+
+}
+</pre>
+</div>
+</div>
+</div>
+<div>
+<h3>Properties</h3>
+<div class="field"><h4 id="done">
+<button class="show-code">Code</button>
+final bool         <strong>done</strong> <a class="anchor-link"
+            href="#done"
+            title="Permalink to RedisReply.done">#</a>
+        </h4>
+        <div class="doc">
+<p>Specifies if this reply has been fully received.</p>
+<pre class="source">
+bool get done;
+</pre>
+</div>
+</div>
+</div>
+        </div>
+        <div class="clear"></div>
+        </div>
+        <div class="footer">
+          <div>This page was generated at 2013-05-20 18:04:29.765</div>
+        </div>
+        <script async src="../client-live-nav.js"></script>
+        </body></html>
+        

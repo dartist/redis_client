@@ -1,0 +1,304 @@
+        <!DOCTYPE html>
+        <html>
+        <head>
+                <meta charset="utf-8">
+        <title>RedisProtocolTransformer class / redis_protocol_transformer Library / Dart Documentation</title>
+        <link rel="stylesheet" type="text/css"
+            href="../styles.css">
+        <link href="//fonts.googleapis.com/css?family=Open+Sans:400,600,700,800" rel="stylesheet" type="text/css">
+        <link rel="shortcut icon" href="../favicon.ico">
+        
+        </head>
+        <body data-library="redis_protocol_transformer" data-type="RedisProtocolTransformer">
+        <div class="page">
+        <div class="header">
+          <a href="../index.html"><div class="logo"></div></a>
+          <a href="../index.html">Dart Documentation</a>
+         &rsaquo; <a href="../redis_protocol_transformer.html">redis_protocol_transformer</a> &rsaquo; <a href="../redis_protocol_transformer/RedisProtocolTransformer.html">RedisProtocolTransformer</a>        <div id="search-box">
+          <input type="search" name="q" id="q" autocomplete="off"
+              class="search-input" placeholder="Search API">
+        </div>
+        
+      </div>
+      <div class="drop-down" id="drop-down"></div>
+      
+        <div class="nav">
+        
+</div>
+<div class="content">
+        <h2><strong>RedisProtocolTransformer</strong>
+          class
+        </h2>
+        
+<button id="show-inherited" class="show-inherited">Hide inherited</button>
+<div class="doc">
+<p>The <a class="crossref" href="../redis_protocol_transformer/RedisProtocolTransformer.html">RedisProtocolTransformer</a> transforms a redis stream into <a class="crossref" href="../redis_protocol_transformer/RedisReply.html">RedisReply</a>
+objects.
+For a documentation on the redis protocol, please view the
+<a href="http://redis.io/topics/protocol">redis protocol documentation</a>.</p>
+<pre class="source">
+class RedisProtocolTransformer extends StreamEventTransformer&lt;List&lt;int&gt;, RedisReply&gt; {
+
+ /// Charcode for status replies
+ static const int PLUS = 43;
+
+ /// Charcode for error replies
+ static const int DASH = 45;
+
+ /// Charcode for integer replies
+ static const int COLON = 58;
+
+ /// Charcode for bulk replies
+ static const int DOLLAR = 36;
+
+ /// Charcode for multi bulk replies
+ static const int ASTERIX = 42;
+
+ /**
+  * If the transformer has alrady received data, this will hold the [RedisReply].
+  */
+ RedisReply _currentReply;
+
+ /// Converts a list of char codes to a String
+ String _charCodesToString(List&lt;int&gt; bytes) =&gt; new String.fromCharCodes(bytes);
+
+ /// Converts a char code to a String
+ String _charCodeToString(int byte) =&gt; new String.fromCharCode(byte);
+
+ /**
+  * Actually handles the incoming data and adds [RedisReply] objects to the
+  * sink when they're ready.
+  */
+ void handleData(List&lt;int&gt; data, EventSink&lt;RedisReply&gt; output) {
+
+   // I'm not entirely sure this is necessary, but better be safe.
+   if (data.length == 0) return;
+
+   if (_currentReply == null) {
+     // This is a fresh RedisReply. How exciting!
+
+     try {
+       _currentReply = new RedisReply.fromType(data.first);
+     }
+     on RedisProtocolTransformerException catch (e) {
+       this.handleError(e, output);
+     }
+   }
+
+   List&lt;int&gt; unconsumedData = _currentReply._consumeData(data);
+
+   // Make sure that unconsumedData can't be returned unless the reply is actually done.
+   assert(unconsumedData == null || _currentReply.done);
+
+   if (_currentReply.done) {
+     // Reply is done!
+     output.add(_currentReply);
+     _currentReply = null;
+     if (unconsumedData != null &amp;&amp; !unconsumedData.isEmpty) {
+       handleData(unconsumedData, output);
+     }
+   }
+ }
+
+ /**
+  * Closes the [EventSink] and adds an error before if there was some
+  * incomplete data
+  */
+ void handleDone(EventSink&lt;RedisReply&gt; output) {
+
+   if (_currentReply != null) {
+     // Apparently some data has already been sent, but the stream is done.
+     this.handleError(new UnexpectedRedisClosureError("Some data has already been sent but was not complete."), output);
+   }
+
+   output.close();
+ }
+}
+</pre>
+</div>
+<h3>Extends</h3>
+<p>
+<span class="type-box"><span class="icon-class"></span><a href="../dart_async/StreamEventTransformer.html">StreamEventTransformer&lt;List&lt;int&gt;, RedisReply&gt;</a></span>&nbsp;&gt;&nbsp;<span class="type-box"><span class="icon-class"></span><strong>RedisProtocolTransformer</strong></span></p>
+<div>
+<h3>Static Properties</h3>
+<div class="field"><h4 id="ASTERIX">
+<button class="show-code">Code</button>
+const int         <strong>ASTERIX</strong> <a class="anchor-link"
+            href="#ASTERIX"
+            title="Permalink to RedisProtocolTransformer.ASTERIX">#</a>
+        </h4>
+        <div class="doc">
+<p>Charcode for multi bulk replies</p>
+<pre class="source">
+static const int ASTERIX = 42
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="COLON">
+<button class="show-code">Code</button>
+const int         <strong>COLON</strong> <a class="anchor-link"
+            href="#COLON"
+            title="Permalink to RedisProtocolTransformer.COLON">#</a>
+        </h4>
+        <div class="doc">
+<p>Charcode for integer replies</p>
+<pre class="source">
+static const int COLON = 58
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="DASH">
+<button class="show-code">Code</button>
+const int         <strong>DASH</strong> <a class="anchor-link"
+            href="#DASH"
+            title="Permalink to RedisProtocolTransformer.DASH">#</a>
+        </h4>
+        <div class="doc">
+<p>Charcode for error replies</p>
+<pre class="source">
+static const int DASH = 45
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="DOLLAR">
+<button class="show-code">Code</button>
+const int         <strong>DOLLAR</strong> <a class="anchor-link"
+            href="#DOLLAR"
+            title="Permalink to RedisProtocolTransformer.DOLLAR">#</a>
+        </h4>
+        <div class="doc">
+<p>Charcode for bulk replies</p>
+<pre class="source">
+static const int DOLLAR = 36
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="PLUS">
+<button class="show-code">Code</button>
+const int         <strong>PLUS</strong> <a class="anchor-link"
+            href="#PLUS"
+            title="Permalink to RedisProtocolTransformer.PLUS">#</a>
+        </h4>
+        <div class="doc">
+<p>Charcode for status replies</p>
+<pre class="source">
+static const int PLUS = 43
+</pre>
+</div>
+</div>
+</div>
+<div>
+<h3>Methods</h3>
+<div class="method inherited"><h4 id="bind">
+<button class="show-code">Code</button>
+Stream&lt;<a href="../redis_protocol_transformer/RedisProtocolTransformer.html">T</a>&gt; <strong>bind</strong>(Stream&lt;<a href="../redis_protocol_transformer/RedisProtocolTransformer.html">S</a>&gt; source) <a class="anchor-link" href="#bind"
+              title="Permalink to RedisProtocolTransformer.bind">#</a></h4>
+<div class="inherited-from">inherited from StreamEventTransformer </div><div class="doc">
+<pre class="source">
+Stream&lt;T&gt; bind(Stream&lt;S&gt; source) {
+ // Hackish way of buffering data that goes out of the event-transformer.
+ // TODO(floitsch): replace this with a correct solution.
+ Stream transformingStream = new EventTransformStream&lt;S, T&gt;(source, this);
+ StreamController controller;
+ StreamSubscription subscription;
+ controller = new StreamController&lt;T&gt;(
+     onListen: () {
+       subscription = transformingStream.listen(
+           controller.add,
+           onError: controller.addError,
+           onDone: controller.close);
+     },
+     onPause: () =&gt; subscription.pause(),
+     onResume: () =&gt; subscription.resume(),
+     onCancel: () =&gt; subscription.cancel());
+ return controller.stream;
+}
+</pre>
+</div>
+</div>
+<div class="method"><h4 id="handleData">
+<button class="show-code">Code</button>
+void <strong>handleData</strong>(List&lt;int&gt; data, EventSink&lt;<a href="../redis_protocol_transformer/RedisReply.html">RedisReply</a>&gt; output) <a class="anchor-link" href="#handleData"
+              title="Permalink to RedisProtocolTransformer.handleData">#</a></h4>
+<div class="doc">
+<p>Actually handles the incoming data and adds <a class="crossref" href="../redis_protocol_transformer/RedisReply.html">RedisReply</a> objects to the
+sink when they're ready.</p>
+<pre class="source">
+void handleData(List&lt;int&gt; data, EventSink&lt;RedisReply&gt; output) {
+
+ // I'm not entirely sure this is necessary, but better be safe.
+ if (data.length == 0) return;
+
+ if (_currentReply == null) {
+   // This is a fresh RedisReply. How exciting!
+
+   try {
+     _currentReply = new RedisReply.fromType(data.first);
+   }
+   on RedisProtocolTransformerException catch (e) {
+     this.handleError(e, output);
+   }
+ }
+
+ List&lt;int&gt; unconsumedData = _currentReply._consumeData(data);
+
+ // Make sure that unconsumedData can't be returned unless the reply is actually done.
+ assert(unconsumedData == null || _currentReply.done);
+
+ if (_currentReply.done) {
+   // Reply is done!
+   output.add(_currentReply);
+   _currentReply = null;
+   if (unconsumedData != null &amp;&amp; !unconsumedData.isEmpty) {
+     handleData(unconsumedData, output);
+   }
+ }
+}
+</pre>
+</div>
+</div>
+<div class="method"><h4 id="handleDone">
+<button class="show-code">Code</button>
+void <strong>handleDone</strong>(EventSink&lt;<a href="../redis_protocol_transformer/RedisReply.html">RedisReply</a>&gt; output) <a class="anchor-link" href="#handleDone"
+              title="Permalink to RedisProtocolTransformer.handleDone">#</a></h4>
+<div class="doc">
+<p>Closes the <code>EventSink</code> and adds an error before if there was some
+incomplete data</p>
+<pre class="source">
+void handleDone(EventSink&lt;RedisReply&gt; output) {
+
+ if (_currentReply != null) {
+   // Apparently some data has already been sent, but the stream is done.
+   this.handleError(new UnexpectedRedisClosureError("Some data has already been sent but was not complete."), output);
+ }
+
+ output.close();
+}
+</pre>
+</div>
+</div>
+<div class="method inherited"><h4 id="handleError">
+<button class="show-code">Code</button>
+void <strong>handleError</strong>(error, EventSink&lt;<a href="../redis_protocol_transformer/RedisProtocolTransformer.html">T</a>&gt; sink) <a class="anchor-link" href="#handleError"
+              title="Permalink to RedisProtocolTransformer.handleError">#</a></h4>
+<div class="inherited-from">inherited from StreamEventTransformer </div><div class="doc">
+<p>Act on incoming error event.</p>
+<p>The method may generate any number of events on the sink, but should
+not throw.</p>
+<pre class="source">
+void handleError(error, EventSink&lt;T&gt; sink) {
+ sink.addError(error);
+}
+</pre>
+</div>
+</div>
+</div>
+        </div>
+        <div class="clear"></div>
+        </div>
+        <div class="footer">
+          <div>This page was generated at 2013-05-20 18:04:29.773</div>
+        </div>
+        <script async src="../client-live-nav.js"></script>
+        </body></html>
+        

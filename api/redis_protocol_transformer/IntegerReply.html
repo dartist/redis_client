@@ -1,0 +1,85 @@
+        <!DOCTYPE html>
+        <html>
+        <head>
+                <meta charset="utf-8">
+        <title>IntegerReply class / redis_protocol_transformer Library / Dart Documentation</title>
+        <link rel="stylesheet" type="text/css"
+            href="../styles.css">
+        <link href="//fonts.googleapis.com/css?family=Open+Sans:400,600,700,800" rel="stylesheet" type="text/css">
+        <link rel="shortcut icon" href="../favicon.ico">
+        
+        </head>
+        <body data-library="redis_protocol_transformer" data-type="IntegerReply">
+        <div class="page">
+        <div class="header">
+          <a href="../index.html"><div class="logo"></div></a>
+          <a href="../index.html">Dart Documentation</a>
+         &rsaquo; <a href="../redis_protocol_transformer.html">redis_protocol_transformer</a> &rsaquo; <a href="../redis_protocol_transformer/IntegerReply.html">IntegerReply</a>        <div id="search-box">
+          <input type="search" name="q" id="q" autocomplete="off"
+              class="search-input" placeholder="Search API">
+        </div>
+        
+      </div>
+      <div class="drop-down" id="drop-down"></div>
+      
+        <div class="nav">
+        
+</div>
+<div class="content">
+        <h2><strong>IntegerReply</strong>
+          class
+        </h2>
+        
+<button id="show-inherited" class="show-inherited">Hide inherited</button>
+<div class="doc">
+<p>Used for integer replies</p>
+<pre class="source">
+class IntegerReply extends _OneLineReply {
+
+ /// Returns the integer received with this reply.
+ int get integer =&gt; int.parse(_getLine());
+
+}
+</pre>
+</div>
+<h3>Extends</h3>
+<p>
+<span class="type-box"><span class="icon-class"></span><a href="../redis_protocol_transformer/RedisReply.html">RedisReply</a></span>&nbsp;&gt;&nbsp;<span class="type-box"><span class="icon-class"></span><a href="../redis_protocol_transformer/_OneLineReply.html">_OneLineReply</a></span>&nbsp;&gt;&nbsp;<span class="type-box"><span class="icon-class"></span><strong>IntegerReply</strong></span></p>
+<div>
+<h3>Properties</h3>
+<div class="field inherited"><h4 id="done">
+<button class="show-code">Code</button>
+final bool         <strong>done</strong> <a class="anchor-link"
+            href="#done"
+            title="Permalink to IntegerReply.done">#</a>
+        </h4>
+        <div class="inherited-from">inherited from <a href="../redis_protocol_transformer/_OneLineReply.html">_OneLineReply</a> </div><div class="doc">
+<p> Specifies if this reply has been fully received.</p>
+<pre class="source">
+bool get done =&gt; _dataConsumer.done;
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="integer">
+<button class="show-code">Code</button>
+final int         <strong>integer</strong> <a class="anchor-link"
+            href="#integer"
+            title="Permalink to IntegerReply.integer">#</a>
+        </h4>
+        <div class="doc">
+<p>Returns the integer received with this reply.</p>
+<pre class="source">
+int get integer =&gt; int.parse(_getLine());
+</pre>
+</div>
+</div>
+</div>
+        </div>
+        <div class="clear"></div>
+        </div>
+        <div class="footer">
+          <div>This page was generated at 2013-05-20 18:04:29.746</div>
+        </div>
+        <script async src="../client-live-nav.js"></script>
+        </body></html>
+        
