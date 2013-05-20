@@ -24,12 +24,12 @@ import 'package:logging/logging.dart';
 
 import 'redis_protocol_transformer.dart';
 
-part 'src/redis_client_commands.dart';
-part 'src/redis_serializer.dart';
-part 'src/command_utils.dart';
-part 'src/redis_client.dart';
-part 'src/raw_redis_commands.dart';
-part 'src/redis_connection.dart';
-part 'src/redis_connection_settings.dart';
-//part 'src/in_memory_redis_client.dart';
+part 'redis_client/redis_client_commands.dart';
+part 'redis_client/redis_serializer.dart';
+part 'redis_client/command_utils.dart';
+part 'redis_client/redis_client.dart';
+part 'redis_client/raw_redis_commands.dart';
+part 'redis_client/redis_connection.dart';
+part 'redis_client/redis_connection_settings.dart';
+//part 'redis_client/in_memory_redis_client.dart';
 
