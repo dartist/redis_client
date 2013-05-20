@@ -70,53 +70,53 @@ class RawRedisCommands {
  /// Keys
  /// ====
 
- Future&lt;List&lt;int&gt;&gt; get(String key) =&gt; connection.rawSend([ _Cmd.GET, RedisClient.keyBytes(key) ]).receiveBulkData();
+ Future&lt;List&lt;int&gt;&gt; get(String key) =&gt; connection.rawSend([ _Cmd.GET, RedisClient._keyBytes(key) ]).receiveBulkData();
 
  Future&lt;List&lt;List&lt;int&gt;&gt;&gt; mget(List&lt;String&gt; keys) =&gt; keys.isEmpty ? new Future([ ]) : connection.sendExpectMultiData(_CommandUtils.mergeCommandWithStringArgs(_Cmd.MGET, keys));
 
- Future&lt;List&lt;int&gt;&gt; getset(String key, List&lt;int&gt; value) =&gt; connection.sendExpectData([_Cmd.GETSET, RedisClient.keyBytes(key), value]);
+ Future&lt;List&lt;int&gt;&gt; getset(String key, List&lt;int&gt; value) =&gt; connection.sendExpectData([_Cmd.GETSET, RedisClient._keyBytes(key), value]);
 
- Future set(String key, List&lt;int&gt; value) =&gt; connection.rawSend([ _Cmd.SET, RedisClient.keyBytes(key), value ]).receiveStatus("OK");
+ Future set(String key, List&lt;int&gt; value) =&gt; connection.rawSend([ _Cmd.SET, RedisClient._keyBytes(key), value ]).receiveStatus("OK");
 
- Future setex(String key, int expireInSecs, List&lt;int&gt; value) =&gt; connection.sendExpectSuccess([_Cmd.SETEX, RedisClient.keyBytes(key), toBytes(expireInSecs), value]);
+ Future setex(String key, int expireInSecs, List&lt;int&gt; value) =&gt; connection.sendExpectSuccess([_Cmd.SETEX, RedisClient._keyBytes(key), toBytes(expireInSecs), value]);
 
- Future psetex(String key, int expireInMs, List&lt;int&gt; value) =&gt; connection.sendExpectSuccess([_Cmd.PSETEX, RedisClient.keyBytes(key), toBytes(expireInMs), value]);
+ Future psetex(String key, int expireInMs, List&lt;int&gt; value) =&gt; connection.sendExpectSuccess([_Cmd.PSETEX, RedisClient._keyBytes(key), toBytes(expireInMs), value]);
 
  Future mset(List&lt;List&lt;int&gt;&gt; keys, List&lt;List&lt;int&gt;&gt; values) =&gt; keys.isEmpty ? new Future(null) : connection.sendExpectSuccess(_CommandUtils.mergeCommandWithKeysAndValues(_Cmd.MSET, keys, values));
 
  Future&lt;bool&gt; msetnx(List&lt;List&lt;int&gt;&gt; keys, List&lt;List&lt;int&gt;&gt; values) =&gt; connection.sendExpectIntSuccess(_CommandUtils.mergeCommandWithKeysAndValues(_Cmd.MSETNX, keys, values));
 
- Future&lt;int&gt; append(String key, List&lt;int&gt; value) =&gt; connection.sendExpectInt([_Cmd.APPEND, RedisClient.keyBytes(key), value]);
+ Future&lt;int&gt; append(String key, List&lt;int&gt; value) =&gt; connection.sendExpectInt([_Cmd.APPEND, RedisClient._keyBytes(key), value]);
 
- Future&lt;List&lt;int&gt;&gt; substr(String key, int fromIndex, int toIndex) =&gt; connection.sendExpectData([_Cmd.SUBSTR, RedisClient.keyBytes(key), toBytes(fromIndex), toBytes(toIndex)]);
+ Future&lt;List&lt;int&gt;&gt; substr(String key, int fromIndex, int toIndex) =&gt; connection.sendExpectData([_Cmd.SUBSTR, RedisClient._keyBytes(key), toBytes(fromIndex), toBytes(toIndex)]);
 
- Future&lt;List&lt;int&gt;&gt; getrange(String key, int fromIndex, int toIndex) =&gt; connection.sendExpectData([_Cmd.GETRANGE, RedisClient.keyBytes(key), toBytes(fromIndex), toBytes(toIndex)]);
+ Future&lt;List&lt;int&gt;&gt; getrange(String key, int fromIndex, int toIndex) =&gt; connection.sendExpectData([_Cmd.GETRANGE, RedisClient._keyBytes(key), toBytes(fromIndex), toBytes(toIndex)]);
 
- Future&lt;List&lt;int&gt;&gt; setrange(String key, int offset, List&lt;int&gt; value) =&gt; connection.sendExpectData([_Cmd.SETRANGE, RedisClient.keyBytes(key), toBytes(offset), value]);
+ Future&lt;List&lt;int&gt;&gt; setrange(String key, int offset, List&lt;int&gt; value) =&gt; connection.sendExpectData([_Cmd.SETRANGE, RedisClient._keyBytes(key), toBytes(offset), value]);
 
  Future&lt;List&lt;int&gt;&gt; randomkey() =&gt; connection.sendExpectData([_Cmd.RANDOMKEY]);
 
- Future&lt;bool&gt; expireat(String key, int unixTimeSecs) =&gt; connection.sendExpectIntSuccess([_Cmd.EXPIREAT, RedisClient.keyBytes(key), toBytes(unixTimeSecs)]);
+ Future&lt;bool&gt; expireat(String key, int unixTimeSecs) =&gt; connection.sendExpectIntSuccess([_Cmd.EXPIREAT, RedisClient._keyBytes(key), toBytes(unixTimeSecs)]);
 
- Future&lt;bool&gt; pexpireat(String key, int unixTimeMs) =&gt; connection.sendExpectIntSuccess([_Cmd.PEXPIREAT, RedisClient.keyBytes(key), toBytes(unixTimeMs)]);
+ Future&lt;bool&gt; pexpireat(String key, int unixTimeMs) =&gt; connection.sendExpectIntSuccess([_Cmd.PEXPIREAT, RedisClient._keyBytes(key), toBytes(unixTimeMs)]);
 
 
  /// SET
  /// ===
 
- Future&lt;List&lt;List&lt;int&gt;&gt;&gt; smembers(String setId) =&gt; connection.sendExpectMultiData([_Cmd.SMEMBERS, RedisClient.keyBytes(setId)]);
+ Future&lt;List&lt;List&lt;int&gt;&gt;&gt; smembers(String setId) =&gt; connection.sendExpectMultiData([_Cmd.SMEMBERS, RedisClient._keyBytes(setId)]);
 
- Future&lt;int&gt; sadd(String setId, List&lt;int&gt; value) =&gt; connection.sendExpectInt([_Cmd.SADD, RedisClient.keyBytes(setId), value]);
+ Future&lt;int&gt; sadd(String setId, List&lt;int&gt; value) =&gt; connection.sendExpectInt([_Cmd.SADD, RedisClient._keyBytes(setId), value]);
 
  Future&lt;int&gt; smadd(String setId, List&lt;List&lt;int&gt;&gt; values) =&gt; connection.sendExpectInt(_CommandUtils.mergeCommandWithKeyAndArgs(_Cmd.SADD, setId, values));
 
- Future&lt;int&gt; srem(String setId, List&lt;int&gt; value) =&gt; connection.sendExpectInt([_Cmd.SREM, RedisClient.keyBytes(setId), value]);
+ Future&lt;int&gt; srem(String setId, List&lt;int&gt; value) =&gt; connection.sendExpectInt([_Cmd.SREM, RedisClient._keyBytes(setId), value]);
 
- Future&lt;List&lt;int&gt;&gt; spop(String setId) =&gt; connection.sendExpectData([_Cmd.SPOP, RedisClient.keyBytes(setId)]);
+ Future&lt;List&lt;int&gt;&gt; spop(String setId) =&gt; connection.sendExpectData([_Cmd.SPOP, RedisClient._keyBytes(setId)]);
 
- Future&lt;bool&gt; smove(String fromSetId, String toSetId, List&lt;int&gt; value) =&gt; connection.sendExpectIntSuccess([_Cmd.SMOVE, RedisClient.keyBytes(fromSetId), RedisClient.keyBytes(toSetId), value]);
+ Future&lt;bool&gt; smove(String fromSetId, String toSetId, List&lt;int&gt; value) =&gt; connection.sendExpectIntSuccess([_Cmd.SMOVE, RedisClient._keyBytes(fromSetId), RedisClient._keyBytes(toSetId), value]);
 
- Future&lt;bool&gt; sismember(String setId, List&lt;int&gt; value) =&gt; connection.sendExpectIntSuccess([_Cmd.SISMEMBER, RedisClient.keyBytes(setId), value]);
+ Future&lt;bool&gt; sismember(String setId, List&lt;int&gt; value) =&gt; connection.sendExpectIntSuccess([_Cmd.SISMEMBER, RedisClient._keyBytes(setId), value]);
 
  Future&lt;List&lt;List&lt;int&gt;&gt;&gt; sinter(List&lt;String&gt; setIds) =&gt; connection.sendExpectMultiData(_CommandUtils.mergeCommandWithStringArgs(_Cmd.SINTER, setIds));
 
@@ -126,68 +126,68 @@ class RawRedisCommands {
 
  Future&lt;List&lt;List&lt;int&gt;&gt;&gt; sdiff(String fromSetId, List&lt;String&gt; withSetIds) =&gt; connection.sendExpectMultiData(_CommandUtils.mergeCommandWithStringArgs(_Cmd.SDIFF, $(withSetIds).insert(0, fromSetId)));
 
- Future&lt;List&lt;int&gt;&gt; srandmember(String setId) =&gt; connection.sendExpectData([_Cmd.SRANDMEMBER, RedisClient.keyBytes(setId)]);
+ Future&lt;List&lt;int&gt;&gt; srandmember(String setId) =&gt; connection.sendExpectData([_Cmd.SRANDMEMBER, RedisClient._keyBytes(setId)]);
 
 
  /// LIST
  /// ====
 
- Future&lt;List&lt;List&lt;int&gt;&gt;&gt; lrange(String listId, int startingFrom, int endingAt) =&gt; connection.sendExpectMultiData([_Cmd.LRANGE, RedisClient.keyBytes(listId), toBytes(startingFrom), toBytes(endingAt)]);
+ Future&lt;List&lt;List&lt;int&gt;&gt;&gt; lrange(String listId, int startingFrom, int endingAt) =&gt; connection.sendExpectMultiData([_Cmd.LRANGE, RedisClient._keyBytes(listId), toBytes(startingFrom), toBytes(endingAt)]);
 
- Future&lt;int&gt; lpush(String listId, List&lt;int&gt; value) =&gt; connection.sendExpectInt([_Cmd.LPUSH, RedisClient.keyBytes(listId), value]);
+ Future&lt;int&gt; lpush(String listId, List&lt;int&gt; value) =&gt; connection.sendExpectInt([_Cmd.LPUSH, RedisClient._keyBytes(listId), value]);
 
  Future&lt;int&gt; mlpush(String listId, List&lt;List&lt;int&gt;&gt; values) =&gt; connection.sendExpectInt(_CommandUtils.mergeCommandWithKeyAndArgs(_Cmd.LPUSH, listId, values));
 
- Future&lt;int&gt; lpushx(String listId, List&lt;int&gt; value) =&gt; connection.sendExpectInt([_Cmd.LPUSHX, RedisClient.keyBytes(listId), value]);
+ Future&lt;int&gt; lpushx(String listId, List&lt;int&gt; value) =&gt; connection.sendExpectInt([_Cmd.LPUSHX, RedisClient._keyBytes(listId), value]);
 
  Future&lt;int&gt; mlpushx(String listId, List&lt;List&lt;int&gt;&gt; values) =&gt; connection.sendExpectInt(_CommandUtils.mergeCommandWithKeyAndArgs(_Cmd.LPUSHX, listId, values));
 
- Future&lt;int&gt; rpush(String listId, List&lt;int&gt; value) =&gt; connection.sendExpectInt([_Cmd.RPUSH, RedisClient.keyBytes(listId), value]);
+ Future&lt;int&gt; rpush(String listId, List&lt;int&gt; value) =&gt; connection.sendExpectInt([_Cmd.RPUSH, RedisClient._keyBytes(listId), value]);
 
  Future&lt;int&gt; mrpush(String listId, List&lt;List&lt;int&gt;&gt; values) =&gt; connection.sendExpectInt(_CommandUtils.mergeCommandWithKeyAndArgs(_Cmd.RPUSH, listId, values));
 
- Future&lt;int&gt; rpushx(String listId, List&lt;int&gt; value) =&gt; connection.sendExpectInt([_Cmd.RPUSHX, RedisClient.keyBytes(listId), value]);
+ Future&lt;int&gt; rpushx(String listId, List&lt;int&gt; value) =&gt; connection.sendExpectInt([_Cmd.RPUSHX, RedisClient._keyBytes(listId), value]);
 
  Future&lt;int&gt; mrpushx(String listId, List&lt;List&lt;int&gt;&gt; values) =&gt; connection.sendExpectInt(_CommandUtils.mergeCommandWithKeyAndArgs(_Cmd.RPUSHX, listId, values));
 
- Future&lt;int&gt; lrem(String listId, int removeNoOfMatches, List&lt;int&gt; value) =&gt; connection.sendExpectInt([_Cmd.LREM, RedisClient.keyBytes(listId), toBytes(removeNoOfMatches), value]);
+ Future&lt;int&gt; lrem(String listId, int removeNoOfMatches, List&lt;int&gt; value) =&gt; connection.sendExpectInt([_Cmd.LREM, RedisClient._keyBytes(listId), toBytes(removeNoOfMatches), value]);
 
- Future&lt;List&lt;int&gt;&gt; lindex(String listId, int listIndex) =&gt; connection.sendExpectData([_Cmd.LINDEX, RedisClient.keyBytes(listId), toBytes(listIndex)]);
+ Future&lt;List&lt;int&gt;&gt; lindex(String listId, int listIndex) =&gt; connection.sendExpectData([_Cmd.LINDEX, RedisClient._keyBytes(listId), toBytes(listIndex)]);
 
- Future lset(String listId, int listIndex, List&lt;int&gt; value) =&gt; connection.sendExpectSuccess([_Cmd.LSET, RedisClient.keyBytes(listId), toBytes(listIndex), value]);
+ Future lset(String listId, int listIndex, List&lt;int&gt; value) =&gt; connection.sendExpectSuccess([_Cmd.LSET, RedisClient._keyBytes(listId), toBytes(listIndex), value]);
 
- Future&lt;List&lt;int&gt;&gt; lpop(String listId) =&gt; connection.sendExpectData([_Cmd.LPOP, RedisClient.keyBytes(listId)]);
+ Future&lt;List&lt;int&gt;&gt; lpop(String listId) =&gt; connection.sendExpectData([_Cmd.LPOP, RedisClient._keyBytes(listId)]);
 
- Future&lt;List&lt;int&gt;&gt; rpop(String listId) =&gt; connection.sendExpectData([_Cmd.RPOP, RedisClient.keyBytes(listId)]);
+ Future&lt;List&lt;int&gt;&gt; rpop(String listId) =&gt; connection.sendExpectData([_Cmd.RPOP, RedisClient._keyBytes(listId)]);
 
- Future&lt;List&lt;int&gt;&gt; rpoplpush(String fromListId, String toListId) =&gt; connection.sendExpectData([_Cmd.RPOPLPUSH, RedisClient.keyBytes(fromListId), RedisClient.keyBytes(toListId)]);
+ Future&lt;List&lt;int&gt;&gt; rpoplpush(String fromListId, String toListId) =&gt; connection.sendExpectData([_Cmd.RPOPLPUSH, RedisClient._keyBytes(fromListId), RedisClient._keyBytes(toListId)]);
 
 
 
  /// SORTED SETS
  /// ===========
 
- Future&lt;int&gt; zadd(String setId, num score, List&lt;int&gt; value) =&gt; connection.sendExpectInt([_Cmd.ZADD, RedisClient.keyBytes(setId), toBytes(score), value]);
+ Future&lt;int&gt; zadd(String setId, num score, List&lt;int&gt; value) =&gt; connection.sendExpectInt([_Cmd.ZADD, RedisClient._keyBytes(setId), toBytes(score), value]);
 
  Future&lt;int&gt; zmadd(String setId, List&lt;List&lt;int&gt;&gt; scoresAndValues) =&gt; connection.sendExpectInt(_CommandUtils.mergeCommandWithKeyAndArgs(_Cmd.ZADD, setId, scoresAndValues));
 
  Future&lt;int&gt; zrem(String setId, List&lt;int&gt; value) =&gt;
-     connection.sendExpectInt([_Cmd.ZREM, RedisClient.keyBytes(setId), value]);
+     connection.sendExpectInt([_Cmd.ZREM, RedisClient._keyBytes(setId), value]);
 
  Future&lt;int&gt; zmrem(String setId, List&lt;List&lt;int&gt;&gt; values) =&gt;
      connection.sendExpectInt(_CommandUtils.mergeCommandWithKeyAndArgs(_Cmd.ZREM, setId, values));
 
  Future&lt;double&gt; zincrby(String setId, num incrBy, List&lt;int&gt; value) =&gt;
-     connection.sendExpectDouble([_Cmd.ZINCRBY, RedisClient.keyBytes(setId), toBytes(incrBy), value]);
+     connection.sendExpectDouble([_Cmd.ZINCRBY, RedisClient._keyBytes(setId), toBytes(incrBy), value]);
 
- Future&lt;int&gt; zrank(String setId, List&lt;int&gt; value) =&gt; connection.sendExpectInt([_Cmd.ZRANK, RedisClient.keyBytes(setId), value]);
+ Future&lt;int&gt; zrank(String setId, List&lt;int&gt; value) =&gt; connection.sendExpectInt([_Cmd.ZRANK, RedisClient._keyBytes(setId), value]);
 
- Future&lt;int&gt; zrevrank(String setId, List&lt;int&gt; value) =&gt; connection.sendExpectInt([_Cmd.ZREVRANK, RedisClient.keyBytes(setId), value]);
+ Future&lt;int&gt; zrevrank(String setId, List&lt;int&gt; value) =&gt; connection.sendExpectInt([_Cmd.ZREVRANK, RedisClient._keyBytes(setId), value]);
 
 
  /// Helper function
  Future&lt;List&lt;List&lt;int&gt;&gt;&gt; _zrange(List&lt;int&gt; cmdBytes, String setId, int min, int max, {bool withScores: false}){
-   List&lt;List&lt;int&gt;&gt; cmdWithArgs = [cmdBytes, RedisClient.keyBytes(setId), toBytes(min), toBytes(max)];
+   List&lt;List&lt;int&gt;&gt; cmdWithArgs = [cmdBytes, RedisClient._keyBytes(setId), toBytes(min), toBytes(max)];
    if (withScores) cmdWithArgs.add(_Cmd.WITHSCORES);
    return connection.sendExpectMultiData(cmdWithArgs);
  }
@@ -203,7 +203,7 @@ class RawRedisCommands {
 
  /// Helper function
  Future&lt;List&lt;List&lt;int&gt;&gt;&gt; _zrangeByScore(List&lt;int&gt; cmdBytes, String setId, num min, num max, [int skip, int take, bool withScores=false]){
-   List&lt;List&lt;int&gt;&gt; cmdWithArgs = [cmdBytes, RedisClient.keyBytes(setId), toBytes(min), toBytes(max)];
+   List&lt;List&lt;int&gt;&gt; cmdWithArgs = [cmdBytes, RedisClient._keyBytes(setId), toBytes(min), toBytes(max)];
    if (skip != null || take != null){
      cmdWithArgs.add(_Cmd.LIMIT);
      cmdWithArgs.add(toBytes(skip == null ? 0 : skip));
@@ -221,26 +221,26 @@ class RawRedisCommands {
 
  Future&lt;List&lt;List&lt;int&gt;&gt;&gt; zrevrangebyscoreWithScores(String setId, num min, num max, [int skip, int take]) =&gt; _zrangeByScore(_Cmd.ZREVRANGEBYSCORE, setId, min, max, skip, take, true);
 
- Future&lt;double&gt; zscore(String setId, List&lt;int&gt; value) =&gt; connection.sendExpectDouble([_Cmd.ZSCORE, RedisClient.keyBytes(setId), value]);
+ Future&lt;double&gt; zscore(String setId, List&lt;int&gt; value) =&gt; connection.sendExpectDouble([_Cmd.ZSCORE, RedisClient._keyBytes(setId), value]);
 
 
 
  /// HASH
  /// ====
 
- Future&lt;bool&gt; hset(String hashId, String key, List&lt;int&gt; value) =&gt; connection.sendExpectIntSuccess([_Cmd.HSET, RedisClient.keyBytes(hashId), RedisClient.keyBytes(key), value]);
+ Future&lt;bool&gt; hset(String hashId, String key, List&lt;int&gt; value) =&gt; connection.sendExpectIntSuccess([_Cmd.HSET, RedisClient._keyBytes(hashId), RedisClient._keyBytes(key), value]);
 
- Future&lt;bool&gt; hsetnx(String hashId, String key, List&lt;int&gt; value) =&gt; connection.sendExpectIntSuccess([_Cmd.HSETNX, RedisClient.keyBytes(hashId), RedisClient.keyBytes(key), value]);
+ Future&lt;bool&gt; hsetnx(String hashId, String key, List&lt;int&gt; value) =&gt; connection.sendExpectIntSuccess([_Cmd.HSETNX, RedisClient._keyBytes(hashId), RedisClient._keyBytes(key), value]);
 
- Future hmset(String hashId, List&lt;List&lt;int&gt;&gt; keys, List&lt;List&lt;int&gt;&gt; values) =&gt; keys.isEmpty ? new Future(null) : connection.sendExpectSuccess(_CommandUtils.mergeParamsWithKeysAndValues([_Cmd.HMSET, RedisClient.keyBytes(hashId)], keys, values));
+ Future hmset(String hashId, List&lt;List&lt;int&gt;&gt; keys, List&lt;List&lt;int&gt;&gt; values) =&gt; keys.isEmpty ? new Future(null) : connection.sendExpectSuccess(_CommandUtils.mergeParamsWithKeysAndValues([_Cmd.HMSET, RedisClient._keyBytes(hashId)], keys, values));
 
- Future&lt;List&lt;int&gt;&gt; hget(String hashId, String key) =&gt; connection.sendExpectData([_Cmd.HGET, RedisClient.keyBytes(hashId), RedisClient.keyBytes(key)]);
+ Future&lt;List&lt;int&gt;&gt; hget(String hashId, String key) =&gt; connection.sendExpectData([_Cmd.HGET, RedisClient._keyBytes(hashId), RedisClient._keyBytes(key)]);
 
  Future&lt;List&lt;List&lt;int&gt;&gt;&gt; hmget(String hashId, List&lt;String&gt; keys) =&gt; keys.isEmpty ? new Future([ ]) : connection.sendExpectMultiData(_CommandUtils.mergeCommandWithKeyAndStringArgs(_Cmd.HMGET, hashId, keys));
 
- Future&lt;List&lt;List&lt;int&gt;&gt;&gt; hvals(String hashId) =&gt; connection.sendExpectMultiData([_Cmd.HVALS, RedisClient.keyBytes(hashId)]);
+ Future&lt;List&lt;List&lt;int&gt;&gt;&gt; hvals(String hashId) =&gt; connection.sendExpectMultiData([_Cmd.HVALS, RedisClient._keyBytes(hashId)]);
 
- Future&lt;List&lt;List&lt;int&gt;&gt;&gt; hgetall(String hashId) =&gt; connection.sendExpectMultiData([_Cmd.HGETALL, RedisClient.keyBytes(hashId)]);
+ Future&lt;List&lt;List&lt;int&gt;&gt;&gt; hgetall(String hashId) =&gt; connection.sendExpectMultiData([_Cmd.HGETALL, RedisClient._keyBytes(hashId)]);
 
 }
 </pre>
@@ -327,7 +327,7 @@ Future&lt;int&gt; <strong>append</strong>(String key, List&lt;int&gt; value) <a 
               title="Permalink to RawRedisCommands.append">#</a></h4>
 <div class="doc">
 <pre class="source">
-Future&lt;int&gt; append(String key, List&lt;int&gt; value) =&gt; connection.sendExpectInt([_Cmd.APPEND, RedisClient.keyBytes(key), value]);
+Future&lt;int&gt; append(String key, List&lt;int&gt; value) =&gt; connection.sendExpectInt([_Cmd.APPEND, RedisClient._keyBytes(key), value]);
 </pre>
 </div>
 </div>
@@ -347,7 +347,7 @@ Future&lt;bool&gt; <strong>expireat</strong>(String key, int unixTimeSecs) <a cl
               title="Permalink to RawRedisCommands.expireat">#</a></h4>
 <div class="doc">
 <pre class="source">
-Future&lt;bool&gt; expireat(String key, int unixTimeSecs) =&gt; connection.sendExpectIntSuccess([_Cmd.EXPIREAT, RedisClient.keyBytes(key), toBytes(unixTimeSecs)]);
+Future&lt;bool&gt; expireat(String key, int unixTimeSecs) =&gt; connection.sendExpectIntSuccess([_Cmd.EXPIREAT, RedisClient._keyBytes(key), toBytes(unixTimeSecs)]);
 </pre>
 </div>
 </div>
@@ -358,7 +358,7 @@ Future&lt;List&lt;int&gt;&gt; <strong>get</strong>(String key) <a class="anchor-
 <div class="doc">
 <h1>Keys</h1>
 <pre class="source">
-Future&lt;List&lt;int&gt;&gt; get(String key) =&gt; connection.rawSend([ _Cmd.GET, RedisClient.keyBytes(key) ]).receiveBulkData();
+Future&lt;List&lt;int&gt;&gt; get(String key) =&gt; connection.rawSend([ _Cmd.GET, RedisClient._keyBytes(key) ]).receiveBulkData();
 </pre>
 </div>
 </div>
@@ -368,7 +368,7 @@ Future&lt;List&lt;int&gt;&gt; <strong>getrange</strong>(String key, int fromInde
               title="Permalink to RawRedisCommands.getrange">#</a></h4>
 <div class="doc">
 <pre class="source">
-Future&lt;List&lt;int&gt;&gt; getrange(String key, int fromIndex, int toIndex) =&gt; connection.sendExpectData([_Cmd.GETRANGE, RedisClient.keyBytes(key), toBytes(fromIndex), toBytes(toIndex)]);
+Future&lt;List&lt;int&gt;&gt; getrange(String key, int fromIndex, int toIndex) =&gt; connection.sendExpectData([_Cmd.GETRANGE, RedisClient._keyBytes(key), toBytes(fromIndex), toBytes(toIndex)]);
 </pre>
 </div>
 </div>
@@ -378,7 +378,7 @@ Future&lt;List&lt;int&gt;&gt; <strong>getset</strong>(String key, List&lt;int&gt
               title="Permalink to RawRedisCommands.getset">#</a></h4>
 <div class="doc">
 <pre class="source">
-Future&lt;List&lt;int&gt;&gt; getset(String key, List&lt;int&gt; value) =&gt; connection.sendExpectData([_Cmd.GETSET, RedisClient.keyBytes(key), value]);
+Future&lt;List&lt;int&gt;&gt; getset(String key, List&lt;int&gt; value) =&gt; connection.sendExpectData([_Cmd.GETSET, RedisClient._keyBytes(key), value]);
 </pre>
 </div>
 </div>
@@ -388,7 +388,7 @@ Future&lt;List&lt;int&gt;&gt; <strong>hget</strong>(String hashId, String key) <
               title="Permalink to RawRedisCommands.hget">#</a></h4>
 <div class="doc">
 <pre class="source">
-Future&lt;List&lt;int&gt;&gt; hget(String hashId, String key) =&gt; connection.sendExpectData([_Cmd.HGET, RedisClient.keyBytes(hashId), RedisClient.keyBytes(key)]);
+Future&lt;List&lt;int&gt;&gt; hget(String hashId, String key) =&gt; connection.sendExpectData([_Cmd.HGET, RedisClient._keyBytes(hashId), RedisClient._keyBytes(key)]);
 </pre>
 </div>
 </div>
@@ -398,7 +398,7 @@ Future&lt;List&lt;List&lt;int&gt;&gt;&gt; <strong>hgetall</strong>(String hashId
               title="Permalink to RawRedisCommands.hgetall">#</a></h4>
 <div class="doc">
 <pre class="source">
-Future&lt;List&lt;List&lt;int&gt;&gt;&gt; hgetall(String hashId) =&gt; connection.sendExpectMultiData([_Cmd.HGETALL, RedisClient.keyBytes(hashId)]);
+Future&lt;List&lt;List&lt;int&gt;&gt;&gt; hgetall(String hashId) =&gt; connection.sendExpectMultiData([_Cmd.HGETALL, RedisClient._keyBytes(hashId)]);
 </pre>
 </div>
 </div>
@@ -418,7 +418,7 @@ Future <strong>hmset</strong>(String hashId, List&lt;List&lt;int&gt;&gt; keys, L
               title="Permalink to RawRedisCommands.hmset">#</a></h4>
 <div class="doc">
 <pre class="source">
-Future hmset(String hashId, List&lt;List&lt;int&gt;&gt; keys, List&lt;List&lt;int&gt;&gt; values) =&gt; keys.isEmpty ? new Future(null) : connection.sendExpectSuccess(_CommandUtils.mergeParamsWithKeysAndValues([_Cmd.HMSET, RedisClient.keyBytes(hashId)], keys, values));
+Future hmset(String hashId, List&lt;List&lt;int&gt;&gt; keys, List&lt;List&lt;int&gt;&gt; values) =&gt; keys.isEmpty ? new Future(null) : connection.sendExpectSuccess(_CommandUtils.mergeParamsWithKeysAndValues([_Cmd.HMSET, RedisClient._keyBytes(hashId)], keys, values));
 </pre>
 </div>
 </div>
@@ -429,7 +429,7 @@ Future&lt;bool&gt; <strong>hset</strong>(String hashId, String key, List&lt;int&
 <div class="doc">
 <h1>HASH</h1>
 <pre class="source">
-Future&lt;bool&gt; hset(String hashId, String key, List&lt;int&gt; value) =&gt; connection.sendExpectIntSuccess([_Cmd.HSET, RedisClient.keyBytes(hashId), RedisClient.keyBytes(key), value]);
+Future&lt;bool&gt; hset(String hashId, String key, List&lt;int&gt; value) =&gt; connection.sendExpectIntSuccess([_Cmd.HSET, RedisClient._keyBytes(hashId), RedisClient._keyBytes(key), value]);
 </pre>
 </div>
 </div>
@@ -439,7 +439,7 @@ Future&lt;bool&gt; <strong>hsetnx</strong>(String hashId, String key, List&lt;in
               title="Permalink to RawRedisCommands.hsetnx">#</a></h4>
 <div class="doc">
 <pre class="source">
-Future&lt;bool&gt; hsetnx(String hashId, String key, List&lt;int&gt; value) =&gt; connection.sendExpectIntSuccess([_Cmd.HSETNX, RedisClient.keyBytes(hashId), RedisClient.keyBytes(key), value]);
+Future&lt;bool&gt; hsetnx(String hashId, String key, List&lt;int&gt; value) =&gt; connection.sendExpectIntSuccess([_Cmd.HSETNX, RedisClient._keyBytes(hashId), RedisClient._keyBytes(key), value]);
 </pre>
 </div>
 </div>
@@ -449,7 +449,7 @@ Future&lt;List&lt;List&lt;int&gt;&gt;&gt; <strong>hvals</strong>(String hashId) 
               title="Permalink to RawRedisCommands.hvals">#</a></h4>
 <div class="doc">
 <pre class="source">
-Future&lt;List&lt;List&lt;int&gt;&gt;&gt; hvals(String hashId) =&gt; connection.sendExpectMultiData([_Cmd.HVALS, RedisClient.keyBytes(hashId)]);
+Future&lt;List&lt;List&lt;int&gt;&gt;&gt; hvals(String hashId) =&gt; connection.sendExpectMultiData([_Cmd.HVALS, RedisClient._keyBytes(hashId)]);
 </pre>
 </div>
 </div>
@@ -459,7 +459,7 @@ Future&lt;List&lt;int&gt;&gt; <strong>lindex</strong>(String listId, int listInd
               title="Permalink to RawRedisCommands.lindex">#</a></h4>
 <div class="doc">
 <pre class="source">
-Future&lt;List&lt;int&gt;&gt; lindex(String listId, int listIndex) =&gt; connection.sendExpectData([_Cmd.LINDEX, RedisClient.keyBytes(listId), toBytes(listIndex)]);
+Future&lt;List&lt;int&gt;&gt; lindex(String listId, int listIndex) =&gt; connection.sendExpectData([_Cmd.LINDEX, RedisClient._keyBytes(listId), toBytes(listIndex)]);
 </pre>
 </div>
 </div>
@@ -469,7 +469,7 @@ Future&lt;List&lt;int&gt;&gt; <strong>lpop</strong>(String listId) <a class="anc
               title="Permalink to RawRedisCommands.lpop">#</a></h4>
 <div class="doc">
 <pre class="source">
-Future&lt;List&lt;int&gt;&gt; lpop(String listId) =&gt; connection.sendExpectData([_Cmd.LPOP, RedisClient.keyBytes(listId)]);
+Future&lt;List&lt;int&gt;&gt; lpop(String listId) =&gt; connection.sendExpectData([_Cmd.LPOP, RedisClient._keyBytes(listId)]);
 </pre>
 </div>
 </div>
@@ -479,7 +479,7 @@ Future&lt;int&gt; <strong>lpush</strong>(String listId, List&lt;int&gt; value) <
               title="Permalink to RawRedisCommands.lpush">#</a></h4>
 <div class="doc">
 <pre class="source">
-Future&lt;int&gt; lpush(String listId, List&lt;int&gt; value) =&gt; connection.sendExpectInt([_Cmd.LPUSH, RedisClient.keyBytes(listId), value]);
+Future&lt;int&gt; lpush(String listId, List&lt;int&gt; value) =&gt; connection.sendExpectInt([_Cmd.LPUSH, RedisClient._keyBytes(listId), value]);
 </pre>
 </div>
 </div>
@@ -489,7 +489,7 @@ Future&lt;int&gt; <strong>lpushx</strong>(String listId, List&lt;int&gt; value) 
               title="Permalink to RawRedisCommands.lpushx">#</a></h4>
 <div class="doc">
 <pre class="source">
-Future&lt;int&gt; lpushx(String listId, List&lt;int&gt; value) =&gt; connection.sendExpectInt([_Cmd.LPUSHX, RedisClient.keyBytes(listId), value]);
+Future&lt;int&gt; lpushx(String listId, List&lt;int&gt; value) =&gt; connection.sendExpectInt([_Cmd.LPUSHX, RedisClient._keyBytes(listId), value]);
 </pre>
 </div>
 </div>
@@ -500,7 +500,7 @@ Future&lt;List&lt;List&lt;int&gt;&gt;&gt; <strong>lrange</strong>(String listId,
 <div class="doc">
 <h1>LIST</h1>
 <pre class="source">
-Future&lt;List&lt;List&lt;int&gt;&gt;&gt; lrange(String listId, int startingFrom, int endingAt) =&gt; connection.sendExpectMultiData([_Cmd.LRANGE, RedisClient.keyBytes(listId), toBytes(startingFrom), toBytes(endingAt)]);
+Future&lt;List&lt;List&lt;int&gt;&gt;&gt; lrange(String listId, int startingFrom, int endingAt) =&gt; connection.sendExpectMultiData([_Cmd.LRANGE, RedisClient._keyBytes(listId), toBytes(startingFrom), toBytes(endingAt)]);
 </pre>
 </div>
 </div>
@@ -510,7 +510,7 @@ Future&lt;int&gt; <strong>lrem</strong>(String listId, int removeNoOfMatches, Li
               title="Permalink to RawRedisCommands.lrem">#</a></h4>
 <div class="doc">
 <pre class="source">
-Future&lt;int&gt; lrem(String listId, int removeNoOfMatches, List&lt;int&gt; value) =&gt; connection.sendExpectInt([_Cmd.LREM, RedisClient.keyBytes(listId), toBytes(removeNoOfMatches), value]);
+Future&lt;int&gt; lrem(String listId, int removeNoOfMatches, List&lt;int&gt; value) =&gt; connection.sendExpectInt([_Cmd.LREM, RedisClient._keyBytes(listId), toBytes(removeNoOfMatches), value]);
 </pre>
 </div>
 </div>
@@ -520,7 +520,7 @@ Future <strong>lset</strong>(String listId, int listIndex, List&lt;int&gt; value
               title="Permalink to RawRedisCommands.lset">#</a></h4>
 <div class="doc">
 <pre class="source">
-Future lset(String listId, int listIndex, List&lt;int&gt; value) =&gt; connection.sendExpectSuccess([_Cmd.LSET, RedisClient.keyBytes(listId), toBytes(listIndex), value]);
+Future lset(String listId, int listIndex, List&lt;int&gt; value) =&gt; connection.sendExpectSuccess([_Cmd.LSET, RedisClient._keyBytes(listId), toBytes(listIndex), value]);
 </pre>
 </div>
 </div>
@@ -600,7 +600,7 @@ Future&lt;bool&gt; <strong>pexpireat</strong>(String key, int unixTimeMs) <a cla
               title="Permalink to RawRedisCommands.pexpireat">#</a></h4>
 <div class="doc">
 <pre class="source">
-Future&lt;bool&gt; pexpireat(String key, int unixTimeMs) =&gt; connection.sendExpectIntSuccess([_Cmd.PEXPIREAT, RedisClient.keyBytes(key), toBytes(unixTimeMs)]);
+Future&lt;bool&gt; pexpireat(String key, int unixTimeMs) =&gt; connection.sendExpectIntSuccess([_Cmd.PEXPIREAT, RedisClient._keyBytes(key), toBytes(unixTimeMs)]);
 </pre>
 </div>
 </div>
@@ -610,7 +610,7 @@ Future <strong>psetex</strong>(String key, int expireInMs, List&lt;int&gt; value
               title="Permalink to RawRedisCommands.psetex">#</a></h4>
 <div class="doc">
 <pre class="source">
-Future psetex(String key, int expireInMs, List&lt;int&gt; value) =&gt; connection.sendExpectSuccess([_Cmd.PSETEX, RedisClient.keyBytes(key), toBytes(expireInMs), value]);
+Future psetex(String key, int expireInMs, List&lt;int&gt; value) =&gt; connection.sendExpectSuccess([_Cmd.PSETEX, RedisClient._keyBytes(key), toBytes(expireInMs), value]);
 </pre>
 </div>
 </div>
@@ -630,7 +630,7 @@ Future&lt;List&lt;int&gt;&gt; <strong>rpop</strong>(String listId) <a class="anc
               title="Permalink to RawRedisCommands.rpop">#</a></h4>
 <div class="doc">
 <pre class="source">
-Future&lt;List&lt;int&gt;&gt; rpop(String listId) =&gt; connection.sendExpectData([_Cmd.RPOP, RedisClient.keyBytes(listId)]);
+Future&lt;List&lt;int&gt;&gt; rpop(String listId) =&gt; connection.sendExpectData([_Cmd.RPOP, RedisClient._keyBytes(listId)]);
 </pre>
 </div>
 </div>
@@ -640,7 +640,7 @@ Future&lt;List&lt;int&gt;&gt; <strong>rpoplpush</strong>(String fromListId, Stri
               title="Permalink to RawRedisCommands.rpoplpush">#</a></h4>
 <div class="doc">
 <pre class="source">
-Future&lt;List&lt;int&gt;&gt; rpoplpush(String fromListId, String toListId) =&gt; connection.sendExpectData([_Cmd.RPOPLPUSH, RedisClient.keyBytes(fromListId), RedisClient.keyBytes(toListId)]);
+Future&lt;List&lt;int&gt;&gt; rpoplpush(String fromListId, String toListId) =&gt; connection.sendExpectData([_Cmd.RPOPLPUSH, RedisClient._keyBytes(fromListId), RedisClient._keyBytes(toListId)]);
 </pre>
 </div>
 </div>
@@ -650,7 +650,7 @@ Future&lt;int&gt; <strong>rpush</strong>(String listId, List&lt;int&gt; value) <
               title="Permalink to RawRedisCommands.rpush">#</a></h4>
 <div class="doc">
 <pre class="source">
-Future&lt;int&gt; rpush(String listId, List&lt;int&gt; value) =&gt; connection.sendExpectInt([_Cmd.RPUSH, RedisClient.keyBytes(listId), value]);
+Future&lt;int&gt; rpush(String listId, List&lt;int&gt; value) =&gt; connection.sendExpectInt([_Cmd.RPUSH, RedisClient._keyBytes(listId), value]);
 </pre>
 </div>
 </div>
@@ -660,7 +660,7 @@ Future&lt;int&gt; <strong>rpushx</strong>(String listId, List&lt;int&gt; value) 
               title="Permalink to RawRedisCommands.rpushx">#</a></h4>
 <div class="doc">
 <pre class="source">
-Future&lt;int&gt; rpushx(String listId, List&lt;int&gt; value) =&gt; connection.sendExpectInt([_Cmd.RPUSHX, RedisClient.keyBytes(listId), value]);
+Future&lt;int&gt; rpushx(String listId, List&lt;int&gt; value) =&gt; connection.sendExpectInt([_Cmd.RPUSHX, RedisClient._keyBytes(listId), value]);
 </pre>
 </div>
 </div>
@@ -670,7 +670,7 @@ Future&lt;int&gt; <strong>sadd</strong>(String setId, List&lt;int&gt; value) <a 
               title="Permalink to RawRedisCommands.sadd">#</a></h4>
 <div class="doc">
 <pre class="source">
-Future&lt;int&gt; sadd(String setId, List&lt;int&gt; value) =&gt; connection.sendExpectInt([_Cmd.SADD, RedisClient.keyBytes(setId), value]);
+Future&lt;int&gt; sadd(String setId, List&lt;int&gt; value) =&gt; connection.sendExpectInt([_Cmd.SADD, RedisClient._keyBytes(setId), value]);
 </pre>
 </div>
 </div>
@@ -690,7 +690,7 @@ Future <strong>set</strong>(String key, List&lt;int&gt; value) <a class="anchor-
               title="Permalink to RawRedisCommands.set">#</a></h4>
 <div class="doc">
 <pre class="source">
-Future set(String key, List&lt;int&gt; value) =&gt; connection.rawSend([ _Cmd.SET, RedisClient.keyBytes(key), value ]).receiveStatus("OK");
+Future set(String key, List&lt;int&gt; value) =&gt; connection.rawSend([ _Cmd.SET, RedisClient._keyBytes(key), value ]).receiveStatus("OK");
 </pre>
 </div>
 </div>
@@ -700,7 +700,7 @@ Future <strong>setex</strong>(String key, int expireInSecs, List&lt;int&gt; valu
               title="Permalink to RawRedisCommands.setex">#</a></h4>
 <div class="doc">
 <pre class="source">
-Future setex(String key, int expireInSecs, List&lt;int&gt; value) =&gt; connection.sendExpectSuccess([_Cmd.SETEX, RedisClient.keyBytes(key), toBytes(expireInSecs), value]);
+Future setex(String key, int expireInSecs, List&lt;int&gt; value) =&gt; connection.sendExpectSuccess([_Cmd.SETEX, RedisClient._keyBytes(key), toBytes(expireInSecs), value]);
 </pre>
 </div>
 </div>
@@ -710,7 +710,7 @@ Future&lt;List&lt;int&gt;&gt; <strong>setrange</strong>(String key, int offset, 
               title="Permalink to RawRedisCommands.setrange">#</a></h4>
 <div class="doc">
 <pre class="source">
-Future&lt;List&lt;int&gt;&gt; setrange(String key, int offset, List&lt;int&gt; value) =&gt; connection.sendExpectData([_Cmd.SETRANGE, RedisClient.keyBytes(key), toBytes(offset), value]);
+Future&lt;List&lt;int&gt;&gt; setrange(String key, int offset, List&lt;int&gt; value) =&gt; connection.sendExpectData([_Cmd.SETRANGE, RedisClient._keyBytes(key), toBytes(offset), value]);
 </pre>
 </div>
 </div>
@@ -740,7 +740,7 @@ Future&lt;bool&gt; <strong>sismember</strong>(String setId, List&lt;int&gt; valu
               title="Permalink to RawRedisCommands.sismember">#</a></h4>
 <div class="doc">
 <pre class="source">
-Future&lt;bool&gt; sismember(String setId, List&lt;int&gt; value) =&gt; connection.sendExpectIntSuccess([_Cmd.SISMEMBER, RedisClient.keyBytes(setId), value]);
+Future&lt;bool&gt; sismember(String setId, List&lt;int&gt; value) =&gt; connection.sendExpectIntSuccess([_Cmd.SISMEMBER, RedisClient._keyBytes(setId), value]);
 </pre>
 </div>
 </div>
@@ -761,7 +761,7 @@ Future&lt;List&lt;List&lt;int&gt;&gt;&gt; <strong>smembers</strong>(String setId
 <div class="doc">
 <h1>SET</h1>
 <pre class="source">
-Future&lt;List&lt;List&lt;int&gt;&gt;&gt; smembers(String setId) =&gt; connection.sendExpectMultiData([_Cmd.SMEMBERS, RedisClient.keyBytes(setId)]);
+Future&lt;List&lt;List&lt;int&gt;&gt;&gt; smembers(String setId) =&gt; connection.sendExpectMultiData([_Cmd.SMEMBERS, RedisClient._keyBytes(setId)]);
 </pre>
 </div>
 </div>
@@ -771,7 +771,7 @@ Future&lt;bool&gt; <strong>smove</strong>(String fromSetId, String toSetId, List
               title="Permalink to RawRedisCommands.smove">#</a></h4>
 <div class="doc">
 <pre class="source">
-Future&lt;bool&gt; smove(String fromSetId, String toSetId, List&lt;int&gt; value) =&gt; connection.sendExpectIntSuccess([_Cmd.SMOVE, RedisClient.keyBytes(fromSetId), RedisClient.keyBytes(toSetId), value]);
+Future&lt;bool&gt; smove(String fromSetId, String toSetId, List&lt;int&gt; value) =&gt; connection.sendExpectIntSuccess([_Cmd.SMOVE, RedisClient._keyBytes(fromSetId), RedisClient._keyBytes(toSetId), value]);
 </pre>
 </div>
 </div>
@@ -781,7 +781,7 @@ Future&lt;List&lt;int&gt;&gt; <strong>spop</strong>(String setId) <a class="anch
               title="Permalink to RawRedisCommands.spop">#</a></h4>
 <div class="doc">
 <pre class="source">
-Future&lt;List&lt;int&gt;&gt; spop(String setId) =&gt; connection.sendExpectData([_Cmd.SPOP, RedisClient.keyBytes(setId)]);
+Future&lt;List&lt;int&gt;&gt; spop(String setId) =&gt; connection.sendExpectData([_Cmd.SPOP, RedisClient._keyBytes(setId)]);
 </pre>
 </div>
 </div>
@@ -791,7 +791,7 @@ Future&lt;List&lt;int&gt;&gt; <strong>srandmember</strong>(String setId) <a clas
               title="Permalink to RawRedisCommands.srandmember">#</a></h4>
 <div class="doc">
 <pre class="source">
-Future&lt;List&lt;int&gt;&gt; srandmember(String setId) =&gt; connection.sendExpectData([_Cmd.SRANDMEMBER, RedisClient.keyBytes(setId)]);
+Future&lt;List&lt;int&gt;&gt; srandmember(String setId) =&gt; connection.sendExpectData([_Cmd.SRANDMEMBER, RedisClient._keyBytes(setId)]);
 </pre>
 </div>
 </div>
@@ -801,7 +801,7 @@ Future&lt;int&gt; <strong>srem</strong>(String setId, List&lt;int&gt; value) <a 
               title="Permalink to RawRedisCommands.srem">#</a></h4>
 <div class="doc">
 <pre class="source">
-Future&lt;int&gt; srem(String setId, List&lt;int&gt; value) =&gt; connection.sendExpectInt([_Cmd.SREM, RedisClient.keyBytes(setId), value]);
+Future&lt;int&gt; srem(String setId, List&lt;int&gt; value) =&gt; connection.sendExpectInt([_Cmd.SREM, RedisClient._keyBytes(setId), value]);
 </pre>
 </div>
 </div>
@@ -811,7 +811,7 @@ Future&lt;List&lt;int&gt;&gt; <strong>substr</strong>(String key, int fromIndex,
               title="Permalink to RawRedisCommands.substr">#</a></h4>
 <div class="doc">
 <pre class="source">
-Future&lt;List&lt;int&gt;&gt; substr(String key, int fromIndex, int toIndex) =&gt; connection.sendExpectData([_Cmd.SUBSTR, RedisClient.keyBytes(key), toBytes(fromIndex), toBytes(toIndex)]);
+Future&lt;List&lt;int&gt;&gt; substr(String key, int fromIndex, int toIndex) =&gt; connection.sendExpectData([_Cmd.SUBSTR, RedisClient._keyBytes(key), toBytes(fromIndex), toBytes(toIndex)]);
 </pre>
 </div>
 </div>
@@ -832,7 +832,7 @@ Future&lt;int&gt; <strong>zadd</strong>(String setId, num score, List&lt;int&gt;
 <div class="doc">
 <h1>SORTED SETS</h1>
 <pre class="source">
-Future&lt;int&gt; zadd(String setId, num score, List&lt;int&gt; value) =&gt; connection.sendExpectInt([_Cmd.ZADD, RedisClient.keyBytes(setId), toBytes(score), value]);
+Future&lt;int&gt; zadd(String setId, num score, List&lt;int&gt; value) =&gt; connection.sendExpectInt([_Cmd.ZADD, RedisClient._keyBytes(setId), toBytes(score), value]);
 </pre>
 </div>
 </div>
@@ -843,7 +843,7 @@ Future&lt;double&gt; <strong>zincrby</strong>(String setId, num incrBy, List&lt;
 <div class="doc">
 <pre class="source">
 Future&lt;double&gt; zincrby(String setId, num incrBy, List&lt;int&gt; value) =&gt;
-   connection.sendExpectDouble([_Cmd.ZINCRBY, RedisClient.keyBytes(setId), toBytes(incrBy), value]);
+   connection.sendExpectDouble([_Cmd.ZINCRBY, RedisClient._keyBytes(setId), toBytes(incrBy), value]);
 </pre>
 </div>
 </div>
@@ -914,7 +914,7 @@ Future&lt;int&gt; <strong>zrank</strong>(String setId, List&lt;int&gt; value) <a
               title="Permalink to RawRedisCommands.zrank">#</a></h4>
 <div class="doc">
 <pre class="source">
-Future&lt;int&gt; zrank(String setId, List&lt;int&gt; value) =&gt; connection.sendExpectInt([_Cmd.ZRANK, RedisClient.keyBytes(setId), value]);
+Future&lt;int&gt; zrank(String setId, List&lt;int&gt; value) =&gt; connection.sendExpectInt([_Cmd.ZRANK, RedisClient._keyBytes(setId), value]);
 </pre>
 </div>
 </div>
@@ -925,7 +925,7 @@ Future&lt;int&gt; <strong>zrem</strong>(String setId, List&lt;int&gt; value) <a 
 <div class="doc">
 <pre class="source">
 Future&lt;int&gt; zrem(String setId, List&lt;int&gt; value) =&gt;
-   connection.sendExpectInt([_Cmd.ZREM, RedisClient.keyBytes(setId), value]);
+   connection.sendExpectInt([_Cmd.ZREM, RedisClient._keyBytes(setId), value]);
 </pre>
 </div>
 </div>
@@ -975,7 +975,7 @@ Future&lt;int&gt; <strong>zrevrank</strong>(String setId, List&lt;int&gt; value)
               title="Permalink to RawRedisCommands.zrevrank">#</a></h4>
 <div class="doc">
 <pre class="source">
-Future&lt;int&gt; zrevrank(String setId, List&lt;int&gt; value) =&gt; connection.sendExpectInt([_Cmd.ZREVRANK, RedisClient.keyBytes(setId), value]);
+Future&lt;int&gt; zrevrank(String setId, List&lt;int&gt; value) =&gt; connection.sendExpectInt([_Cmd.ZREVRANK, RedisClient._keyBytes(setId), value]);
 </pre>
 </div>
 </div>
@@ -985,7 +985,7 @@ Future&lt;double&gt; <strong>zscore</strong>(String setId, List&lt;int&gt; value
               title="Permalink to RawRedisCommands.zscore">#</a></h4>
 <div class="doc">
 <pre class="source">
-Future&lt;double&gt; zscore(String setId, List&lt;int&gt; value) =&gt; connection.sendExpectDouble([_Cmd.ZSCORE, RedisClient.keyBytes(setId), value]);
+Future&lt;double&gt; zscore(String setId, List&lt;int&gt; value) =&gt; connection.sendExpectDouble([_Cmd.ZSCORE, RedisClient._keyBytes(setId), value]);
 </pre>
 </div>
 </div>
@@ -994,7 +994,7 @@ Future&lt;double&gt; zscore(String setId, List&lt;int&gt; value) =&gt; connectio
         <div class="clear"></div>
         </div>
         <div class="footer">
-          <div>This page was generated at 2013-05-20 18:04:29.608</div>
+          <div>This page was generated at 2013-05-20 18:31:25.302</div>
         </div>
         <script async src="../client-live-nav.js"></script>
         </body></html>
