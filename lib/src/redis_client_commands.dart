@@ -3,7 +3,7 @@ part of redis_client;
 /// All available commands.
 ///
 /// TODO change to lazy static initializers
-class Cmd {
+class _Cmd {
 
   // No need to use runes since all commands are ASCII
   static List<int> _chars(String command) => command.codeUnits;
