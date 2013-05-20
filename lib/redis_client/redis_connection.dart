@@ -97,7 +97,7 @@ class _RedisConnection implements RedisConnection {
 
   final int port;
 
-  final int db;
+  int db;
 
 
   /// The [Socket] used in this connection.
