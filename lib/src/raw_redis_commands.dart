@@ -44,13 +44,13 @@ class RawRedisCommands {
   /// Keys
   /// ====
 
-  Future<List<int>> get(String key) => connection.sendExpectData([Cmd.GET, RedisClient.keyBytes(key)]);
+  Future<List<int>> get(String key) => connection.rawSend([ Cmd.GET, RedisClient.keyBytes(key) ]).receiveBulkData();
 
   Future<List<List<int>>> mget(List<String> keys) => keys.isEmpty ? new Future([ ]) : connection.sendExpectMultiData(_CommandUtils.mergeCommandWithStringArgs(Cmd.MGET, keys));
 
   Future<List<int>> getset(String key, List<int> value) => connection.sendExpectData([Cmd.GETSET, RedisClient.keyBytes(key), value]);
 
-  Future set(String key, List<int> value) => connection.sendExpectSuccess([Cmd.SET, RedisClient.keyBytes(key), value]);
+  Future set(String key, List<int> value) => connection.rawSend([ Cmd.SET, RedisClient.keyBytes(key), value ]).receiveStatus("OK");
 
   Future setex(String key, int expireInSecs, List<int> value) => connection.sendExpectSuccess([Cmd.SETEX, RedisClient.keyBytes(key), toBytes(expireInSecs), value]);
 

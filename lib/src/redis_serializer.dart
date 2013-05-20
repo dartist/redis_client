@@ -27,13 +27,13 @@ class JsonRedisSerializer implements RedisSerializer {
   static final String TRUE  = "true";
   static final String FALSE = "false";
 
-  List<int> serialize(Object obj) => stringify(obj).runes.toList(growable: false);
+  List<int> serialize(Object obj) => encodeUtf8(stringify(obj));
 
 
   Object deserialize(List<int> bytes) {
     if (bytes == null || bytes.length == 0) return null;
 
-    return JSON.parse(new String.fromCharCodes(bytes));
+    return parse(decodeUtf8(bytes));
   }
 
 

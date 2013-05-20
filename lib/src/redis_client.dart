@@ -41,7 +41,7 @@ class RedisClient {
 
 
   /// Used to serialize and deserialize the values stored inside Redis.
-  RedisSerializer serializer;
+  RedisSerializer serializer = new RedisSerializer();
 
 
 
@@ -56,10 +56,9 @@ class RedisClient {
   /// Creates the [RedisConnection] and an instance of [RawRedisCommands].
   RedisClient._(String this.connectionString) {
     connectionFuture = RedisConnection.connect(connectionString)
-        .then((conn) => this.connection = conn);
+        .then((conn) => connection = conn);
 
     raw = new RawRedisCommands(this);
-    serializer = new RedisSerializer();
   }
 
 
@@ -113,7 +112,7 @@ class RedisClient {
 
   Map get stats => connection.stats;
 
-  void close() => connection.close();
+  Future close() => connection.close();
 
 
 
@@ -170,8 +169,8 @@ class RedisClient {
 
   Future<List<String>> keys(String pattern) => connection.sendExpectMultiData([Cmd.KEYS, keyBytes(pattern)]).then((x) => x.map((k) => new String.fromCharCodes(k)));
 
-  /// Wrapper for [RawRedisCommands.echo].
-  Future<Object> get(String key) => raw.get(key).then(serializer.deserialize);
+  /// Wrapper for [RawRedisCommands.get].
+  Future<Object> get(String key) => raw.get(key).then((replyData) => serializer.deserialize(replyData));
 
   /// Wrapper for [RawRedisCommands.mget].
   Future<List<Object>> mget(List<String> keys) => raw.mget(keys).then((x) => x.map(serializer.deserialize));

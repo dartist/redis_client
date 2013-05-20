@@ -56,7 +56,11 @@ abstract class RedisConnection {
 
   Future select([ int db ]);
 
+  /// Convenient method to send [String] commands.
   Receiver send(List<String> cmdWithArgs);
+
+  /// Sends the commands already in binary.
+  Receiver rawSend(List<List<int>> cmdWithArgs);
 
 //
 //  Future<String> sendExpectCode(List<List> cmdWithArgs);
@@ -212,7 +216,10 @@ class _RedisConnection implements RedisConnection {
   void _onRedisReply(RedisReply redisReply) {
     // processSocketData("onSocketData");
     if (_pendingResponses.length == 0 || _pendingResponses.last.reply != null) {
-      throw new RedisClientException("Recieved data without expecting any.");
+      if (redisReply is ErrorReply) {
+        logger.warning("Received error from redis: ${redisReply.error}");
+      }
+      throw new RedisClientException("Received data without expecting any ($redisReply).");
     }
 
     for (var response in _pendingResponses) {
@@ -243,8 +250,21 @@ class _RedisConnection implements RedisConnection {
    * Eg.:
    *
    *     send([ "COMMAND" ]).receiveInteger().then((int number) { });
+   *
+   * This function converts the [String]s to binary data, and forwards to
+   * [rawSend].
    */
-  Receiver send(List<String> cmdWithArgs) {
+  Receiver send(List<String> cmdWithArgs) => rawSend(cmdWithArgs.map((String line) => encodeUtf8(line)).toList(growable: false));
+
+
+  /**
+   * This is the same as [send] except that it takes a list of binary data.
+   *
+   * Eg.:
+   *
+   *     rawSend([ "GET".codeUnits, encodeUtf8("keyname") ]).receiveBulkString().then((String value) { });
+   */
+  Receiver rawSend(List<List<int>> cmdWithArgs) {
     var response = new Receiver();
 
     logger.finest("Sending message $cmdWithArgs");
@@ -253,7 +273,10 @@ class _RedisConnection implements RedisConnection {
       _socket.add("*${cmdWithArgs.length}\r\n".codeUnits);
       cmdWithArgs.forEach((line) {
         _socket.add("\$${line.length}\r\n".codeUnits);
-        _socket.add("${line}\r\n".codeUnits);
+
+        // Write the line, and the line end
+        _socket.add(line);
+        _socket.add(_lineEnd);
       });
     });
 
@@ -332,18 +355,33 @@ class Receiver {
   /**
    * Checks that the received reply is of type [StatusReply].
    */
-  Future<String> receiveStatus() {
+  Future<String> receiveStatus([ String expectedStatus ]) {
     return _received.then((reply) {
       if (reply is! StatusReply) {
         throw new RedisClientException("The returned reply was not of type StatusReply.");
+      }
+      if (?expectedStatus && (expectedStatus != reply.status)) {
+        throw new RedisClientException("The returned status was not $expectedStatus but ${reply.status}.");
       }
       return reply.status;
     });
   }
 
+  /**
+   * Checks that the received reply is of type [BulkReply] and returns the byte
+   * list.
+   */
+  Future<RedisReply> receiveBulkData() {
+    return _received.then((reply) {
+      if (reply is! BulkReply) {
+        throw new RedisClientException("The returned reply was not of type BulkReply.");
+      }
+      return reply.bytes;
+    });
+  }
 
   /**
-   * Checks that the received reply is of type [BulkReply].
+   * Checks that the received reply is of type [BulkReply] and returns a [String].
    */
   Future<String> receiveBulkString() {
     return _received.then((reply) {

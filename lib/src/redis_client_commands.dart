@@ -5,7 +5,8 @@ part of redis_client;
 /// TODO change to lazy static initializers
 class Cmd {
 
-  List<int> _chars(String command) => command.runes.toList();
+  // No need to use runes since all commands are ASCII
+  static List<int> _chars(String command) => command.codeUnits;
 
   // ADMIN
   static List<int> get DBSIZE => _chars("DBSIZE");
