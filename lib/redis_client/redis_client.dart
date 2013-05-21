@@ -132,7 +132,7 @@ class RedisClient {
 
   Future flushdb() => connection.sendExpectSuccess([_Cmd.FLUSHDB]);
 
-  Future flushall() => connection.sendExpectSuccess([_Cmd.FLUSHALL]);
+  Future flushall() => connection.rawSend([ _Cmd.FLUSHALL ]).receiveStatus("OK");
 
   Future save() => connection.sendExpectSuccess([_Cmd.SAVE]);
 
@@ -170,7 +170,7 @@ class RedisClient {
   Future<List<String>> keys(String pattern) => connection.sendExpectMultiData([_Cmd.KEYS, _keyBytes(pattern)]).then((x) => x.map((k) => new String.fromCharCodes(k)));
 
   /// Wrapper for [RawRedisCommands.get].
-  Future<Object> get(String key) => raw.get(key).then((replyData) => serializer.deserialize(replyData));
+  Future<Object> get(String key) => raw.get(key).then(serializer.deserialize);
 
   /// Wrapper for [RawRedisCommands.mget].
   Future<List<Object>> mget(List<String> keys) => raw.mget(keys).then((x) => x.map(serializer.deserialize));

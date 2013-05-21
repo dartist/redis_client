@@ -114,6 +114,7 @@ class StatusReply extends _OneLineReply {
   /// Returns the status received with this reply.
   String get status => _getLine();
 
+  String toString() => "StatusReply: $status";
 }
 
 /// Used for error replies
@@ -122,6 +123,7 @@ class ErrorReply extends _OneLineReply {
   /// Returns the error received with this reply.
   String get error => _getLine();
 
+  String toString() => "ErrorReply: $error";
 }
 
 /// Used for integer replies
@@ -130,6 +132,7 @@ class IntegerReply extends _OneLineReply {
   /// Returns the integer received with this reply.
   int get integer => int.parse(_getLine());
 
+  String toString() => "IntegerReply: $integer";
 }
 
 /// Used for bulk replies
@@ -139,11 +142,14 @@ class BulkReply extends RedisReply {
 
   _BytesDataConsumer _dataConsumer;
 
+  /// The length of this bulk reply
+  int byteLength;
 
   /**
    *  Specifies if this reply has been fully received.
    */
   bool get done {
+    if (byteLength == -1) return true;
     if (_dataConsumer == null) return false;
     else return _dataConsumer.done;
   }
@@ -162,6 +168,14 @@ class BulkReply extends RedisReply {
       // Can be null
       data = _initialLineDataConsumer.unconsumedData;
 
+      if (_initialLineDataConsumer.done) {
+        byteLength = int.parse(new String.fromCharCodes(_initialLineDataConsumer.data));
+        if (byteLength == -1) {
+          // Null response
+          return data;
+        }
+      }
+
       if (data == null) {
         // Stop here.
         return null;
@@ -172,7 +186,6 @@ class BulkReply extends RedisReply {
     // Either way, now it's time for the _dataConsumer to do it's job.
     if (_dataConsumer == null) {
       // Need to create the data consumer
-      int byteLength = int.parse(new String.fromCharCodes(_initialLineDataConsumer.data));
       _dataConsumer = new _BytesDataConsumer(byteLength);
     }
 
@@ -187,8 +200,10 @@ class BulkReply extends RedisReply {
   }
 
 
-  /// Returns the raw bytes of this reply.
+  /// Returns the raw bytes of this reply. Can be null.
   List<int> get bytes {
+    if (byteLength == -1) return null;
+
     assert(_dataConsumer != null);
     // [_DataConsumer.data] checks if this reply is [done] and fails if not.
     return _dataConsumer.data;
@@ -197,8 +212,10 @@ class BulkReply extends RedisReply {
 
   String _dataAsString;
 
-  /// Returns the reply as String.
+  /// Returns the reply as String. Can be null.
   String get string {
+    if (byteLength == -1) return null;
+
     if (_dataAsString == null) {
       _dataAsString = decodeUtf8(bytes);
     }

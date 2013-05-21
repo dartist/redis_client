@@ -11,50 +11,69 @@ import 'package:unittest/mock.dart';
 import '../lib/redis_client.dart';
 
 
-
+import 'helper.dart';
 
 
 
 main() {
 
-  Logger.root.onRecord.listen((LogRecord record) {
-    print(record.message);
-  });
+//  Logger.root.level = Level.FINEST;
+//  Logger.root.onRecord.listen((LogRecord record) {
+//    print(record.message);
+//  });
 
   group("RedisClient", () {
 
     RedisClient client;
 
-    setUp(() => RedisClient.connect("127.0.0.1:6379").then((c) => client = c));
+    setUp(() {
+      return RedisClient.connect("127.0.0.1:6379")
+          .then((c) {
+            client = c;
+            client.flushall();
+          });
+    });
 
     tearDown(() => client.close());
 
     group("select", () {
       test("should correctly switch databases", () {
-        client.set("testkey", "database0") // Setting testskey in database 0
-            .then((_) => client.select(1)) // Switching to databse 1
-            .then((_) => client.set("testkey", "database1"))
+        async(
+          client.set("testkey", "database0") // Setting testskey in database 0
+              .then((_) => client.select(1)) // Switching to databse 1
+              .then((_) => client.set("testkey", "database1"))
 
-            .then((_) => client.select(0)) // Switching back to database 0
-            .then((_) => client.get("testkey"))
-            .then((value) => expect(value, equals("database0")))
+              .then((_) => client.select(0)) // Switching back to database 0
+              .then((_) => client.get("testkey"))
+              .then((value) => expect(value, equals("database0")))
 
-            .then((_) => client.select(1)) // Switching back to database 1
-            .then((_) => client.get("testkey"))
-            .then((value) => expect(value, equals("database1")))
-
-            .then(expectAsync1((_) { })); // Making sure that all tests pass asynchronously
+              .then((_) => client.select(1)) // Switching back to database 1
+              .then((_) => client.get("testkey"))
+              .then((value) => expect(value, equals("database1")))
+        );
       });
     });
 
-    group('Basic hack tests', () {
-      test("random stuff", () {
-        client.set("testkey", "testvalue")
-            .then((_) => client.get("testkey"))
-            .then((String value) => expect(value, equals("testvalue")))
-            .then(expectAsync1((_) { })); // Making sure that all tests pass asynchronously
+//    group("Basic commands: GET, SET, GETSET RANDOMKEY RENAME RENAMENX TTL PTTL:", () {
+    group("Basic commands:", () {
+      test("GET & SET", () {
+        async(
+          client.set("testkey", "testvalue")
+              .then((_) => client.get("testkey"))
+              .then((String value) => expect(value, equals("testvalue")))
+        );
+      });
+
+      test("GETSET", () {
+        async(
+          client.getset("nokeysa", "value")
+              .then((String value) => expect(value, equals(null)))
+              .then((_) => client.getset("nokeysa", "value2"))
+              .then((String value) => expect(value, equals("value")))
+         );
       });
     });
+
 
   });
 

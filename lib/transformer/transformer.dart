@@ -82,7 +82,6 @@ class RedisProtocolTransformer extends StreamEventTransformer<List<int>, RedisRe
    * sink when they're ready.
    */
   void handleData(List<int> data, EventSink<RedisReply> output) {
-
     // I'm not entirely sure this is necessary, but better be safe.
     if (data.length == 0) return;
 

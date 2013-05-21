@@ -214,7 +214,7 @@ class _RedisConnection implements RedisConnection {
 
   /// Handles new data received from stream.
   void _onRedisReply(RedisReply redisReply) {
-    // processSocketData("onSocketData");
+    logger.info("Received reply: $redisReply");
     if (_pendingResponses.length == 0 || _pendingResponses.last.reply != null) {
       if (redisReply is ErrorReply) {
         logger.warning("Received error from redis: ${redisReply.error}");
@@ -267,7 +267,7 @@ class _RedisConnection implements RedisConnection {
   Receiver rawSend(List<List<int>> cmdWithArgs) {
     var response = new Receiver();
 
-    logger.finest("Sending message $cmdWithArgs");
+    logger.finest("Sending message ${decodeUtf8(cmdWithArgs[0])}");
 
     connected.then((_) {
       _socket.add("*${cmdWithArgs.length}\r\n".codeUnits);
