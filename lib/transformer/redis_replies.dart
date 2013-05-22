@@ -242,6 +242,8 @@ class MultiBulkReply extends RedisReply {
     // Not even the inital first line has been received.
     if (_numberOfReplies == null) return false;
 
+    if (_numberOfReplies == 0) return true;
+
     // Not all replies have been received.
     if (_replies.length != _numberOfReplies) return false;
 
@@ -272,18 +274,18 @@ class MultiBulkReply extends RedisReply {
       // Can be null
       data = _initialLineDataConsumer.unconsumedData;
 
-      if (data == null) {
+      if (_initialLineDataConsumer.done) {
+        _numberOfReplies = int.parse(new String.fromCharCodes(_initialLineDataConsumer.data));
+      }
+
+      if (data == null || done) {
         // Stop here.
-        return null;
+        return data;
       }
     }
 
     // The initialLineConsumer has done it's job the last time or this time.
     // Now all replies have to be received.
-    if (_replies.length == 0) {
-      // The first line has completely been received.
-      _numberOfReplies = int.parse(new String.fromCharCodes(_initialLineDataConsumer.data));
-    }
 
     var lastReply = _lastReply;
 

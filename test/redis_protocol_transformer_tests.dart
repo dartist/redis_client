@@ -1,4 +1,4 @@
-library redis_client_tests;
+library redis_protocol_transformer_tests;
 
 import 'dart:async';
 import 'dart:utf';
@@ -161,6 +161,22 @@ main() {
         expect(tested1.string, equals("foobar"));
         expect(tested2.string, equals("foobars2"));
       });
+      test("should properly handle null replies", () {
+        var sink = new MockSink();
+
+        var rpt = new RedisProtocolTransformer();
+
+        rpt.handleData(encodeUtf8("\$-"), sink);
+        rpt.handleData(encodeUtf8("1\r"), sink);
+        expect(sink.replies.length, equals(0));
+        rpt.handleData(encodeUtf8("\n"), sink);
+        expect(sink.replies.length, equals(1));
+
+        BulkReply reply = sink.replies.first;
+        expect(reply.string, equals(null));
+        expect(reply.bytes, equals(null));
+
+      });
       test("should properly handle multiple chopped data chunks", () {
         var sink = new MockSink();
 
@@ -263,6 +279,22 @@ main() {
         expect(tested2.error, "Error");
         expect(tested3.status, "Status");
         expect(tested4.string, "foobar");
+
+      });
+      test("should handle multi bulk replies with 0 bulk replies", () {
+        var sink = new MockSink();
+
+        var rpt = new RedisProtocolTransformer();
+
+        rpt.handleData(encodeUtf8("\*"), sink);
+        expect(sink.replies.length, equals(0));
+        rpt.handleData(encodeUtf8("0\r"), sink);
+        expect(sink.replies.length, equals(0));
+        rpt.handleData(encodeUtf8("\n"), sink);
+        expect(sink.replies.length, equals(1));
+
+        MultiBulkReply test = sink.replies.first;
+        expect(test.replies.length, equals(0));
 
       });
     });

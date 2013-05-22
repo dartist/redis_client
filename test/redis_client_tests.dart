@@ -17,11 +17,6 @@ import 'helper.dart';
 
 main() {
 
-//  Logger.root.level = Level.FINEST;
-//  Logger.root.onRecord.listen((LogRecord record) {
-//    print(record.message);
-//  });
-
   group("RedisClient", () {
 
     RedisClient client;
@@ -61,6 +56,20 @@ main() {
           client.set("testkey", "testvalue")
               .then((_) => client.get("testkey"))
               .then((String value) => expect(value, equals("testvalue")))
+              .then((_) => client.get("invalidkey"))
+              .then((res) => expect(res, equals(null)))
+        );
+      });
+
+      test("KEYS", () {
+       async(
+            client.keys("*o*")
+            .then((List<String> keys) => expect(keys, equals([])))
+            .then((_) => client.set("onekey", "a"))
+            .then((_) => client.set("twokey", "a"))
+            .then((_) => client.set("threekey", "a"))
+            .then((_) => client.keys("*o*"))
+            .then((List<String> keys) => expect(keys, equals([ "twokey", "onekey" ])))
         );
       });
 
@@ -72,6 +81,10 @@ main() {
               .then((String value) => expect(value, equals("value")))
          );
       });
+//
+//      test("RANDOMKEY", () {
+//
+//      });
     });
 
 

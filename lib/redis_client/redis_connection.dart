@@ -392,6 +392,30 @@ class Receiver {
     });
   }
 
+  /**
+   * Checks that the received reply is of type [MultiBulkReply].
+   */
+  Future<MultiBulkReply> receiveMultiBulk() {
+    return _received.then((reply) {
+      if (reply is! MultiBulkReply) {
+        throw new RedisClientException("The returned reply was not of type MultiBulkReply.");
+      }
+      return reply;
+    });
+  }
+
+  /**
+   * Checks that the received reply is of type [MultiBulkReply] and returns a list
+   * of strings.
+   */
+  Future<List<String>> receiveMultiBulkStrings() {
+    return receiveMultiBulk().then((MultiBulkReply reply) {
+      List<String> strings = reply.replies.map((BulkReply reply) => reply.string).toList(growable: false);
+      return strings;
+    });
+  }
+
+
 
 
   /**

@@ -1,5 +1,7 @@
 
-import "connection_settings_test.dart" as connectionSettingsTests;
+import 'package:logging/logging.dart';
+
+import "connection_settings_tests.dart" as connectionSettingsTests;
 import "redis_client_tests.dart" as redisClientTests;
 import "redis_connection_tests.dart" as redisConnectionTests;
 import "redis_protocol_transformer_tests.dart" as redisProtocolTransformerTests;
@@ -7,6 +9,13 @@ import "redis_protocol_transformer_tests.dart" as redisProtocolTransformerTests;
 
 main() {
 
+
+//  Logger logger = new Logger("redis_client");
+//  Logger.root.level = Level.INFO;
+//  logger.onRecord.listen((LogRecord record) {
+//    print(record.message);
+//  });
+//
   connectionSettingsTests.main();
 
   redisClientTests.main();

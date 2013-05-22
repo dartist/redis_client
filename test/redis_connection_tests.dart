@@ -1,4 +1,4 @@
-library redis_client_tests;
+library redis_connection_tests;
 
 import 'dart:async';
 import 'dart:utf';
