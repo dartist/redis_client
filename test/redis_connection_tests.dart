@@ -18,7 +18,6 @@ import 'helper.dart';
 
 main() {
 
-  Logger.root.level = Level.WARNING;
   group('Basic hack tests', () {
 
     RedisConnection connection;

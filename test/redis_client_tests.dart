@@ -29,7 +29,9 @@ main() {
           });
     });
 
-    tearDown(() => client.close());
+    tearDown(() {
+      client.close();
+    });
 
     group("select", () {
       test("should correctly switch databases", () {
@@ -81,7 +83,36 @@ main() {
               .then((String value) => expect(value, equals("value")))
          );
       });
-//
+      test("GETSET", () {
+        async(
+          client.getset("nokeysa", "value")
+              .then((String value) => expect(value, equals(null)))
+              .then((_) => client.getset("nokeysa", "value2"))
+              .then((String value) => expect(value, equals("value")))
+        );
+      });
+
+      test("MGET", () {
+        async(
+          client.mget([ "a", "b", "c" ])
+              .then((List<Object> objects) {
+                expect(objects.length, equals(3));
+                expect(objects[0], equals(null));
+                expect(objects[1], equals(null));
+                expect(objects[2], equals(null));
+              })
+              .then((_) => client.set("a", "value1"))
+              .then((_) => client.set("c", "value2"))
+              .then((_) => client.mget([ "a", "b", "c" ]))
+              .then((List<Object> objects) {
+                expect(objects.length, equals(3));
+                expect(objects[0], equals("value1"));
+                expect(objects[1], equals(null));
+                expect(objects[2], equals("value2"));
+              })
+        );
+      });
+
 //      test("RANDOMKEY", () {
 //
 //      });

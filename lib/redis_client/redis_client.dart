@@ -169,10 +169,9 @@ class RedisClient {
 
   Future<List<String>> keys(String pattern) => connection.rawSend([ RedisCommand.KEYS, _keyBytes(pattern) ]).receiveMultiBulkStrings();
 
-  Future<Object> get(String key) => connection.rawSend([ RedisCommand.GET, RedisClient._keyBytes(key) ]).receiveBulkData().then(serializer.deserialize);
+  Future<Object> get(String key) => connection.rawSend([ RedisCommand.GET, _keyBytes(key) ]).receiveBulkDeserialized(serializer);
 
-  /// Wrapper for [RawRedisCommands.mget].
-  Future<List<Object>> mget(List<String> keys) => raw.mget(keys).then((x) => x.map(serializer.deserialize));
+  Future<List<Object>> mget(List<String> keys) => keys.isEmpty ? new Future([ ]) : connection.rawSend(_CommandUtils.mergeCommandWithStringArgs(RedisCommand.MGET, keys)).receiveMultiBulkDeserialized(serializer);
 
   Future<Object> getset(String key, Object value) => connection.rawSend([RedisCommand.GETSET, RedisClient._keyBytes(key), serializer.serialize(value)]).receiveBulkData().then(serializer.deserialize);
 

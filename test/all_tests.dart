@@ -9,13 +9,11 @@ import "redis_protocol_transformer_tests.dart" as redisProtocolTransformerTests;
 
 main() {
 
-
-//  Logger logger = new Logger("redis_client");
-//  Logger.root.level = Level.INFO;
-//  logger.onRecord.listen((LogRecord record) {
+//  Logger.root.level = Level.FINEST;
+//  Logger.root.onRecord.listen((LogRecord record) {
 //    print(record.message);
 //  });
-//
+
   connectionSettingsTests.main();
 
   redisClientTests.main();

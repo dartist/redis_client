@@ -46,7 +46,7 @@ class RawRedisCommands {
 
 //  Future<List<int>> get(String key) => connection.rawSend([ RedisCommand.GET, RedisClient._keyBytes(key) ]).receiveBulkData();
 
-  Future<List<List<int>>> mget(List<String> keys) => keys.isEmpty ? new Future([ ]) : connection.sendExpectMultiData(_CommandUtils.mergeCommandWithStringArgs(RedisCommand.MGET, keys));
+//  Future<List<List<int>>> mget(List<String> keys) => keys.isEmpty ? new Future([ ]) : connection.sendExpectMultiData(_CommandUtils.mergeCommandWithStringArgs(RedisCommand.MGET, keys));
 
 //  Future<List<int>> getset(String key, List<int> value) => connection.rawSend([RedisCommand.GETSET, RedisClient._keyBytes(key), value]).receiveBulkData();
 

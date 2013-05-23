@@ -190,7 +190,10 @@ class _RedisConnection implements RedisConnection {
 
 
   /// Closes the connection.
-  Future close() => _socket.close();
+  Future close() {
+    logger.fine("Closing connection.");
+    return _socket.close();
+  }
 
 
   /// Selects configured database.
@@ -232,6 +235,7 @@ class _RedisConnection implements RedisConnection {
 
   /// Handles stream errors
   void _onStreamError(err) {
+    logger.warning("Stream error $err");
     _socket.close();
     throw new RedisClientException("Received stream error $err.");
   }
@@ -371,7 +375,7 @@ class Receiver {
    * Checks that the received reply is of type [BulkReply] and returns the byte
    * list.
    */
-  Future<RedisReply> receiveBulkData() {
+  Future<List<int>> receiveBulkData() {
     return _received.then((reply) {
       if (reply is! BulkReply) {
         throw new RedisClientException("The returned reply was not of type BulkReply.");
@@ -393,6 +397,13 @@ class Receiver {
   }
 
   /**
+   * Returns the data received by this bulk reply deserialized.
+   */
+  Future<Object> receiveBulkDeserialized(RedisSerializer serializer) {
+    return receiveBulkData().then(serializer.deserialize);
+  }
+
+  /**
    * Checks that the received reply is of type [MultiBulkReply].
    */
   Future<MultiBulkReply> receiveMultiBulk() {
@@ -410,8 +421,17 @@ class Receiver {
    */
   Future<List<String>> receiveMultiBulkStrings() {
     return receiveMultiBulk().then((MultiBulkReply reply) {
-      List<String> strings = reply.replies.map((BulkReply reply) => reply.string).toList(growable: false);
-      return strings;
+      return reply.replies.map((BulkReply reply) => reply.string).toList(growable: false);
+    });
+  }
+
+  /**
+   * Checks that the received reply is of type [MultiBulkReply] and returns a list
+   * of deserialized objects.
+   */
+  Future<List<Object>> receiveMultiBulkDeserialized(RedisSerializer serializer) {
+    return receiveMultiBulk().then((MultiBulkReply reply) {
+      return reply.replies.map((BulkReply reply) => serializer.deserialize(reply.bytes)).toList(growable: false);
     });
   }
 
