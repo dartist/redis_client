@@ -30,7 +30,12 @@ main() {
     });
 
     tearDown(() {
-      client.close();
+      try {
+        client.close();
+      }
+      finally {
+
+      }
     });
 
     group("select", () {
@@ -83,14 +88,6 @@ main() {
               .then((String value) => expect(value, equals("value")))
          );
       });
-      test("GETSET", () {
-        async(
-          client.getset("nokeysa", "value")
-              .then((String value) => expect(value, equals(null)))
-              .then((_) => client.getset("nokeysa", "value2"))
-              .then((String value) => expect(value, equals("value")))
-        );
-      });
 
       test("MGET", () {
         async(
@@ -113,9 +110,48 @@ main() {
         );
       });
 
-//      test("RANDOMKEY", () {
-//
-//      });
+      test("SETEX & TTL", () {
+        async(
+          client.setex("testkey", 10, "value")
+              .then((_) => client.ttl("testkey"))
+              .then((int time) => expect(time, equals(10)))
+         );
+      });
+
+      test("PSETEX", () {
+        async(
+            client.psetex("testkey", 10000, "value")
+            .then((_) => client.ttl("testkey"))
+            .then((int time) => expect(time, equals(10)))
+        );
+      });
+
+      test("PERSIST", () {
+        async(
+            client.setex("testkey", 10, "value")
+            .then((_) => client.ttl("testkey"))
+            .then((int time) => expect(time, equals(10)))
+            .then((_) => client.persist("testkey"))
+            .then((status) => expect(status, equals(true)))
+            .then((_) => client.ttl("testkey"))
+            .then((int time) => expect(time, equals(-1)))
+            .then((_) => client.persist("invalidkey"))
+            // Should return false when the key didn't exist.
+            .then((status) => expect(status, equals(false)))
+        );
+      });
+
+      test("MSET", () {
+        async(
+            client.mset({ "key1": "test1", "key2": true, "key3": 123 })
+            .then((_) => client.get("key1"))
+            .then((String value) => expect(value, equals("test1")))
+            .then((_) => client.get("key2"))
+            .then((bool value) => expect(value, equals(true)))
+            .then((_) => client.get("key3"))
+            .then((int value) => expect(value, equals(123)))
+        );
+      });
     });
 
 

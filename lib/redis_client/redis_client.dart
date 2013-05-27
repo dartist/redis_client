@@ -103,9 +103,38 @@ class RedisClient {
 
   /// Converts a String to a list of UTF8 bytes.
   static List<int> _keyBytes(String key) {
-    if (key == null || key.isEmpty) throw new Exception("key is null");
+    if (key == null || key.isEmpty) throw new Exception("Key can not be null.");
     return encodeUtf8(key);
   }
+
+  /// Converts any given value to it's binary representation of the string.
+  static List<int> _toBytes(Object value) {
+    if (value == null) return new List<int>();
+    else return encodeUtf8(value.toString());
+  }
+
+  /// Converts an integer to it's binary string representation.
+  static List<int> _intToBytes(int value) {
+    if (value == null) throw new Exception("Integer can not be null.");
+    return encodeUtf8(value.toString());
+  }
+
+  /// Takes a command and a map and returns a list of all binary values.
+  List<List<int>> _keyValueMapToList(List<int> command, Map map) {
+
+    List<List<int>> completeList = new List<List<int>>(map.length * 2 + 1);
+    completeList[0] = command;
+
+    var i = 1;
+    map.forEach((key, value) {
+      completeList[i++] = _keyBytes(key);
+      completeList[i++] = serializer.serialize(value);
+    });
+
+    return completeList;
+  }
+
+
 
   /// Wrapper for [RedisConnection.db]
   int get db => connection.db;
@@ -167,29 +196,67 @@ class RedisClient {
   /// Keys
   /// ====
 
+
+  /**
+   * Returns all keys matching pattern.
+   *
+   * While the time complexity for this operation is O(N), the constant times are fairly low. For example, Redis running on an entry level laptop can scan a 1 million key database in 40 milliseconds.
+   *
+   * Supported glob-style patterns:
+   *
+   * - `h?llo` matches `hello`, `hallo` and `hxllo`
+   * - `h*llo` matches `hllo` and `heeeello`
+   * - `h[ae]llo` matches `hello` and `hallo`, but not `hillo`
+   *
+   * Use `\` to escape special characters if you want to match them verbatim.
+   *
+   * **Warning**: consider [keys] as a command that should only be used in production environments with extreme care. It may ruin performance when it is executed against large databases. This command is intended for debugging and special operations, such as changing your keyspace layout. Don't use [keys] in your regular application code. If you're looking for a way to find keys in a subset of your keyspace, consider using sets.
+   */
   Future<List<String>> keys(String pattern) => connection.rawSend([ RedisCommand.KEYS, _keyBytes(pattern) ]).receiveMultiBulkStrings();
 
+  /// Returns the stored value of given key.
   Future<Object> get(String key) => connection.rawSend([ RedisCommand.GET, _keyBytes(key) ]).receiveBulkDeserialized(serializer);
 
+  /// Returns all the stored values of given keys.
   Future<List<Object>> mget(List<String> keys) => keys.isEmpty ? new Future([ ]) : connection.rawSend(_CommandUtils.mergeCommandWithStringArgs(RedisCommand.MGET, keys)).receiveMultiBulkDeserialized(serializer);
 
-  Future<Object> getset(String key, Object value) => connection.rawSend([RedisCommand.GETSET, RedisClient._keyBytes(key), serializer.serialize(value)]).receiveBulkData().then(serializer.deserialize);
+  /// Sets the value of given key, and returns the value that was stored previously.
+  Future<Object> getset(String key, Object value) => connection.rawSend([RedisCommand.GETSET, _keyBytes(key), serializer.serialize(value)]).receiveBulkData().then(serializer.deserialize);
 
-  Future set(String key, Object value) => connection.rawSend([ RedisCommand.SET, RedisClient._keyBytes(key), serializer.serialize(value) ]).receiveStatus("OK");
+  /// Sets the value of given key.
+  Future set(String key, Object value) => connection.rawSend([ RedisCommand.SET, _keyBytes(key), serializer.serialize(value) ]).receiveStatus("OK");
 
-  /// Wrapper for [RawRedisCommands.setex].
-  Future setex(String key, int expireInSecs, Object value) => raw.setex(key, expireInSecs, serializer.serialize(value));
+  /**
+   * Sets a value and the expiration in one step.
+   *
+   * This is the same as:
+   *
+   *     client
+   *         ..set(mykey, value)
+   *         ..expire(mykey, seconds);
+   */
+  Future setex(String key, int expireInSecs, Object value) => connection.rawSend([ RedisCommand.SETEX, _keyBytes(key), _intToBytes(expireInSecs), serializer.serialize(value) ]).receiveStatus("OK");
 
-  /// Wrapper for [RawRedisCommands.psetex].
-  Future psetex(String key, int expireInMs, Object value) => raw.psetex(key, expireInMs, serializer.serialize(value));
+  /// [psetex] works exactly like [setex] with the sole difference that the expire time is specified in milliseconds instead of seconds.
+  Future psetex(String key, int expireInMs, Object value) => connection.rawSend([ RedisCommand.PSETEX, _keyBytes(key), _intToBytes(expireInMs), serializer.serialize(value) ]).receiveStatus("OK");
 
-  Future<bool> persist(String key) => connection.sendExpectIntSuccess([RedisCommand.PERSIST, _keyBytes(key)]);
+  /**
+   * Remove the existing timeout on key.
+   *
+   * Turns the key from volatile (a key with an expire set) to persistent (a key that will never expire as no timeout is associated).
+   *
+   * Returns `true` if the timeout was removed, `0` if key does not exist or does not have an associated timeout.
+   */
+  Future<bool> persist(String key) => connection.rawSend([ RedisCommand.PERSIST, _keyBytes(key) ]).receiveInteger().then((val) => val == 1);
 
-   /// Wrapper for [RawRedisCommands.mset].
-  Future mset(Map map) {
-    _Tuple<List<List<int>>> kvps = keyValueBytes(map, serializer);
-    return raw.mset(kvps.item1, kvps.item2);
-  }
+  /**
+   * Sets all values in the given map.
+   *
+   * [mset] replaces existing values with new values, just as regular [set].
+   *
+   * See [msetnx] if you don't want to overwrite existing values.
+   */
+  Future mset(Map map) => connection.rawSend(_keyValueMapToList(RedisCommand.MSET, map)).receiveStatus("OK");
 
   /// Wrapper for [RawRedisCommands.msetnx].
   Future<bool> msetnx(Map map) {
@@ -249,7 +316,12 @@ class RedisClient {
   /// Wrapper for [RawRedisCommands.pexpireat].
   Future<bool> pexpireat(String key, DateTime date) => raw.pexpireat(key, date.toUtc().millisecondsSinceEpoch);
 
-  Future<int> ttl(String key) => connection.sendExpectInt([RedisCommand.TTL, _keyBytes(key)]);
+  /**
+   * Returns the remaining time to live of a key that has a timeout.
+   *
+   * This introspection capability allows a Redis client to check how many seconds a given key will continue to be part of the dataset.
+   */
+  Future<int> ttl(String key) => connection.rawSend([ RedisCommand.TTL, _keyBytes(key) ]).receiveInteger();
 
   Future<int> pttl(String key) => connection.sendExpectInt([RedisCommand.PTTL, _keyBytes(key)]);
 

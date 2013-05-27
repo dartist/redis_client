@@ -192,7 +192,7 @@ class _RedisConnection implements RedisConnection {
   /// Closes the connection.
   Future close() {
     logger.fine("Closing connection.");
-    return _socket.close();
+    return this.connected.then((_) => _socket.close());
   }
 
 
@@ -362,7 +362,11 @@ class Receiver {
   Future<String> receiveStatus([ String expectedStatus ]) {
     return _received.then((reply) {
       if (reply is! StatusReply) {
-        throw new RedisClientException("The returned reply was not of type StatusReply.");
+        var error = "";
+        if (reply is ErrorReply) {
+          error = " Error: ${reply.error}";
+        }
+        throw new RedisClientException("The returned reply was not of type StatusReply but ${reply.runtimeType}.${error}");
       }
       if (?expectedStatus && (expectedStatus != reply.status)) {
         throw new RedisClientException("The returned status was not $expectedStatus but ${reply.status}.");
