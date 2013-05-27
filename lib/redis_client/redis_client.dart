@@ -256,7 +256,8 @@ class RedisClient {
    */
   Future<bool> msetnx(Map map) => connection.rawSend(_keyValueMapToList(RedisCommand.MSETNX, map)).receiveBool();
 
-  Future<bool> exists(String key) => connection.sendExpectIntSuccess([RedisCommand.EXISTS, _keyBytes(key)]);
+  /// Returns `true` if key exists, `false` otherwise.
+  Future<bool> exists(String key) => connection.rawSend([ RedisCommand.EXISTS, _keyBytes(key) ]).receiveBool();
 
   Future<int> del(String key) => connection.sendExpectInt([RedisCommand.DEL, _keyBytes(key)]);
 

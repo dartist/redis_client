@@ -162,6 +162,16 @@ main() {
             .then((bool value) => expect(value, equals(false)))
         );
       });
+
+      test("EXISTS", () {
+        async(
+            client.exists("keyname")
+            .then((bool value) => expect(value, equals(false)))
+            .then((_) => client.set("keyname", "test"))
+            .then((_) => client.exists("keyname"))
+            .then((bool value) => expect(value, equals(true)))
+        );
+      });
     });
 
 
