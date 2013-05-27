@@ -259,9 +259,22 @@ class RedisClient {
   /// Returns `true` if key exists, `false` otherwise.
   Future<bool> exists(String key) => connection.rawSend([ RedisCommand.EXISTS, _keyBytes(key) ]).receiveBool();
 
-  Future<int> del(String key) => connection.sendExpectInt([RedisCommand.DEL, _keyBytes(key)]);
+  /**
+   * Deletes a single key.
+   *
+   * Returns true if the key existed, false otherwise.
+   *
+   * Contrary to redis `DEL` command this method takes only one key for
+   * convenience. Use [mdel] if you want to delete multiple keys.
+   */
+  Future<bool> del(String key) => mdel([ key ]).then((deleteCount) => deleteCount == 1);
 
-  Future<int> mdel(List<String> keys) => keys.isEmpty ? new Future(null) : connection.sendExpectInt(_CommandUtils.mergeCommandWithStringArgs(RedisCommand.DEL, keys));
+  /**
+   * Deletes multiple keys and returns the number of deleted keys.
+   *
+   * This command is called `DEL` in redis.
+   */
+  Future<int> mdel(List<String> keys) => keys.isEmpty ? new Future(0) : connection.rawSend(_CommandUtils.mergeCommandWithStringArgs(RedisCommand.DEL, keys)).receiveInteger();
 
   Future<int> incr(String key) => connection.sendExpectInt([RedisCommand.INCR, _keyBytes(key)]);
 

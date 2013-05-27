@@ -172,6 +172,28 @@ main() {
             .then((bool value) => expect(value, equals(true)))
         );
       });
+
+      test("DEL", () {
+        async(
+            client.del("keyname")
+            .then((bool value) => expect(value, equals(false)))
+            .then((_) => client.set("keyname", "test"))
+            .then((_) => client.del("keyname"))
+            .then((bool value) => expect(value, equals(true)))
+        );
+      });
+
+      test("MDEL", () {
+        async(
+            client.mdel([ "keyname", "keyname2", "keyname3" ])
+            .then((int value) => expect(value, equals(0)))
+            .then((_) => client.mset({ "keyname2": "test", "keyname3": "test" }))
+            .then((_) => client.mdel([ "keyname", "keyname2", "keyname3" ]))
+            .then((int value) => expect(value, equals(2)))
+        );
+      });
+
+
     });
 
 
