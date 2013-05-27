@@ -357,6 +357,15 @@ class Receiver {
 
 
   /**
+   * Checks that the received reply is of type [IntegerReply] and returns `true`
+   * if `1` and `false` otherwise.
+   */
+  Future<bool> receiveBool() {
+    return receiveInteger().then((int value) => value == 1 ? true : false);
+  }
+
+
+  /**
    * Checks that the received reply is of type [StatusReply].
    */
   Future<String> receiveStatus([ String expectedStatus ]) {

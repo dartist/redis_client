@@ -65,17 +65,6 @@ class RedisClient {
 
 
 
-  _Tuple<List<List<int>>> keyValueBytes(Map map) {
-    List<List<int>> keys = new List<List<int>>();
-    List<List<int>> values = new List<List<int>>();
-    for(String key in map.keys) {
-      keys.add(key.runes);
-      values.add(serializer.serialize(map[key]));
-    }
-    return new _Tuple(keys,values);
-  }
-
-
 
   /// Converts bytes to a Map
   Map<String,Object> toMap(List<List<int>> multiData) {
@@ -247,7 +236,7 @@ class RedisClient {
    *
    * Returns `true` if the timeout was removed, `0` if key does not exist or does not have an associated timeout.
    */
-  Future<bool> persist(String key) => connection.rawSend([ RedisCommand.PERSIST, _keyBytes(key) ]).receiveInteger().then((val) => val == 1);
+  Future<bool> persist(String key) => connection.rawSend([ RedisCommand.PERSIST, _keyBytes(key) ]).receiveBool();
 
   /**
    * Sets all values in the given map.
@@ -258,11 +247,14 @@ class RedisClient {
    */
   Future mset(Map map) => connection.rawSend(_keyValueMapToList(RedisCommand.MSET, map)).receiveStatus("OK");
 
-  /// Wrapper for [RawRedisCommands.msetnx].
-  Future<bool> msetnx(Map map) {
-    _Tuple<List<List<int>>> kvps = keyValueBytes(map, serializer);
-    return raw.msetnx(kvps.item1, kvps.item2);
-  }
+  /**
+   * Sets the given keys to their respective values. **[msetnx] will not perform any operation at all even if just a single key already exists.**
+   *
+   * Because of this semantic [msetnx] can be used in order to set different keys representing different fields of an unique logic object in a way that ensures that either all the fields or none at all are set.
+   *
+   * [msetnx] is atomic, so all given keys are set at once. It is not possible for clients to see that some of the keys were updated while others are unchanged.
+   */
+  Future<bool> msetnx(Map map) => connection.rawSend(_keyValueMapToList(RedisCommand.MSETNX, map)).receiveBool();
 
   Future<bool> exists(String key) => connection.sendExpectIntSuccess([RedisCommand.EXISTS, _keyBytes(key)]);
 

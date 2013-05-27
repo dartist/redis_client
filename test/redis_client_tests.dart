@@ -152,6 +152,16 @@ main() {
             .then((int value) => expect(value, equals(123)))
         );
       });
+
+      test("MSETNX", () {
+        async(
+            client.msetnx({ "key1": "test1", "key2": true, "key3": 123 })
+            .then((bool value) => expect(value, equals(true)))
+            .then((_) => client.msetnx({ "key2": "test1", "randomkey": true, "randomkey2": 123 }))
+            // Should return false if **one** key already existed.
+            .then((bool value) => expect(value, equals(false)))
+        );
+      });
     });
 
 
