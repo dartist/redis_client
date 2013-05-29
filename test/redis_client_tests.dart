@@ -57,6 +57,64 @@ main() {
     });
 
 //    group("Basic commands: GET, SET, GETSET RANDOMKEY RENAME RENAMENX TTL PTTL:", () {
+
+    group("Admin commands:", () {
+      test("DBSIZE", () {
+        async(
+          client.dbsize
+                .then((size) => expect(size, equals(0)))
+                .then((_) => client.set("test", "test"))
+                .then((_) => client.set("test2", "test"))
+                .then((_) => client.dbsize)
+                .then((size) => expect(size, equals(2)))
+        );
+      });
+      test("LASTSAVE", () {
+        async(
+          client.set("test", "test")
+                .then((_) => client.lastsave)
+                .then((DateTime saveTime) {
+                  expect((saveTime.millisecondsSinceEpoch / 10000).round(), equals((new DateTime.now().millisecondsSinceEpoch / 10000).round()));
+                })
+        );
+      });
+      test("FLUSHDB", () {
+        async(
+          client.select(0)
+              .then((_) => client.set("test", "testvalue"))
+              .then((_) => client.get("test"))
+              .then((value) => expect(value, equals("testvalue")))
+              .then((_) => client.select(1))
+              .then((_) => client.get("test"))
+              .then((value) => expect(value, equals(null)))
+              .then((_) => client.set("test2", "testvalue2"))
+              .then((_) => client.get("test2"))
+              .then((value) => expect(value, equals("testvalue2")))
+              .then((_) => client.flushdb())
+              .then((_) => client.get("test2"))
+              .then((value) => expect(value, equals(null)))
+              .then((_) => client.select(0))
+              .then((_) => client.get("test"))
+              .then((value) => expect(value, equals("testvalue")))
+        );
+      });
+      test("FLUSHALL", () {
+        async(
+            client.select(0)
+            .then((_) => client.set("test", "testvalue"))
+            .then((_) => client.select(1))
+            .then((_) => client.set("test2", "testvalue2"))
+            .then((_) => client.flushall())
+            .then((_) => client.get("test2"))
+            .then((value) => expect(value, equals(null)))
+            .then((_) => client.select(0))
+            .then((_) => client.get("test"))
+            .then((value) => expect(value, equals(null)))
+        );
+      });
+
+    });
+
     group("Basic commands:", () {
       test("GET & SET", () {
         async(
@@ -69,14 +127,14 @@ main() {
       });
 
       test("KEYS", () {
-       async(
-            client.keys("*o*")
-            .then((List<String> keys) => expect(keys, equals([])))
-            .then((_) => client.set("onekey", "a"))
-            .then((_) => client.set("twokey", "a"))
-            .then((_) => client.set("threekey", "a"))
-            .then((_) => client.keys("*o*"))
-            .then((List<String> keys) => expect(keys, equals([ "twokey", "onekey" ])))
+        async(
+          client.keys("*o*")
+              .then((List<String> keys) => expect(keys, equals([])))
+              .then((_) => client.set("onekey", "a"))
+              .then((_) => client.set("twokey", "a"))
+              .then((_) => client.set("threekey", "a"))
+              .then((_) => client.keys("*o*"))
+              .then((List<String> keys) => expect(keys, equals([ "twokey", "onekey" ])))
         );
       });
 

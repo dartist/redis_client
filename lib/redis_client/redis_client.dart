@@ -143,13 +143,16 @@ class RedisClient {
   /// Wrapper for [RedisConnection.select]
   Future select(int db) => connection.select(db);
 
-  Future<int> get dbsize => connection.sendExpectInt([RedisCommand.DBSIZE]);
+  /// Return the number of keys in the currently-selected database.
+  Future<int> get dbsize => connection.rawSend([ RedisCommand.DBSIZE ]).receiveInteger();
 
-  /// Wrapper for [RawRedisCommands.lastsave].
-  Future<DateTime> get lastsave => raw.lastsave.then((int unixTs) => new DateTime.fromMillisecondsSinceEpoch(unixTs * 1000, isUtc:true));
+  /// Returns the DateTime of the last DB save executed with success.
+  Future<DateTime> get lastsave => connection.rawSend([ RedisCommand.LASTSAVE ]).receiveInteger().then((int unixTs) => new DateTime.fromMillisecondsSinceEpoch(unixTs * 1000, isUtc: true));
 
-  Future flushdb() => connection.sendExpectSuccess([RedisCommand.FLUSHDB]);
+  /// Delete all the keys of the currently selected DB. This command never fails
+  Future flushdb() => connection.rawSend([ RedisCommand.FLUSHDB ]).receiveStatus("OK");
 
+  /// Delete all the keys of all the existing databases, not just the currently selected one. This command never fails.
   Future flushall() => connection.rawSend([ RedisCommand.FLUSHALL ]).receiveStatus("OK");
 
   Future save() => connection.sendExpectSuccess([RedisCommand.SAVE]);
