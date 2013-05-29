@@ -270,7 +270,12 @@ class RedisClient {
     return info;
   }
 
-  Future<bool> ping() => connection.sendExpectCode([RedisCommand.PING]).then((String r) => r == "PONG");
+  /**
+   * This command is often used to test if a connection is still alive, or to measure latency.
+   *
+   * Fails if the result is not PONG.
+   */
+  Future<String> ping() => connection.rawSend([ RedisCommand.PING ]).receiveStatus("PONG");
 
   /// Wrapper for [RawRedisCommands.echo].
   Future<Object> echo(Object value) => raw.echo(serializer.serialize(value)).then(serializer.deserialize);

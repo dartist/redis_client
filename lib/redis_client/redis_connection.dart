@@ -391,7 +391,7 @@ class Receiver {
   Future<List<int>> receiveBulkData() {
     return _received.then((reply) {
       if (reply is! BulkReply) {
-        throw new RedisClientException("The returned reply was not of type BulkReply.");
+        throw new RedisClientException("The returned reply was not of type BulkReply but ${reply.runtimeType}.");
       }
       return reply.bytes;
     });
@@ -403,7 +403,7 @@ class Receiver {
   Future<String> receiveBulkString() {
     return _received.then((reply) {
       if (reply is! BulkReply) {
-        throw new RedisClientException("The returned reply was not of type BulkReply.");
+        throw new RedisClientException("The returned reply was not of type BulkReply but ${reply.runtimeType}.");
       }
       return reply.string;
     });
@@ -422,7 +422,7 @@ class Receiver {
   Future<MultiBulkReply> receiveMultiBulk() {
     return _received.then((reply) {
       if (reply is! MultiBulkReply) {
-        throw new RedisClientException("The returned reply was not of type MultiBulkReply.");
+        throw new RedisClientException("The returned reply was not of type MultiBulkReply but ${reply.runtimeType}.");
       }
       return reply;
     });

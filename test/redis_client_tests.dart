@@ -168,6 +168,11 @@ invalid_line
               })
         );
       });
+      test("PING", () {
+        async(
+          client.ping().then((pong) => expect(pong, equals("PONG")))
+        );
+      });
 
     });
 
