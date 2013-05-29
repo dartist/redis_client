@@ -277,8 +277,8 @@ class RedisClient {
    */
   Future<String> ping() => connection.rawSend([ RedisCommand.PING ]).receiveStatus("PONG");
 
-  /// Wrapper for [RawRedisCommands.echo].
-  Future<Object> echo(Object value) => raw.echo(serializer.serialize(value)).then(serializer.deserialize);
+  /// Returns message.
+  Future<Object> echo(Object value) => connection.rawSend([ RedisCommand.ECHO, serializer.serialize(value) ]).receiveBulkData().then(serializer.deserialize);
 
   Future<String> type(String key) => connection.sendExpectCode([ RedisCommand.TYPE, _keyBytes(key) ]);
 

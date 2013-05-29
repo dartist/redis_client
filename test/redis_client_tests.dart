@@ -173,6 +173,14 @@ invalid_line
           client.ping().then((pong) => expect(pong, equals("PONG")))
         );
       });
+      test("ECHO", () {
+        async(
+          client.echo("TEST echo")
+              .then((response) => expect(response, equals("TEST echo")))
+              .then((_) => client.echo(false))
+              .then((response) => expect(response, isFalse))
+        );
+      });
 
     });
 
