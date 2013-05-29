@@ -181,6 +181,16 @@ invalid_line
               .then((response) => expect(response, isFalse))
         );
       });
+      test("TYPE", () {
+        async(
+          client.set("test1", "String")
+              .then((_) => client.set("test2", 1234))
+              .then((_) => client.type("test1"))
+              .then((response) => expect(response, equals("string")))
+              .then((_) => client.type("testxxx"))
+              .then((response) => expect(response, equals("none")))
+        );
+      });
 
     });
 

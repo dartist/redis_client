@@ -280,7 +280,19 @@ class RedisClient {
   /// Returns message.
   Future<Object> echo(Object value) => connection.rawSend([ RedisCommand.ECHO, serializer.serialize(value) ]).receiveBulkData().then(serializer.deserialize);
 
-  Future<String> type(String key) => connection.sendExpectCode([ RedisCommand.TYPE, _keyBytes(key) ]);
+  /**
+   * Returns the string representation of the type of the value stored at key.
+   *
+   * The different types that can be returned are:
+   *
+   * - string
+   * - list
+   * - set
+   * - zset
+   * - hash
+   * - none if string didn't exist
+   */
+  Future<String> type(String key) => connection.rawSend([ RedisCommand.TYPE, _keyBytes(key) ]).receiveStatus();
 
 
   /// Keys
