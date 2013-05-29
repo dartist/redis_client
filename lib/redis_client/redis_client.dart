@@ -146,35 +146,128 @@ class RedisClient {
   /// Return the number of keys in the currently-selected database.
   Future<int> get dbsize => connection.rawSend([ RedisCommand.DBSIZE ]).receiveInteger();
 
-  /// Returns the DateTime of the last DB save executed with success.
-  Future<DateTime> get lastsave => connection.rawSend([ RedisCommand.LASTSAVE ]).receiveInteger().then((int unixTs) => new DateTime.fromMillisecondsSinceEpoch(unixTs * 1000, isUtc: true));
-
   /// Delete all the keys of the currently selected DB. This command never fails
   Future flushdb() => connection.rawSend([ RedisCommand.FLUSHDB ]).receiveStatus("OK");
 
   /// Delete all the keys of all the existing databases, not just the currently selected one. This command never fails.
   Future flushall() => connection.rawSend([ RedisCommand.FLUSHALL ]).receiveStatus("OK");
 
-  Future save() => connection.sendExpectSuccess([RedisCommand.SAVE]);
 
-  Future bgsave() => connection.sendExpectSuccess([RedisCommand.BGSAVE]);
+  /// Returns the DateTime of the last DB [save] executed with success.
+  Future<DateTime> get lastsave => connection.rawSend([ RedisCommand.LASTSAVE ]).receiveInteger().then((int unixTs) => new DateTime.fromMillisecondsSinceEpoch(unixTs * 1000, isUtc: true));
 
-  Future shutdown() => connection.sendExpectSuccess([RedisCommand.SHUTDOWN]);
+  /**
+   * The [save] command performs a synchronous save of the dataset producing a point
+   * in time snapshot of all the data inside the Redis instance, in the form of an RDB file.
+   *
+   * You almost never want to call [save] in production environments where it will
+   * block all the other clients. Instead usually [bgsave] is used. However in case
+   * of issues preventing Redis to create the background saving child (for instance
+   * errors in the fork(2) system call), the [save] command can be a good last resort
+   * to perform the dump of the latest dataset.
+   */
+  Future save() => connection.rawSend([ RedisCommand.SAVE ]).receiveStatus("OK");
 
-  Future bgrewriteaof() => connection.sendExpectSuccess([RedisCommand.BGREWRITEAOF]);
+  /**
+   * Save the DB in background. The OK code is immediately returned.
+   *
+   * Redis forks, the parent continues to serve the clients, the child saves the DB on disk then exits.
+   *
+   * A client my be able to check if the operation succeeded using the [lastsave] command.
+   */
+  Future bgsave() => connection.rawSend([ RedisCommand.BGSAVE ]).receiveStatus("Background saving started");
 
-  Future quit() => connection.sendExpectSuccess([RedisCommand.QUIT]);
+  /**
+   * The command behavior is the following:
+   *
+   * - Stop all the clients.
+   * - Perform a blocking SAVE if at least one **save point** is configured.
+   * - Flush the Append Only File if AOF is enabled.
+   * - Quit the server.
+   *
+   * If persistence is enabled this commands makes sure that Redis is switched off
+   * without the lost of any data. This is not guaranteed if the client uses simply
+   * SAVE and then QUIT because other clients may alter the DB data between the two commands.
+   *
+   * Note: A Redis instance that is configured for not persisting on disk (no AOF
+   * configured, nor "save" directive) will not dump the RDB file on SHUTDOWN,
+   * as usually you don't want Redis instances used only for caching to block on
+   * when shutting down.
+   */
+  Future shutdown() => connection.rawSend([ RedisCommand.SHUTDOWN ]).receive();
 
-  Future<Map> get info{
-    return connection.sendExpectString([RedisCommand.INFO])
-        .then((String lines) {
-           Map info = {};
-           for(String line in lines.split("\r\n")) {
-             List<String> kvp = $(line).splitOnFirst(":");
-             info[kvp[0]] = kvp.length == 2 ? kvp[1] : null;
-           }
-           return info;
-        });
+  /**
+   * Instruct Redis to start an Append Only File rewrite process. The rewrite will
+   * create a small optimized version of the current Append Only File.
+   *
+   * If BGREWRITEAOF fails, no data gets lost as the old AOF will be untouched.
+   *
+   * The rewrite will be only triggered by Redis if there is not already a background
+   * process doing persistence.
+   */
+  Future bgrewriteaof() => connection.rawSend([ RedisCommand.BGREWRITEAOF ]).receiveStatus("OK");
+
+  /**
+   * Ask the server to close the connection.
+   *
+   * The connection is closed as soon as all pending replies have been written to the client.
+   */
+  Future quit() => connection.rawSend([ RedisCommand.QUIT ]).receiveStatus("OK");
+
+  /**
+   * The INFO command returns information and statistics about the server.
+   *
+   * This function parses the output properly and returns a map in the form of:
+   *
+   *     {
+   *       "Server": {
+   *           "redis_version": "2.5.13",
+   *           "redis_git_sha1": "2812b945"
+   *           /* etc... */
+   *       },
+   *       "Clients": {
+   *           "connected_clients": "8"
+   *           /* etc... */
+   *       }
+   *       /* etc... */
+   *     }
+   *
+   * Please refer to the [official redis info documentation](http://redis.io/commands/info)
+   * for an explanation of the values.
+   */
+  Future<Map<String, Map<String, String>>> get info {
+    return connection.rawSend([ RedisCommand.INFO ]).receiveBulkString().then(parseInfoString);
+  }
+
+  /**
+   * Parses the string returned by the INFO command.
+   */
+  Map<String, Map<String, String>> parseInfoString(String lines) {
+    Map<String, Map<String, String>> info = { };
+
+    var sectionMap, sectionName;
+
+    for (String line in lines.split(new RegExp(r"(\r\n|\n)"))) {
+      if (line.isEmpty) continue;
+
+      if (line.substring(0, 2) == '# ') {
+        // New section
+        sectionName = line.substring(2);
+        sectionMap = new Map<String, String>();
+        info[sectionName] = sectionMap;
+      }
+      else {
+        if (sectionMap == null) throw new RedisClientException("Received an info line ($line) without a section.");
+
+        // Section info
+        var colonIndex = line.indexOf(":");
+        if (colonIndex < 1) throw new RedisClientException("The info line did not contain a colon (:).");
+
+        sectionMap[line.substring(0, colonIndex)] = line.substring(colonIndex + 1);
+      }
+    }
+
+    return info;
   }
 
   Future<bool> ping() => connection.sendExpectCode([RedisCommand.PING]).then((String r) => r == "PONG");

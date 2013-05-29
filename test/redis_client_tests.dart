@@ -58,6 +58,44 @@ main() {
 
 //    group("Basic commands: GET, SET, GETSET RANDOMKEY RENAME RENAMENX TTL PTTL:", () {
 
+    group("parseInfoString()", () {
+      test("should properly parse info strings", () {
+        var string =  """
+# Server
+redis_version:2.6.2
+redis_git_sha1:00000000
+redis_git_dirty:0
+redis_mode:standalone
+
+# Clients
+connected_clients:3
+client_longest_output_list:0
+client_biggest_input_buf:0
+blocked_clients:0
+""";
+
+        var info = client.parseInfoString(string);
+        expect(info["Server"]["redis_version"], equals("2.6.2"));
+        expect(info["Clients"]["client_biggest_input_buf"], equals("0"));
+      });
+      test("should throw exception on invalid info", () {
+        var string =  """
+invalid_line:invalid            
+# Server
+redis_version:2.6.2
+redis_git_sha1:00000000
+""";
+        expect(() => client.parseInfoString(string), throwsException);
+
+        string =  """
+# Server
+invalid_line
+""";
+        expect(() => client.parseInfoString(string), throwsException);
+      });
+
+    });
+
     group("Admin commands:", () {
       test("DBSIZE", () {
         async(
@@ -67,15 +105,6 @@ main() {
                 .then((_) => client.set("test2", "test"))
                 .then((_) => client.dbsize)
                 .then((size) => expect(size, equals(2)))
-        );
-      });
-      test("LASTSAVE", () {
-        async(
-          client.set("test", "test")
-                .then((_) => client.lastsave)
-                .then((DateTime saveTime) {
-                  expect((saveTime.millisecondsSinceEpoch / 10000).round(), equals((new DateTime.now().millisecondsSinceEpoch / 10000).round()));
-                })
         );
       });
       test("FLUSHDB", () {
@@ -110,6 +139,33 @@ main() {
             .then((_) => client.select(0))
             .then((_) => client.get("test"))
             .then((value) => expect(value, equals(null)))
+        );
+      });
+      test("SAVE & LASTSAVE", () {
+        async(
+          client.save()
+              .then((_) => client.lastsave)
+              .then((DateTime saveTime) {
+                expect(saveTime.difference(new DateTime.now()).inMilliseconds, lessThan(10));
+              })
+        );
+      });
+      test("BGSAVE", () {
+        async(
+          client.bgsave()
+              .then((_) => client.lastsave)
+              .then((DateTime saveTime) {
+                expect(saveTime.difference(new DateTime.now()).inMilliseconds, lessThan(10));
+              })
+        );
+      });
+      test("INFO", () {
+        async(
+          client.info
+              .then((infoMap) {
+                expect(infoMap["Server"]["redis_version"] is String, equals(true));
+                expect(infoMap["Clients"]["connected_clients"] is String, equals(true));
+              })
         );
       });
 
