@@ -19,7 +19,9 @@ class RedisConnectionSettings {
   ///
   /// See the [RedisConnection] class documentation on which connectionStrings
   /// are allowed.
-  RedisConnectionSettings(String this.connectionString){
+  RedisConnectionSettings([ String this.connectionString ]) {
+    if (connectionString == null || connectionString.isEmpty) return;
+
     List<String> parts = connectionString.split("@");
 
     if (parts.length == 2) password = parts.first;

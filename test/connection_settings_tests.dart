@@ -59,6 +59,16 @@ main() {
       expect(cs.port, equals(6379));
       expect(cs.db, equals(0));
     });
+    test("empty string, null and no parameter should result in the default settings", () {
+      var settings = [ new RedisConnectionSettings(""), new RedisConnectionSettings(null), new RedisConnectionSettings() ];
+
+      settings.forEach((cs) {
+        expect(cs.password, equals(null));
+        expect(cs.hostname, equals("localhost"));
+        expect(cs.port, equals(6379));
+        expect(cs.db, equals(0));
+      });
+    });
   });
 
 }

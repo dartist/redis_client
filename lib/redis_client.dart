@@ -28,7 +28,6 @@ part 'redis_client/redis_client_commands.dart';
 part 'redis_client/redis_serializer.dart';
 part 'redis_client/command_utils.dart';
 part 'redis_client/redis_client.dart';
-part 'redis_client/raw_redis_commands.dart';
 part 'redis_client/redis_connection.dart';
 part 'redis_client/redis_connection_settings.dart';
 //part 'redis_client/in_memory_redis_client.dart';

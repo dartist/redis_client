@@ -35,11 +35,6 @@ class RedisClient {
   Future<RedisConnection> connectionFuture;
 
 
-  /// Instance of [RawRedisCommands] which [RedisClient] wraps to provide a more
-  /// high-level API.
-  RawRedisCommands raw;
-
-
   /// Used to serialize and deserialize the values stored inside Redis.
   RedisSerializer serializer = new RedisSerializer();
 
@@ -57,8 +52,6 @@ class RedisClient {
   RedisClient._(String this.connectionString) {
     connectionFuture = RedisConnection.connect(connectionString)
         .then((conn) => connection = conn);
-
-    raw = new RawRedisCommands(this);
   }
 
 
@@ -320,7 +313,7 @@ class RedisClient {
   Future<Object> get(String key) => connection.rawSend([ RedisCommand.GET, _keyBytes(key) ]).receiveBulkDeserialized(serializer);
 
   /// Returns all the stored values of given keys.
-  Future<List<Object>> mget(List<String> keys) => keys.isEmpty ? new Future([ ]) : connection.rawSend(_CommandUtils.mergeCommandWithStringArgs(RedisCommand.MGET, keys)).receiveMultiBulkDeserialized(serializer);
+  Future<List<Object>> mget(List<String> keys) => keys.isEmpty ? new Future.value([ ]) : connection.rawSend(_CommandUtils.mergeCommandWithStringArgs(RedisCommand.MGET, keys)).receiveMultiBulkDeserialized(serializer);
 
   /// Sets the value of given key, and returns the value that was stored previously.
   Future<Object> getset(String key, Object value) => connection.rawSend([RedisCommand.GETSET, _keyBytes(key), serializer.serialize(value)]).receiveBulkData().then(serializer.deserialize);
@@ -387,53 +380,53 @@ class RedisClient {
    *
    * This command is called `DEL` in redis.
    */
-  Future<int> mdel(List<String> keys) => keys.isEmpty ? new Future(0) : connection.rawSend(_CommandUtils.mergeCommandWithStringArgs(RedisCommand.DEL, keys)).receiveInteger();
+  Future<int> mdel(List<String> keys) => keys.isEmpty ? new Future.value(0) : connection.rawSend(_CommandUtils.mergeCommandWithStringArgs(RedisCommand.DEL, keys)).receiveInteger();
 
-  Future<int> incr(String key) => connection.sendExpectInt([RedisCommand.INCR, _keyBytes(key)]);
-
-  Future<int> incrby(String key, int count) => connection.sendExpectInt([RedisCommand.INCRBY, _keyBytes(key), serializer.serialize(count)]);
-
-  Future<double> incrbyfloat(String key, double count) => connection.sendExpectDouble([RedisCommand.INCRBYFLOAT, _keyBytes(key), serializer.serialize(count)]);
-
-  Future<int> decr(String key) => connection.sendExpectInt([RedisCommand.DECR, _keyBytes(key)]);
-
-  Future<int> decrby(String key, int count) => connection.sendExpectInt([RedisCommand.DECRBY, _keyBytes(key), serializer.serialize(count)]);
-
-  Future<int> strlen(String key) => connection.sendExpectInt([RedisCommand.STRLEN, _keyBytes(key)]);
-
-  /// Wrapper for [RawRedisCommands.append].
-  Future<int> append(String key, String value) => raw.append(key, serializer.serialize(value));
-
-
-  /// Wrapper for [RawRedisCommands.substr].
-  Future<String> substr(String key, int fromIndex, int toIndex) => raw.substr(key, fromIndex, toIndex).then(_toStr);
-
-  /// Wrapper for [RawRedisCommands.getrange].
-  Future<String> getrange(String key, int fromIndex, int toIndex) => raw.getrange(key, fromIndex, toIndex).then(_toStr);
-
-  /// Wrapper for [RawRedisCommands.setrange].
-  Future<String> setrange(String key, int offset, String value) => raw.setrange(key, offset, serializer.serialize(value)).then(_toStr);
-
-  Future<int> getbit(String key, int offset) => connection.sendExpectInt([RedisCommand.GETBIT, _keyBytes(key), serializer.serialize(offset)]);
-
-  Future<int> setbit(String key, int offset, int value) => connection.sendExpectInt([RedisCommand.SETBIT, _keyBytes(key), serializer.serialize(offset), serializer.serialize(value)]);
-
-  /// Wrapper for [RawRedisCommands.randomkey].
-  Future<String> randomkey() => raw.randomkey().then(_toStr);
-
-  Future rename(String oldKey, String newKey) => connection.sendExpectSuccess([RedisCommand.RENAME, _keyBytes(oldKey), _keyBytes(newKey)]);
-
-  Future<bool> renamenx(String oldKey, String newKey) => connection.sendExpectIntSuccess([RedisCommand.RENAMENX, _keyBytes(oldKey), _keyBytes(newKey)]);
-
-  Future<bool> expire(String key, int expireInSecs) => connection.sendExpectIntSuccess([RedisCommand.EXPIRE, _keyBytes(key), serializer.serialize(expireInSecs)]);
-
-  Future<bool> pexpire(String key, int expireInMs) => connection.sendExpectIntSuccess([RedisCommand.PEXPIRE, _keyBytes(key), serializer.serialize(expireInMs)]);
-
-  /// Wrapper for [RawRedisCommands.expireat].
-  Future<bool> expireat(String key, DateTime date) => raw.expireat(key, date.toUtc().millisecondsSinceEpoch ~/ 1000);
-
-  /// Wrapper for [RawRedisCommands.pexpireat].
-  Future<bool> pexpireat(String key, DateTime date) => raw.pexpireat(key, date.toUtc().millisecondsSinceEpoch);
+//  Future<int> incr(String key) => connection.sendExpectInt([RedisCommand.INCR, _keyBytes(key)]);
+//
+//  Future<int> incrby(String key, int count) => connection.sendExpectInt([RedisCommand.INCRBY, _keyBytes(key), serializer.serialize(count)]);
+//
+//  Future<double> incrbyfloat(String key, double count) => connection.sendExpectDouble([RedisCommand.INCRBYFLOAT, _keyBytes(key), serializer.serialize(count)]);
+//
+//  Future<int> decr(String key) => connection.sendExpectInt([RedisCommand.DECR, _keyBytes(key)]);
+//
+//  Future<int> decrby(String key, int count) => connection.sendExpectInt([RedisCommand.DECRBY, _keyBytes(key), serializer.serialize(count)]);
+//
+//  Future<int> strlen(String key) => connection.sendExpectInt([RedisCommand.STRLEN, _keyBytes(key)]);
+//
+//  /// Wrapper for [RawRedisCommands.append].
+//  Future<int> append(String key, String value) => raw.append(key, serializer.serialize(value));
+//
+//
+//  /// Wrapper for [RawRedisCommands.substr].
+//  Future<String> substr(String key, int fromIndex, int toIndex) => raw.substr(key, fromIndex, toIndex).then(_toStr);
+//
+//  /// Wrapper for [RawRedisCommands.getrange].
+//  Future<String> getrange(String key, int fromIndex, int toIndex) => raw.getrange(key, fromIndex, toIndex).then(_toStr);
+//
+//  /// Wrapper for [RawRedisCommands.setrange].
+//  Future<String> setrange(String key, int offset, String value) => raw.setrange(key, offset, serializer.serialize(value)).then(_toStr);
+//
+//  Future<int> getbit(String key, int offset) => connection.sendExpectInt([RedisCommand.GETBIT, _keyBytes(key), serializer.serialize(offset)]);
+//
+//  Future<int> setbit(String key, int offset, int value) => connection.sendExpectInt([RedisCommand.SETBIT, _keyBytes(key), serializer.serialize(offset), serializer.serialize(value)]);
+//
+//  /// Wrapper for [RawRedisCommands.randomkey].
+//  Future<String> randomkey() => raw.randomkey().then(_toStr);
+//
+//  Future rename(String oldKey, String newKey) => connection.sendExpectSuccess([RedisCommand.RENAME, _keyBytes(oldKey), _keyBytes(newKey)]);
+//
+//  Future<bool> renamenx(String oldKey, String newKey) => connection.sendExpectIntSuccess([RedisCommand.RENAMENX, _keyBytes(oldKey), _keyBytes(newKey)]);
+//
+//  Future<bool> expire(String key, int expireInSecs) => connection.sendExpectIntSuccess([RedisCommand.EXPIRE, _keyBytes(key), serializer.serialize(expireInSecs)]);
+//
+//  Future<bool> pexpire(String key, int expireInMs) => connection.sendExpectIntSuccess([RedisCommand.PEXPIRE, _keyBytes(key), serializer.serialize(expireInMs)]);
+//
+//  /// Wrapper for [RawRedisCommands.expireat].
+//  Future<bool> expireat(String key, DateTime date) => raw.expireat(key, date.toUtc().millisecondsSinceEpoch ~/ 1000);
+//
+//  /// Wrapper for [RawRedisCommands.pexpireat].
+//  Future<bool> pexpireat(String key, DateTime date) => raw.pexpireat(key, date.toUtc().millisecondsSinceEpoch);
 
   /**
    * Returns the remaining time to live of a key that has a timeout.
@@ -442,270 +435,270 @@ class RedisClient {
    */
   Future<int> ttl(String key) => connection.rawSend([ RedisCommand.TTL, _keyBytes(key) ]).receiveInteger();
 
-  Future<int> pttl(String key) => connection.sendExpectInt([RedisCommand.PTTL, _keyBytes(key)]);
-
-
-
-  /// SET
-  /// ===
-
-  /// Wrapper for [RawRedisCommands.smembers].
-  Future<List<Object>> smembers(String setId) => raw.smembers(setId).then((x) => x.map(serializer.deserialize));
-
-  /// Wrapper for [RawRedisCommands.sadd].
-  Future<int> sadd(String setId, Object value) => raw.sadd(setId, serializer.serialize(value));
-
-  /// Wrapper for [RawRedisCommands.smadd].
-  Future<int> smadd(String setId, List<Object> values) => raw.smadd(setId, values.map((x) => serializer.serialize(x)));
-
-  /// Wrapper for [RawRedisCommands.srem].
-  Future<int> srem(String setId, Object value) => raw.srem(setId, serializer.serialize(value));
-
-  /// Wrapper for [RawRedisCommands.spop].
-  Future<Object> spop(String setId) => raw.spop(setId).then(serializer.deserialize);
-
-  /// Wrapper for [RawRedisCommands.smove].
-  Future<bool> smove(String fromSetId, String toSetId, Object value) => raw.smove(fromSetId, toSetId, serializer.serialize(value));
-
-  Future<int> scard(String setId) => connection.sendExpectInt([RedisCommand.SCARD, _keyBytes(setId)]);
-
-  /// Wrapper for [RawRedisCommands.sismember].
-  Future<bool> sismember(String setId, Object value) => raw.sismember(setId, serializer.serialize(value));
-
-  /// Wrapper for [RawRedisCommands.sinter].
-  Future<List<Object>> sinter(List<String> setIds) => raw.sinter(setIds).then((x) => x.map(serializer.deserialize));
-
-  /// Wrapper for [RawRedisCommands.sinterstore].
-  Future<int> sinterstore(String intoSetId, List<String> setIds) => raw.sinterstore(intoSetId, setIds);
-
-  /// Wrapper for [RawRedisCommands.sunion].
-  Future<List<Object>> sunion(List<String> setIds) => raw.sunion(setIds).then((x) => x.map(serializer.deserialize));
-
-  Future<int> sunionstore(String intoSetId, List<String> setIds) =>
-      connection.sendExpectInt(_CommandUtils.mergeCommandWithStringArgs(RedisCommand.SUNIONSTORE, $(setIds).insert(0, intoSetId)));
-
-  /// Wrapper for [RawRedisCommands.sdiff].
-  Future<List<Object>> sdiff(String fromSetId, List<String> withSetIds) => raw.sdiff(fromSetId, withSetIds).then((x) => x.map(serializer.deserialize));
-
-  Future<int> sdiffstore(String intoSetId, String fromSetId, List<String> withSetIds) {
-    withSetIds.insert(0, fromSetId);
-    withSetIds.insert(0, intoSetId);
-    return connection.sendExpectInt(_CommandUtils.mergeCommandWithStringArgs(RedisCommand.SDIFFSTORE, withSetIds));
-  }
-
-  /// Wrapper for [RawRedisCommands.srandmember].
-  Future<Object> srandmember(String setId) => raw.srandmember(setId).then(serializer.deserialize);
-
-
-
-
-  /// SORT SET/LIST
-  /// =============
-
-  Future<List<List<int>>> sort(String listOrSetId,
-    [String sortPattern, int skip, int take, String getPattern, bool sortAlpha=false, bool sortDesc=false, String storeAtKey]) {
-
-    List<List<int>> cmdWithArgs = [RedisCommand.SORT, _keyBytes(listOrSetId)];
-
-    if (sortPattern != null) {
-      cmdWithArgs.add(RedisCommand.BY);
-      cmdWithArgs.add(serializer.serialize(sortPattern));
-    }
-
-    if (skip != null || take != null) {
-      cmdWithArgs.add(RedisCommand.LIMIT);
-      cmdWithArgs.add(serializer.serialize(skip == null ? 0 : skip));
-      cmdWithArgs.add(serializer.serialize(take == null ? 0 : take));
-    }
-
-    if (getPattern != null) {
-      cmdWithArgs.add(RedisCommand.GET);
-      cmdWithArgs.add(serializer.serialize(getPattern));
-    }
-
-    if (sortDesc) cmdWithArgs.add(RedisCommand.DESC);
-
-    if (sortAlpha) cmdWithArgs.add(RedisCommand.ALPHA);
-
-    if (storeAtKey != null) {
-      cmdWithArgs.add(RedisCommand.STORE);
-      cmdWithArgs.add(serializer.serialize(storeAtKey));
-    }
-
-    return connection.sendExpectMultiData(cmdWithArgs);
-  }
-
-  //LIST
-
-
-  /// Wrapper for [RawRedisCommands.lrange].
-  Future<List<Object>> lrange(String listId, [int startingFrom=0, int endingAt=-1]) => raw.lrange(listId, startingFrom, endingAt).then((x) => x.map(serializer.deserialize));
-
-  /// Wrapper for [RawRedisCommands.lpush].
-  Future<int> lpush(String listId, Object value) => raw.lpush(listId, serializer.serialize(value));
-
-  /// Wrapper for [RawRedisCommands.mlpush].
-  Future<int> mlpush(String listId, List<Object> values) => raw.mlpush(listId, values.map((x) => serializer.serialize(x)));
-
-  /// Wrapper for [RawRedisCommands.lpushx].
-  Future<int> lpushx(String listId, Object value) => raw.lpushx(listId, serializer.serialize(value));
-
-  /// Wrapper for [RawRedisCommands.mlpushx].
-  Future<int> mlpushx(String listId, List<Object> values) => raw.mlpushx(listId, values.map((x) => serializer.serialize(x)));
-
-  /// Wrapper for [RawRedisCommands.rpush].
-  Future<int> rpush(String listId, Object value) => raw.rpush(listId, serializer.serialize(value));
-
-  /// Wrapper for [RawRedisCommands.mrpush].
-  Future<int> mrpush(String listId, List<Object> values) => raw.mrpush(listId, values.map((x) => serializer.serialize(x)));
-
-  /// Wrapper for [RawRedisCommands.rpushx].
-  Future<int> rpushx(String listId, Object value) => raw.rpushx(listId, serializer.serialize(value));
-
-  /// Wrapper for [RawRedisCommands.mrpushx].
-  Future<int> mrpushx(String listId, List<Object> values) => raw.mrpushx(listId, values.map((x) => serializer.serialize(x)));
-
-  Future ltrim(String listId, int keepStartingFrom, int keepEndingAt) => connection.sendExpectSuccess([RedisCommand.LTRIM, _keyBytes(listId), serializer.serialize(keepStartingFrom), serializer.serialize(keepEndingAt)]);
-
-  /// Wrapper for [RawRedisCommands.lrem].
-  Future<int> lrem(String listId, int removeNoOfMatches, Object value) => raw.lrem(listId, removeNoOfMatches, serializer.serialize(value));
-
-  Future<int> llen(String listId) => connection.sendExpectInt([RedisCommand.LLEN, _keyBytes(listId)]);
-
-  /// Wrapper for [RawRedisCommands.lindex].
-  Future<Object> lindex(String listId, int listIndex) => raw.lindex(listId, listIndex).then(serializer.deserialize);
-
-  /// Wrapper for [RawRedisCommands.lset].
-  Future lset(String listId, int listIndex, Object value) => raw.lset(listId, listIndex, serializer.serialize(value));
-
-  /// Wrapper for [RawRedisCommands.lpop].
-  Future<Object> lpop(String listId) => raw.lpop(listId).then(serializer.deserialize);
-
-  /// Wrapper for [RawRedisCommands.rpop].
-  Future<Object> rpop(String listId) => raw.rpop(listId).then(serializer.deserialize);
-
-  /// Wrapper for [RawRedisCommands.rpoplpush].
-  Future<Object> rpoplpush(String fromListId, String toListId) => raw.rpoplpush(fromListId, toListId).then(serializer.deserialize);
-
-
-
-  /// SORTED SETS
-  /// ===========
-
-
-  /// Wrapper for [RawRedisCommands.zadd].
-  Future<int> zadd(String setId, num score, Object value) => raw.zadd(setId, score, serializer.serialize(value));
-
-  /// Wrapper for [RawRedisCommands.zmadd].
-  Future<int> zmadd(String setId, Map<Object,num> scoresMap) {
-    List<List<int>> args = new List<List<int>>();
-    scoresMap.forEach((k,v) {
-      args.add(serializer.serialize(v));
-      args.add(serializer.serialize(k));
-    });
-    return raw.zmadd(setId, args);
-  }
-
-  /// Wrapper for [RawRedisCommands.zrem].
-  Future<int> zrem(String setId, Object value) => raw.zrem(setId, serializer.serialize(value));
-
-  /// Wrapper for [RawRedisCommands.zmrem].
-  Future<int> zmrem(String setId, List<Object> values) => raw.zmrem(setId, values.map((x) => serializer.serialize(x)));
-
-  /// Wrapper for [RawRedisCommands.zincrby].
-  Future<double> zincrby(String setId, num incrBy, Object value) => raw.zincrby(setId, incrBy, serializer.serialize(value));
-
-  /// Wrapper for [RawRedisCommands.zrank].
-  Future<int> zrank(String setId, Object value) => raw.zrank(setId, serializer.serialize(value));
-
-  /// Wrapper for [RawRedisCommands.zrevrank].
-  Future<int> zrevrank(String setId, Object value) => raw.zrevrank(setId, serializer.serialize(value));
-
-  /// Wrapper for [RawRedisCommands.zrange].
-  Future<List<Object>> zrange(String setId, int min, int max) => raw.zrange(setId, min, max).then((x) => x.map(serializer.deserialize));
-
-  /// Wrapper for [RawRedisCommands.zrangeWithScores].
-  Future<Map<Object,double>> zrangeWithScores(String setId, int min, int max) => raw.zrangeWithScores(setId, min, max).then(toScoreMap);
-
-  /// Wrapper for [RawRedisCommands.zrevrange].
-  Future<List<Object>> zrevrange(String setId, int min, int max) => raw.zrevrange(setId, min, max).then((x) => x.map(serializer.deserialize));
-
-  /// Wrapper for [RawRedisCommands.zrevrangeWithScores].
-  Future<Map<Object,double>> zrevrangeWithScores(String setId, int min, int max) => raw.zrevrangeWithScores(setId, min, max).then(toScoreMap);
-
-  /// Wrapper for [RawRedisCommands.zrangebyscore].
-  Future<List<Object>> zrangebyscore(String setId, num min, num max, [int skip, int take]) => raw.zrangebyscore(setId, min, max, skip, take).then((x) => x.map(serializer.deserialize));
-
-  /// Wrapper for [RawRedisCommands.zrangebyscoreWithScores].
-  Future<Map<Object,double>> zrangebyscoreWithScores(String setId, num min, num max, [int skip, int take]) => raw.zrangebyscoreWithScores(setId, min, max, skip, take).then(toScoreMap);
-
-  /// Wrapper for [RawRedisCommands.zrevrangebyscore].
-  Future<List<List<int>>> zrevrangebyscore(String setId, num min, num max, [int skip, int take]) => raw.zrevrangebyscore(setId, min, max, skip, take);
-
-  /// Wrapper for [RawRedisCommands.zrevrangebyscoreWithScores].
-  Future<List<List<int>>> zrevrangebyscoreWithScores(String setId, num min, num max, [int skip, int take]) => raw.zrevrangebyscoreWithScores(setId, min, max, skip, take);
-
-  Future<int> zremrangebyrank(String setId, int min, int max) => connection.sendExpectInt([RedisCommand.ZREMRANGEBYRANK, _keyBytes(setId), serializer.serialize(min), serializer.serialize(max)]);
-
-  Future<int> zremrangebyscore(String setId, num min, num max) => connection.sendExpectInt([RedisCommand.ZREMRANGEBYSCORE, _keyBytes(setId), serializer.serialize(min), serializer.serialize(max)]);
-
-  Future<int> zcard(String setId) => connection.sendExpectInt([RedisCommand.ZCARD, _keyBytes(setId)]);
-
-  /// Wrapper for [RawRedisCommands.zscore].
-  Future<double> zscore(String setId, Object value) => raw.zscore(setId, serializer.serialize(value));
-
-  Future<int> zunionstore(String intoSetId, List<String> setIds) {
-    setIds.insert(0, setIds.length.toString());
-    setIds.insert(0, intoSetId);
-    return connection.sendExpectInt(_CommandUtils.mergeCommandWithStringArgs(RedisCommand.ZUNIONSTORE, setIds));
-  }
-
-  Future<int> zinterstore(String intoSetId, List<String> setIds) {
-    setIds.insert(0, setIds.length.toString());
-    setIds.insert(0, intoSetId);
-    return connection.sendExpectInt(_CommandUtils.mergeCommandWithStringArgs(RedisCommand.ZINTERSTORE, setIds));
-  }
-
-
-
-
-  /// HASH
-  /// ====
-
-
-  /// Wrapper for [RawRedisCommands.hset].
-  Future<bool> hset(String hashId, String key, Object value) => raw.hset(hashId, key, serializer.serialize(value));
-
-  /// Wrapper for [RawRedisCommands.hsetnx].
-  Future<bool> hsetnx(String hashId, String key, Object value) => raw.hsetnx(hashId, key, serializer.serialize(value));
-
-  /// Wrapper for [RawRedisCommands.hmset].
-  Future hmset(String hashId, Map<String,Object> map) => raw.hmset(hashId, map.keys.map(serializer.serialize), map.values.map(serializer.serialize));
-
-  Future<int> hincrby(String hashId, String key, int incrBy) => connection.sendExpectInt([RedisCommand.HINCRBY, _keyBytes(hashId), _keyBytes(key), serializer.serialize(incrBy)]);
-
-  Future<double> hincrbyfloat(String hashId, String key, double incrBy) => connection.sendExpectDouble([RedisCommand.HINCRBYFLOAT, _keyBytes(hashId), _keyBytes(key), serializer.serialize(incrBy)]);
-
-  /// Wrapper for [RawRedisCommands.hget].
-  Future<Object> hget(String hashId, String key) => raw.hget(hashId, key).then(serializer.deserialize);
-
-  /// Wrapper for [RawRedisCommands.hmget].
-  Future<List<Object>> hmget(String hashId, List<String> keys) => raw.hmget(hashId, keys).then((x) => x.map(serializer.deserialize));
-
-  Future<int> hdel(String hashId, String key) => connection.sendExpectInt([RedisCommand.HDEL, _keyBytes(hashId), _keyBytes(key)]);
-
-  Future<bool> hexists(String hashId, String key) => connection.sendExpectIntSuccess([RedisCommand.HEXISTS, _keyBytes(hashId), _keyBytes(key)]);
-
-  Future<int> hlen(String hashId) => connection.sendExpectInt([RedisCommand.HLEN, _keyBytes(hashId)]);
-
-  Future<List<String>> hkeys(String hashId) => connection.sendExpectMultiData([RedisCommand.HKEYS, _keyBytes(hashId)]).then((bytes) => bytes.map((x) => new String.fromCharCodes(x)));
-
-  /// Wrapper for [RawRedisCommands.hvals].
-  Future<List<Object>> hvals(String hashId) => raw.hvals(hashId).then((x) => x.map(serializer.deserialize));
-
-  /// Wrapper for [RawRedisCommands.hgetall].
-  Future<Map<String,Object>> hgetall(String hashId) => raw.hgetall(hashId).then(toMap);
-
+//  Future<int> pttl(String key) => connection.sendExpectInt([RedisCommand.PTTL, _keyBytes(key)]);
+//
+//
+//
+//  /// SET
+//  /// ===
+//
+//  /// Wrapper for [RawRedisCommands.smembers].
+//  Future<List<Object>> smembers(String setId) => raw.smembers(setId).then((x) => x.map(serializer.deserialize));
+//
+//  /// Wrapper for [RawRedisCommands.sadd].
+//  Future<int> sadd(String setId, Object value) => raw.sadd(setId, serializer.serialize(value));
+//
+//  /// Wrapper for [RawRedisCommands.smadd].
+//  Future<int> smadd(String setId, List<Object> values) => raw.smadd(setId, values.map((x) => serializer.serialize(x)));
+//
+//  /// Wrapper for [RawRedisCommands.srem].
+//  Future<int> srem(String setId, Object value) => raw.srem(setId, serializer.serialize(value));
+//
+//  /// Wrapper for [RawRedisCommands.spop].
+//  Future<Object> spop(String setId) => raw.spop(setId).then(serializer.deserialize);
+//
+//  /// Wrapper for [RawRedisCommands.smove].
+//  Future<bool> smove(String fromSetId, String toSetId, Object value) => raw.smove(fromSetId, toSetId, serializer.serialize(value));
+//
+//  Future<int> scard(String setId) => connection.sendExpectInt([RedisCommand.SCARD, _keyBytes(setId)]);
+//
+//  /// Wrapper for [RawRedisCommands.sismember].
+//  Future<bool> sismember(String setId, Object value) => raw.sismember(setId, serializer.serialize(value));
+//
+//  /// Wrapper for [RawRedisCommands.sinter].
+//  Future<List<Object>> sinter(List<String> setIds) => raw.sinter(setIds).then((x) => x.map(serializer.deserialize));
+//
+//  /// Wrapper for [RawRedisCommands.sinterstore].
+//  Future<int> sinterstore(String intoSetId, List<String> setIds) => raw.sinterstore(intoSetId, setIds);
+//
+//  /// Wrapper for [RawRedisCommands.sunion].
+//  Future<List<Object>> sunion(List<String> setIds) => raw.sunion(setIds).then((x) => x.map(serializer.deserialize));
+//
+//  Future<int> sunionstore(String intoSetId, List<String> setIds) =>
+//      connection.sendExpectInt(_CommandUtils.mergeCommandWithStringArgs(RedisCommand.SUNIONSTORE, $(setIds).insert(0, intoSetId)));
+//
+//  /// Wrapper for [RawRedisCommands.sdiff].
+//  Future<List<Object>> sdiff(String fromSetId, List<String> withSetIds) => raw.sdiff(fromSetId, withSetIds).then((x) => x.map(serializer.deserialize));
+//
+//  Future<int> sdiffstore(String intoSetId, String fromSetId, List<String> withSetIds) {
+//    withSetIds.insert(0, fromSetId);
+//    withSetIds.insert(0, intoSetId);
+//    return connection.sendExpectInt(_CommandUtils.mergeCommandWithStringArgs(RedisCommand.SDIFFSTORE, withSetIds));
+//  }
+//
+//  /// Wrapper for [RawRedisCommands.srandmember].
+//  Future<Object> srandmember(String setId) => raw.srandmember(setId).then(serializer.deserialize);
+//
+//
+//
+//
+//  /// SORT SET/LIST
+//  /// =============
+//
+//  Future<List<List<int>>> sort(String listOrSetId,
+//    [String sortPattern, int skip, int take, String getPattern, bool sortAlpha=false, bool sortDesc=false, String storeAtKey]) {
+//
+//    List<List<int>> cmdWithArgs = [RedisCommand.SORT, _keyBytes(listOrSetId)];
+//
+//    if (sortPattern != null) {
+//      cmdWithArgs.add(RedisCommand.BY);
+//      cmdWithArgs.add(serializer.serialize(sortPattern));
+//    }
+//
+//    if (skip != null || take != null) {
+//      cmdWithArgs.add(RedisCommand.LIMIT);
+//      cmdWithArgs.add(serializer.serialize(skip == null ? 0 : skip));
+//      cmdWithArgs.add(serializer.serialize(take == null ? 0 : take));
+//    }
+//
+//    if (getPattern != null) {
+//      cmdWithArgs.add(RedisCommand.GET);
+//      cmdWithArgs.add(serializer.serialize(getPattern));
+//    }
+//
+//    if (sortDesc) cmdWithArgs.add(RedisCommand.DESC);
+//
+//    if (sortAlpha) cmdWithArgs.add(RedisCommand.ALPHA);
+//
+//    if (storeAtKey != null) {
+//      cmdWithArgs.add(RedisCommand.STORE);
+//      cmdWithArgs.add(serializer.serialize(storeAtKey));
+//    }
+//
+//    return connection.sendExpectMultiData(cmdWithArgs);
+//  }
+//
+//  //LIST
+//
+//
+//  /// Wrapper for [RawRedisCommands.lrange].
+//  Future<List<Object>> lrange(String listId, [int startingFrom=0, int endingAt=-1]) => raw.lrange(listId, startingFrom, endingAt).then((x) => x.map(serializer.deserialize));
+//
+//  /// Wrapper for [RawRedisCommands.lpush].
+//  Future<int> lpush(String listId, Object value) => raw.lpush(listId, serializer.serialize(value));
+//
+//  /// Wrapper for [RawRedisCommands.mlpush].
+//  Future<int> mlpush(String listId, List<Object> values) => raw.mlpush(listId, values.map((x) => serializer.serialize(x)));
+//
+//  /// Wrapper for [RawRedisCommands.lpushx].
+//  Future<int> lpushx(String listId, Object value) => raw.lpushx(listId, serializer.serialize(value));
+//
+//  /// Wrapper for [RawRedisCommands.mlpushx].
+//  Future<int> mlpushx(String listId, List<Object> values) => raw.mlpushx(listId, values.map((x) => serializer.serialize(x)));
+//
+//  /// Wrapper for [RawRedisCommands.rpush].
+//  Future<int> rpush(String listId, Object value) => raw.rpush(listId, serializer.serialize(value));
+//
+//  /// Wrapper for [RawRedisCommands.mrpush].
+//  Future<int> mrpush(String listId, List<Object> values) => raw.mrpush(listId, values.map((x) => serializer.serialize(x)));
+//
+//  /// Wrapper for [RawRedisCommands.rpushx].
+//  Future<int> rpushx(String listId, Object value) => raw.rpushx(listId, serializer.serialize(value));
+//
+//  /// Wrapper for [RawRedisCommands.mrpushx].
+//  Future<int> mrpushx(String listId, List<Object> values) => raw.mrpushx(listId, values.map((x) => serializer.serialize(x)));
+//
+//  Future ltrim(String listId, int keepStartingFrom, int keepEndingAt) => connection.sendExpectSuccess([RedisCommand.LTRIM, _keyBytes(listId), serializer.serialize(keepStartingFrom), serializer.serialize(keepEndingAt)]);
+//
+//  /// Wrapper for [RawRedisCommands.lrem].
+//  Future<int> lrem(String listId, int removeNoOfMatches, Object value) => raw.lrem(listId, removeNoOfMatches, serializer.serialize(value));
+//
+//  Future<int> llen(String listId) => connection.sendExpectInt([RedisCommand.LLEN, _keyBytes(listId)]);
+//
+//  /// Wrapper for [RawRedisCommands.lindex].
+//  Future<Object> lindex(String listId, int listIndex) => raw.lindex(listId, listIndex).then(serializer.deserialize);
+//
+//  /// Wrapper for [RawRedisCommands.lset].
+//  Future lset(String listId, int listIndex, Object value) => raw.lset(listId, listIndex, serializer.serialize(value));
+//
+//  /// Wrapper for [RawRedisCommands.lpop].
+//  Future<Object> lpop(String listId) => raw.lpop(listId).then(serializer.deserialize);
+//
+//  /// Wrapper for [RawRedisCommands.rpop].
+//  Future<Object> rpop(String listId) => raw.rpop(listId).then(serializer.deserialize);
+//
+//  /// Wrapper for [RawRedisCommands.rpoplpush].
+//  Future<Object> rpoplpush(String fromListId, String toListId) => raw.rpoplpush(fromListId, toListId).then(serializer.deserialize);
+//
+//
+//
+//  /// SORTED SETS
+//  /// ===========
+//
+//
+//  /// Wrapper for [RawRedisCommands.zadd].
+//  Future<int> zadd(String setId, num score, Object value) => raw.zadd(setId, score, serializer.serialize(value));
+//
+//  /// Wrapper for [RawRedisCommands.zmadd].
+//  Future<int> zmadd(String setId, Map<Object,num> scoresMap) {
+//    List<List<int>> args = new List<List<int>>();
+//    scoresMap.forEach((k,v) {
+//      args.add(serializer.serialize(v));
+//      args.add(serializer.serialize(k));
+//    });
+//    return raw.zmadd(setId, args);
+//  }
+//
+//  /// Wrapper for [RawRedisCommands.zrem].
+//  Future<int> zrem(String setId, Object value) => raw.zrem(setId, serializer.serialize(value));
+//
+//  /// Wrapper for [RawRedisCommands.zmrem].
+//  Future<int> zmrem(String setId, List<Object> values) => raw.zmrem(setId, values.map((x) => serializer.serialize(x)));
+//
+//  /// Wrapper for [RawRedisCommands.zincrby].
+//  Future<double> zincrby(String setId, num incrBy, Object value) => raw.zincrby(setId, incrBy, serializer.serialize(value));
+//
+//  /// Wrapper for [RawRedisCommands.zrank].
+//  Future<int> zrank(String setId, Object value) => raw.zrank(setId, serializer.serialize(value));
+//
+//  /// Wrapper for [RawRedisCommands.zrevrank].
+//  Future<int> zrevrank(String setId, Object value) => raw.zrevrank(setId, serializer.serialize(value));
+//
+//  /// Wrapper for [RawRedisCommands.zrange].
+//  Future<List<Object>> zrange(String setId, int min, int max) => raw.zrange(setId, min, max).then((x) => x.map(serializer.deserialize));
+//
+//  /// Wrapper for [RawRedisCommands.zrangeWithScores].
+//  Future<Map<Object,double>> zrangeWithScores(String setId, int min, int max) => raw.zrangeWithScores(setId, min, max).then(toScoreMap);
+//
+//  /// Wrapper for [RawRedisCommands.zrevrange].
+//  Future<List<Object>> zrevrange(String setId, int min, int max) => raw.zrevrange(setId, min, max).then((x) => x.map(serializer.deserialize));
+//
+//  /// Wrapper for [RawRedisCommands.zrevrangeWithScores].
+//  Future<Map<Object,double>> zrevrangeWithScores(String setId, int min, int max) => raw.zrevrangeWithScores(setId, min, max).then(toScoreMap);
+//
+//  /// Wrapper for [RawRedisCommands.zrangebyscore].
+//  Future<List<Object>> zrangebyscore(String setId, num min, num max, [int skip, int take]) => raw.zrangebyscore(setId, min, max, skip, take).then((x) => x.map(serializer.deserialize));
+//
+//  /// Wrapper for [RawRedisCommands.zrangebyscoreWithScores].
+//  Future<Map<Object,double>> zrangebyscoreWithScores(String setId, num min, num max, [int skip, int take]) => raw.zrangebyscoreWithScores(setId, min, max, skip, take).then(toScoreMap);
+//
+//  /// Wrapper for [RawRedisCommands.zrevrangebyscore].
+//  Future<List<List<int>>> zrevrangebyscore(String setId, num min, num max, [int skip, int take]) => raw.zrevrangebyscore(setId, min, max, skip, take);
+//
+//  /// Wrapper for [RawRedisCommands.zrevrangebyscoreWithScores].
+//  Future<List<List<int>>> zrevrangebyscoreWithScores(String setId, num min, num max, [int skip, int take]) => raw.zrevrangebyscoreWithScores(setId, min, max, skip, take);
+//
+//  Future<int> zremrangebyrank(String setId, int min, int max) => connection.sendExpectInt([RedisCommand.ZREMRANGEBYRANK, _keyBytes(setId), serializer.serialize(min), serializer.serialize(max)]);
+//
+//  Future<int> zremrangebyscore(String setId, num min, num max) => connection.sendExpectInt([RedisCommand.ZREMRANGEBYSCORE, _keyBytes(setId), serializer.serialize(min), serializer.serialize(max)]);
+//
+//  Future<int> zcard(String setId) => connection.sendExpectInt([RedisCommand.ZCARD, _keyBytes(setId)]);
+//
+//  /// Wrapper for [RawRedisCommands.zscore].
+//  Future<double> zscore(String setId, Object value) => raw.zscore(setId, serializer.serialize(value));
+//
+//  Future<int> zunionstore(String intoSetId, List<String> setIds) {
+//    setIds.insert(0, setIds.length.toString());
+//    setIds.insert(0, intoSetId);
+//    return connection.sendExpectInt(_CommandUtils.mergeCommandWithStringArgs(RedisCommand.ZUNIONSTORE, setIds));
+//  }
+//
+//  Future<int> zinterstore(String intoSetId, List<String> setIds) {
+//    setIds.insert(0, setIds.length.toString());
+//    setIds.insert(0, intoSetId);
+//    return connection.sendExpectInt(_CommandUtils.mergeCommandWithStringArgs(RedisCommand.ZINTERSTORE, setIds));
+//  }
+//
+//
+//
+//
+//  /// HASH
+//  /// ====
+//
+//
+//  /// Wrapper for [RawRedisCommands.hset].
+//  Future<bool> hset(String hashId, String key, Object value) => raw.hset(hashId, key, serializer.serialize(value));
+//
+//  /// Wrapper for [RawRedisCommands.hsetnx].
+//  Future<bool> hsetnx(String hashId, String key, Object value) => raw.hsetnx(hashId, key, serializer.serialize(value));
+//
+//  /// Wrapper for [RawRedisCommands.hmset].
+//  Future hmset(String hashId, Map<String,Object> map) => raw.hmset(hashId, map.keys.map(serializer.serialize), map.values.map(serializer.serialize));
+//
+//  Future<int> hincrby(String hashId, String key, int incrBy) => connection.sendExpectInt([RedisCommand.HINCRBY, _keyBytes(hashId), _keyBytes(key), serializer.serialize(incrBy)]);
+//
+//  Future<double> hincrbyfloat(String hashId, String key, double incrBy) => connection.sendExpectDouble([RedisCommand.HINCRBYFLOAT, _keyBytes(hashId), _keyBytes(key), serializer.serialize(incrBy)]);
+//
+//  /// Wrapper for [RawRedisCommands.hget].
+//  Future<Object> hget(String hashId, String key) => raw.hget(hashId, key).then(serializer.deserialize);
+//
+//  /// Wrapper for [RawRedisCommands.hmget].
+//  Future<List<Object>> hmget(String hashId, List<String> keys) => raw.hmget(hashId, keys).then((x) => x.map(serializer.deserialize));
+//
+//  Future<int> hdel(String hashId, String key) => connection.sendExpectInt([RedisCommand.HDEL, _keyBytes(hashId), _keyBytes(key)]);
+//
+//  Future<bool> hexists(String hashId, String key) => connection.sendExpectIntSuccess([RedisCommand.HEXISTS, _keyBytes(hashId), _keyBytes(key)]);
+//
+//  Future<int> hlen(String hashId) => connection.sendExpectInt([RedisCommand.HLEN, _keyBytes(hashId)]);
+//
+//  Future<List<String>> hkeys(String hashId) => connection.sendExpectMultiData([RedisCommand.HKEYS, _keyBytes(hashId)]).then((bytes) => bytes.map((x) => new String.fromCharCodes(x)));
+//
+//  /// Wrapper for [RawRedisCommands.hvals].
+//  Future<List<Object>> hvals(String hashId) => raw.hvals(hashId).then((x) => x.map(serializer.deserialize));
+//
+//  /// Wrapper for [RawRedisCommands.hgetall].
+//  Future<Map<String,Object>> hgetall(String hashId) => raw.hgetall(hashId).then(toMap);
+//
 
 
 }
