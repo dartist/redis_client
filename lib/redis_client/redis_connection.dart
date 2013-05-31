@@ -328,7 +328,7 @@ class Receiver {
    * Note that **all** redis replies are checked for valid syntax and format.
    * This reply just doesn't check for a specific reply type.
    */
-  Future receive() => _received;
+  Future<RedisReply> receive() => _received;
 
   /**
    * Checks that the received reply is of type [IntegerReply].
