@@ -177,7 +177,7 @@ class _RedisConnection implements RedisConnection {
               .transform(new RedisProtocolTransformer())
               .listen(_onRedisReply, onError: _onStreamError, onDone: _onStreamDone);
 
-          if (password != null) return _authenticate();
+          if (password != null) return _authenticate(password);
         })
         .then((_) {
           if (db > 0) return select();
@@ -205,7 +205,7 @@ class _RedisConnection implements RedisConnection {
   }
 
   /// Authenticates with configured password.
-  Future _authenticate(String _password) => sendExpectSuccess([ "AUTH", password ]);
+  Future _authenticate(String _password) => send([ "AUTH", password ]).receive();
 
 
 
