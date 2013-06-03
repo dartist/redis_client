@@ -62,29 +62,12 @@ abstract class RedisConnection {
   /// Sends the commands already in binary.
   Receiver rawSend(List<List<int>> cmdWithArgs);
 
-//
-//  Future<String> sendExpectCode(List<List> cmdWithArgs);
-//
-//  Future<Object> sendExpectSuccess(List<List> cmdWithArgs);
-//
-//  Future<int> sendExpectInt(List<List> cmdWithArgs);
-//
-//  Future<bool> sendExpectIntSuccess(List<List> cmdWithArgs);
-//
-//  Future<List<int>> sendExpectData(List<List> cmdWithArgs);
-//
-//  Future<List<List<int>>> sendExpectMultiData(List<List> cmdWithArgs);
-//
-//  Future<String> sendExpectString(List<List> cmdWithArgs);
-//
-//  Future<double> sendExpectDouble(List<List> cmdWithArgs);
-
 
 }
 
 
 /// The actual implementation of the [RedisConnection].
-class _RedisConnection implements RedisConnection {
+class _RedisConnection extends RedisConnection {
 
 
   // Connection settings
@@ -217,7 +200,7 @@ class _RedisConnection implements RedisConnection {
 
   /// Handles new data received from stream.
   void _onRedisReply(RedisReply redisReply) {
-    logger.info("Received reply: $redisReply");
+    logger.fine("Received reply: $redisReply");
     if (_pendingResponses.length == 0 || _pendingResponses.last.reply != null) {
       if (redisReply is ErrorReply) {
         logger.warning("Received error from redis: ${redisReply.error}");
