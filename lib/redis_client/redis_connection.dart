@@ -327,6 +327,14 @@ class Receiver {
 
 
   /**
+   * Uses [receiveBulkString] and casts it to a double.
+   */
+  Future<double> receiveDouble() {
+    return receiveBulkString().then((doubleString) => double.parse(doubleString));
+  }
+
+
+  /**
    * Checks that the received reply is of type [ErrorReply].
    */
   Future<String> receiveError() {

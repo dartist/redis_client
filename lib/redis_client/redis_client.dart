@@ -407,8 +407,21 @@ class RedisClient {
    * This operation is limited to 64 bit signed integers.
    */
    Future<int> incrby(String key, int count) => connection.rawSend([ RedisCommand.INCRBY, _keyBytes(key), serializer.serialize(count) ]).receiveInteger();
-//
-//  Future<double> incrbyfloat(String key, double count) => connection.sendExpectDouble([RedisCommand.INCRBYFLOAT, _keyBytes(key), serializer.serialize(count)]);
+
+   /**
+    * Increment the string representing a floating point number stored at key
+    * by the specified increment and returns the value after the increment.
+    *
+    * If the key does not exist, it is set to 0 before performing the operation.
+    * An error is returned if one of the following conditions occur:
+    *
+    * - The key contains a value of the wrong type (not a string).
+    * - The current key content or the specified increment are not parsable as a double precision floating point number.
+    *
+    * See the [official documentation](http://redis.io/commands/incrbyfloat) for
+    * more information.
+    */
+    Future<double> incrbyfloat(String key, double count) => connection.rawSend([ RedisCommand.INCRBYFLOAT, _keyBytes(key), serializer.serialize(count) ]).receiveDouble();
 //
 //  Future<int> decr(String key) => connection.sendExpectInt([RedisCommand.DECR, _keyBytes(key)]);
 //

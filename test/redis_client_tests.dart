@@ -312,41 +312,51 @@ invalid_line
 
       test("DEL", () {
         async(
-            client.del("keyname")
-            .then((bool value) => expect(value, equals(false)))
-            .then((_) => client.set("keyname", "test"))
-            .then((_) => client.del("keyname"))
-            .then((bool value) => expect(value, equals(true)))
+          client.del("keyname")
+              .then((bool value) => expect(value, equals(false)))
+              .then((_) => client.set("keyname", "test"))
+              .then((_) => client.del("keyname"))
+              .then((bool value) => expect(value, equals(true)))
         );
       });
 
       test("MDEL", () {
         async(
-            client.mdel([ "keyname", "keyname2", "keyname3" ])
-            .then((int value) => expect(value, equals(0)))
-            .then((_) => client.mset({ "keyname2": "test", "keyname3": "test" }))
-            .then((_) => client.mdel([ "keyname", "keyname2", "keyname3" ]))
-            .then((int value) => expect(value, equals(2)))
+          client.mdel([ "keyname", "keyname2", "keyname3" ])
+              .then((int value) => expect(value, equals(0)))
+              .then((_) => client.mset({ "keyname2": "test", "keyname3": "test" }))
+              .then((_) => client.mdel([ "keyname", "keyname2", "keyname3" ]))
+              .then((int value) => expect(value, equals(2)))
         );
       });
 
       test("INCR", () {
         async(
-            client.set("some-field", 12)
-            .then((_) => client.incr("some-field"))
-            .then((num inc) => expect(inc, equals(13)))
-            .then((_) => client.get("some-field"))
-            .then((int value) => expect(value, equals(13)))
+          client.set("some-field", 12)
+              .then((_) => client.incr("some-field"))
+              .then((num inc) => expect(inc, equals(13)))
+              .then((_) => client.get("some-field"))
+              .then((int value) => expect(value, equals(13)))
         );
       });
 
       test("INCRBY", () {
         async(
-            client.set("some-field", 12)
-            .then((_) => client.incrby("some-field", 4))
-            .then((num inc) => expect(inc, equals(16)))
+          client.set("some-field", 12)
+              .then((_) => client.incrby("some-field", 4))
+              .then((num inc) => expect(inc, equals(16)))
+              .then((_) => client.get("some-field"))
+              .then((int value) => expect(value, equals(16)))
+        );
+      });
+
+      test("INCRBYFLOAT", () {
+        async(
+            client.set("some-field", 12.5)
+            .then((_) => client.incrbyfloat("some-field", 4.3))
+            .then((double inc) => expect(inc, equals(16.8)))
             .then((_) => client.get("some-field"))
-            .then((int value) => expect(value, equals(16)))
+            .then((double value) => expect(value, equals(16.8)))
         );
       });
 
