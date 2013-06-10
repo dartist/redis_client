@@ -1,0 +1,1949 @@
+        <!DOCTYPE html>
+        <html>
+        <head>
+                <meta charset="utf-8">
+        <title>RedisCommand class / redis_client Library / Dart Documentation</title>
+        <link rel="stylesheet" type="text/css"
+            href="../styles.css">
+        <link href="//fonts.googleapis.com/css?family=Open+Sans:400,600,700,800" rel="stylesheet" type="text/css">
+        <link rel="shortcut icon" href="../favicon.ico">
+        
+        </head>
+        <body data-library="redis_client" data-type="RedisCommand">
+        <div class="page">
+        <div class="header">
+          <a href="../index.html"><div class="logo"></div></a>
+          <a href="../index.html">Dart Documentation</a>
+         &rsaquo; <a href="../redis_client.html">redis_client</a> &rsaquo; <a href="../redis_client/RedisCommand.html">RedisCommand</a>        <div id="search-box">
+          <input type="search" name="q" id="q" autocomplete="off"
+              class="search-input" placeholder="Search API">
+        </div>
+        
+      </div>
+      <div class="drop-down" id="drop-down"></div>
+      
+        <div class="nav">
+        
+</div>
+<div class="content">
+        <h2><strong>RedisCommand</strong>
+          class
+        </h2>
+        
+<button id="show-inherited" class="show-inherited">Hide inherited</button>
+<div class="doc">
+<p>All available commands.</p>
+<p>TODO change to lazy static initializers</p>
+<pre class="source">
+class RedisCommand {
+
+ // No need to use runes since all commands are ASCII
+ static List&lt;int&gt; _chars(String command) =&gt; command.codeUnits;
+
+ // ADMIN
+ static List&lt;int&gt; get DBSIZE =&gt; _chars("DBSIZE");
+ static List&lt;int&gt; get INFO =&gt; _chars("INFO");
+ static List&lt;int&gt; get LASTSAVE =&gt; _chars("LASTSAVE");
+ static List&lt;int&gt; get PING =&gt; _chars("PING");
+ static List&lt;int&gt; get ECHO =&gt; _chars("ECHO");
+ static List&lt;int&gt; get SLAVEOF =&gt; _chars("SLAVEOF");
+ static List&lt;int&gt; get NO =&gt; _chars("NO");
+ static List&lt;int&gt; get ONE =&gt; _chars("ONE");
+ static List&lt;int&gt; get CONFIG =&gt; _chars("CONFIG"); //GET SET
+ static List&lt;int&gt; get RESETSTAT =&gt; _chars("RESETSTAT");
+ static List&lt;int&gt; get TIME =&gt; _chars("TIME");
+ static List&lt;int&gt; get DEBUG =&gt; _chars("DEBUG"); //OBJECT SEGFAULT
+ static List&lt;int&gt; get SEGFAULT =&gt; _chars("SEGFAULT");
+ static List&lt;int&gt; get RESTORE =&gt; _chars("RESTORE");
+ static List&lt;int&gt; get MIGRATE =&gt; _chars("MIGRATE");
+ static List&lt;int&gt; get MOVE =&gt; _chars("MOVE");
+ static List&lt;int&gt; get OBJECT =&gt; _chars("OBJECT"); //REFCOUNT ENCODING IDLETIME
+ static List&lt;int&gt; get REFCOUNT =&gt; _chars("REFCOUNT");
+ static List&lt;int&gt; get ENCODING =&gt; _chars("ENCODING");
+ static List&lt;int&gt; get IDLETIME =&gt; _chars("IDLETIME");
+ static List&lt;int&gt; get SAVE =&gt; _chars("SAVE");
+ static List&lt;int&gt; get BGSAVE =&gt; _chars("BGSAVE");
+ static List&lt;int&gt; get SHUTDOWN =&gt; _chars("SHUTDOWN");
+ static List&lt;int&gt; get BGREWRITEAOF =&gt; _chars("BGREWRITEAOF");
+ static List&lt;int&gt; get QUIT =&gt; _chars("QUIT");
+ static List&lt;int&gt; get FLUSHDB =&gt; _chars("FLUSHDB");
+ static List&lt;int&gt; get FLUSHALL =&gt; _chars("FLUSHALL");
+ static List&lt;int&gt; get KEYS =&gt; _chars("KEYS");
+ static List&lt;int&gt; get SLOWLOG =&gt; _chars("SLOWLOG");
+
+ // Keys
+ static List&lt;int&gt; get TYPE =&gt; _chars("TYPE");
+ static List&lt;int&gt; get STRLEN =&gt; _chars("STRLEN");
+ static List&lt;int&gt; get SET =&gt; _chars("SET");
+ static List&lt;int&gt; get GET =&gt; _chars("GET");
+ static List&lt;int&gt; get DEL =&gt; _chars("DEL");
+ static List&lt;int&gt; get SETEX =&gt; _chars("SETEX");
+ static List&lt;int&gt; get PSETEX =&gt; _chars("PSETEX");
+ static List&lt;int&gt; get SETNX =&gt; _chars("SETNX");
+ static List&lt;int&gt; get PERSIST =&gt; _chars("PERSIST");
+ static List&lt;int&gt; get MSET =&gt; _chars("MSET");
+ static List&lt;int&gt; get MSETNX =&gt; _chars("MSETNX");
+ static List&lt;int&gt; get GETSET =&gt; _chars("GETSET");
+ static List&lt;int&gt; get EXISTS =&gt; _chars("EXISTS");
+ static List&lt;int&gt; get INCR =&gt; _chars("INCR");
+ static List&lt;int&gt; get INCRBY =&gt; _chars("INCRBY");
+ static List&lt;int&gt; get INCRBYFLOAT =&gt; _chars("INCRBYFLOAT");
+ static List&lt;int&gt; get DECR =&gt; _chars("DECR");
+ static List&lt;int&gt; get DECRBY =&gt; _chars("DECRBY");
+ static List&lt;int&gt; get APPEND =&gt; _chars("APPEND");
+ static List&lt;int&gt; get SUBSTR =&gt; _chars("SUBSTR");
+ static List&lt;int&gt; get GETRANGE =&gt; _chars("GETRANGE");
+ static List&lt;int&gt; get SETRANGE =&gt; _chars("SETRANGE");
+ static List&lt;int&gt; get GETBIT =&gt; _chars("GETBIT");
+ static List&lt;int&gt; get SETBIT =&gt; _chars("SETBIT");
+ static List&lt;int&gt; get RANDOMKEY =&gt; _chars("RANDOMKEY");
+ static List&lt;int&gt; get RENAME =&gt; _chars("RENAME");
+ static List&lt;int&gt; get RENAMENX =&gt; _chars("RENAMENX");
+ static List&lt;int&gt; get EXPIRE =&gt; _chars("EXPIRE");
+ static List&lt;int&gt; get PEXPIRE =&gt; _chars("PEXPIRE");
+ static List&lt;int&gt; get EXPIREAT =&gt; _chars("EXPIREAT");
+ static List&lt;int&gt; get PEXPIREAT =&gt; _chars("PEXPIREAT");
+ static List&lt;int&gt; get TTL =&gt; _chars("TTL");
+ static List&lt;int&gt; get PTTL =&gt; _chars("PTTL");
+
+ // Transactions
+ static List&lt;int&gt; get MGET =&gt; _chars("MGET");
+ static List&lt;int&gt; get WATCH =&gt; _chars("WATCH");
+ static List&lt;int&gt; get UNWATCH =&gt; _chars("UNWATCH");
+ static List&lt;int&gt; get MULTI =&gt; _chars("MULTI");
+ static List&lt;int&gt; get EXEC =&gt; _chars("EXEC");
+ static List&lt;int&gt; get DISCARD =&gt; _chars("DISCARD");
+
+ // SET
+ static List&lt;int&gt; get SMEMBERS =&gt; _chars("SMEMBERS");
+ static List&lt;int&gt; get SADD =&gt; _chars("SADD");
+ static List&lt;int&gt; get SREM =&gt; _chars("SREM");
+ static List&lt;int&gt; get SPOP =&gt; _chars("SPOP");
+ static List&lt;int&gt; get SMOVE =&gt; _chars("SMOVE");
+ static List&lt;int&gt; get SCARD =&gt; _chars("SCARD");
+ static List&lt;int&gt; get SISMEMBER =&gt; _chars("SISMEMBER");
+ static List&lt;int&gt; get SINTER =&gt; _chars("SINTER");
+ static List&lt;int&gt; get SINTERSTORE =&gt; _chars("SINTERSTORE");
+ static List&lt;int&gt; get SUNION =&gt; _chars("SUNION");
+ static List&lt;int&gt; get SUNIONSTORE =&gt; _chars("SUNIONSTORE");
+ static List&lt;int&gt; get SDIFF =&gt; _chars("SDIFF");
+ static List&lt;int&gt; get SDIFFSTORE =&gt; _chars("SDIFFSTORE");
+ static List&lt;int&gt; get SRANDMEMBER =&gt; _chars("SRANDMEMBER");
+
+ // Sort Set/List
+ static List&lt;int&gt; get SORT =&gt; _chars("SORT"); //BY LIMIT GET DESC ALPHA STORE
+ static List&lt;int&gt; get BY =&gt; _chars("BY");
+ static List&lt;int&gt; get DESC =&gt; _chars("DESC");
+ static List&lt;int&gt; get ALPHA =&gt; _chars("ALPHA");
+ static List&lt;int&gt; get STORE =&gt; _chars("STORE");
+
+ // List
+ static List&lt;int&gt; get LRANGE =&gt; _chars("LRANGE");
+ static List&lt;int&gt; get RPUSH =&gt; _chars("RPUSH");
+ static List&lt;int&gt; get RPUSHX =&gt; _chars("RPUSHX");
+ static List&lt;int&gt; get LPUSH =&gt; _chars("LPUSH");
+ static List&lt;int&gt; get LPUSHX =&gt; _chars("LPUSHX");
+ static List&lt;int&gt; get LTRIM =&gt; _chars("LTRIM");
+ static List&lt;int&gt; get LREM =&gt; _chars("LREM");
+ static List&lt;int&gt; get LLEN =&gt; _chars("LLEN");
+ static List&lt;int&gt; get LINDEX =&gt; _chars("LINDEX");
+ static List&lt;int&gt; get LINSERT =&gt; _chars("LINSERT");
+ static List&lt;int&gt; get AFTER =&gt; _chars("AFTER");
+ static List&lt;int&gt; get BEFORE =&gt; _chars("BEFORE");
+ static List&lt;int&gt; get LSET =&gt; _chars("LSET");
+ static List&lt;int&gt; get LPOP =&gt; _chars("LPOP");
+ static List&lt;int&gt; get RPOP =&gt; _chars("RPOP");
+ static List&lt;int&gt; get BLPOP =&gt; _chars("BLPOP");
+ static List&lt;int&gt; get BRPOP =&gt; _chars("BRPOP");
+ static List&lt;int&gt; get RPOPLPUSH =&gt; _chars("RPOPLPUSH");
+
+ // Sorted Sets
+ static List&lt;int&gt; get ZADD =&gt; _chars("ZADD");
+ static List&lt;int&gt; get ZREM =&gt; _chars("ZREM");
+ static List&lt;int&gt; get ZINCRBY =&gt; _chars("ZINCRBY");
+ static List&lt;int&gt; get ZRANK =&gt; _chars("ZRANK");
+ static List&lt;int&gt; get ZREVRANK =&gt; _chars("ZREVRANK");
+ static List&lt;int&gt; get ZRANGE =&gt; _chars("ZRANGE");
+ static List&lt;int&gt; get ZREVRANGE =&gt; _chars("ZREVRANGE");
+ static List&lt;int&gt; get WITHSCORES =&gt; _chars("WITHSCORES");
+ static List&lt;int&gt; get LIMIT =&gt; _chars("LIMIT");
+ static List&lt;int&gt; get ZRANGEBYSCORE =&gt; _chars("ZRANGEBYSCORE");
+ static List&lt;int&gt; get ZREVRANGEBYSCORE =&gt; _chars("ZREVRANGEBYSCORE");
+ static List&lt;int&gt; get ZREMRANGEBYRANK =&gt; _chars("ZREMRANGEBYRANK");
+ static List&lt;int&gt; get ZREMRANGEBYSCORE =&gt; _chars("ZREMRANGEBYSCORE");
+ static List&lt;int&gt; get ZCARD =&gt; _chars("ZCARD");
+ static List&lt;int&gt; get ZSCORE =&gt; _chars("ZSCORE");
+ static List&lt;int&gt; get ZUNIONSTORE =&gt; _chars("ZUNIONSTORE");
+ static List&lt;int&gt; get ZINTERSTORE =&gt; _chars("ZINTERSTORE");
+
+ // Hash
+ static List&lt;int&gt; get HSET =&gt; _chars("HSET");
+ static List&lt;int&gt; get HSETNX =&gt; _chars("HSETNX");
+ static List&lt;int&gt; get HMSET =&gt; _chars("HMSET");
+ static List&lt;int&gt; get HINCRBY =&gt; _chars("HINCRBY");
+ static List&lt;int&gt; get HINCRBYFLOAT =&gt; _chars("HINCRBYFLOAT");
+ static List&lt;int&gt; get HGET =&gt; _chars("HGET");
+ static List&lt;int&gt; get HMGET =&gt; _chars("HMGET");
+ static List&lt;int&gt; get HDEL =&gt; _chars("HDEL");
+ static List&lt;int&gt; get HEXISTS =&gt; _chars("HEXISTS");
+ static List&lt;int&gt; get HLEN =&gt; _chars("HLEN");
+ static List&lt;int&gt; get HKEYS =&gt; _chars("HKEYS");
+ static List&lt;int&gt; get HVALS =&gt; _chars("HVALS");
+ static List&lt;int&gt; get HGETALL =&gt; _chars("HGETALL");
+
+ // Pub/Sub
+ static List&lt;int&gt; get PUBLISH =&gt; _chars("PUBLISH");
+ static List&lt;int&gt; get SUBSCRIBE =&gt; _chars("SUBSCRIBE");
+ static List&lt;int&gt; get UNSUBSCRIBE =&gt; _chars("UNSUBSCRIBE");
+ static List&lt;int&gt; get PSUBSCRIBE =&gt; _chars("PSUBSCRIBE");
+ static List&lt;int&gt; get PUNSUBSCRIBE =&gt; _chars("PUNSUBSCRIBE");
+
+ // Scripting
+ static List&lt;int&gt; get EVAL =&gt; _chars("EVAL");
+ static List&lt;int&gt; get SCRIPT =&gt; _chars("SCRIPT"); // EXISTS FLUSH KILL LOAD
+ static List&lt;int&gt; get KILL =&gt; _chars("KILL");
+ static List&lt;int&gt; get LOAD =&gt; _chars("LOAD");
+
+}
+</pre>
+</div>
+<div>
+<h3>Static Properties</h3>
+<div class="field"><h4 id="AFTER">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>AFTER</strong> <a class="anchor-link"
+            href="#AFTER"
+            title="Permalink to RedisCommand.AFTER">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get AFTER =&gt; _chars("AFTER");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="ALPHA">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>ALPHA</strong> <a class="anchor-link"
+            href="#ALPHA"
+            title="Permalink to RedisCommand.ALPHA">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get ALPHA =&gt; _chars("ALPHA");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="APPEND">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>APPEND</strong> <a class="anchor-link"
+            href="#APPEND"
+            title="Permalink to RedisCommand.APPEND">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get APPEND =&gt; _chars("APPEND");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="BEFORE">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>BEFORE</strong> <a class="anchor-link"
+            href="#BEFORE"
+            title="Permalink to RedisCommand.BEFORE">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get BEFORE =&gt; _chars("BEFORE");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="BGREWRITEAOF">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>BGREWRITEAOF</strong> <a class="anchor-link"
+            href="#BGREWRITEAOF"
+            title="Permalink to RedisCommand.BGREWRITEAOF">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get BGREWRITEAOF =&gt; _chars("BGREWRITEAOF");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="BGSAVE">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>BGSAVE</strong> <a class="anchor-link"
+            href="#BGSAVE"
+            title="Permalink to RedisCommand.BGSAVE">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get BGSAVE =&gt; _chars("BGSAVE");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="BLPOP">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>BLPOP</strong> <a class="anchor-link"
+            href="#BLPOP"
+            title="Permalink to RedisCommand.BLPOP">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get BLPOP =&gt; _chars("BLPOP");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="BRPOP">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>BRPOP</strong> <a class="anchor-link"
+            href="#BRPOP"
+            title="Permalink to RedisCommand.BRPOP">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get BRPOP =&gt; _chars("BRPOP");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="BY">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>BY</strong> <a class="anchor-link"
+            href="#BY"
+            title="Permalink to RedisCommand.BY">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get BY =&gt; _chars("BY");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="CONFIG">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>CONFIG</strong> <a class="anchor-link"
+            href="#CONFIG"
+            title="Permalink to RedisCommand.CONFIG">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get CONFIG =&gt; _chars("CONFIG");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="DBSIZE">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>DBSIZE</strong> <a class="anchor-link"
+            href="#DBSIZE"
+            title="Permalink to RedisCommand.DBSIZE">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get DBSIZE =&gt; _chars("DBSIZE");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="DEBUG">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>DEBUG</strong> <a class="anchor-link"
+            href="#DEBUG"
+            title="Permalink to RedisCommand.DEBUG">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get DEBUG =&gt; _chars("DEBUG");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="DECR">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>DECR</strong> <a class="anchor-link"
+            href="#DECR"
+            title="Permalink to RedisCommand.DECR">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get DECR =&gt; _chars("DECR");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="DECRBY">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>DECRBY</strong> <a class="anchor-link"
+            href="#DECRBY"
+            title="Permalink to RedisCommand.DECRBY">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get DECRBY =&gt; _chars("DECRBY");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="DEL">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>DEL</strong> <a class="anchor-link"
+            href="#DEL"
+            title="Permalink to RedisCommand.DEL">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get DEL =&gt; _chars("DEL");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="DESC">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>DESC</strong> <a class="anchor-link"
+            href="#DESC"
+            title="Permalink to RedisCommand.DESC">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get DESC =&gt; _chars("DESC");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="DISCARD">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>DISCARD</strong> <a class="anchor-link"
+            href="#DISCARD"
+            title="Permalink to RedisCommand.DISCARD">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get DISCARD =&gt; _chars("DISCARD");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="ECHO">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>ECHO</strong> <a class="anchor-link"
+            href="#ECHO"
+            title="Permalink to RedisCommand.ECHO">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get ECHO =&gt; _chars("ECHO");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="ENCODING">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>ENCODING</strong> <a class="anchor-link"
+            href="#ENCODING"
+            title="Permalink to RedisCommand.ENCODING">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get ENCODING =&gt; _chars("ENCODING");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="EVAL">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>EVAL</strong> <a class="anchor-link"
+            href="#EVAL"
+            title="Permalink to RedisCommand.EVAL">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get EVAL =&gt; _chars("EVAL");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="EXEC">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>EXEC</strong> <a class="anchor-link"
+            href="#EXEC"
+            title="Permalink to RedisCommand.EXEC">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get EXEC =&gt; _chars("EXEC");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="EXISTS">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>EXISTS</strong> <a class="anchor-link"
+            href="#EXISTS"
+            title="Permalink to RedisCommand.EXISTS">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get EXISTS =&gt; _chars("EXISTS");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="EXPIRE">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>EXPIRE</strong> <a class="anchor-link"
+            href="#EXPIRE"
+            title="Permalink to RedisCommand.EXPIRE">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get EXPIRE =&gt; _chars("EXPIRE");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="EXPIREAT">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>EXPIREAT</strong> <a class="anchor-link"
+            href="#EXPIREAT"
+            title="Permalink to RedisCommand.EXPIREAT">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get EXPIREAT =&gt; _chars("EXPIREAT");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="FLUSHALL">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>FLUSHALL</strong> <a class="anchor-link"
+            href="#FLUSHALL"
+            title="Permalink to RedisCommand.FLUSHALL">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get FLUSHALL =&gt; _chars("FLUSHALL");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="FLUSHDB">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>FLUSHDB</strong> <a class="anchor-link"
+            href="#FLUSHDB"
+            title="Permalink to RedisCommand.FLUSHDB">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get FLUSHDB =&gt; _chars("FLUSHDB");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="GET">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>GET</strong> <a class="anchor-link"
+            href="#GET"
+            title="Permalink to RedisCommand.GET">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get GET =&gt; _chars("GET");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="GETBIT">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>GETBIT</strong> <a class="anchor-link"
+            href="#GETBIT"
+            title="Permalink to RedisCommand.GETBIT">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get GETBIT =&gt; _chars("GETBIT");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="GETRANGE">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>GETRANGE</strong> <a class="anchor-link"
+            href="#GETRANGE"
+            title="Permalink to RedisCommand.GETRANGE">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get GETRANGE =&gt; _chars("GETRANGE");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="GETSET">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>GETSET</strong> <a class="anchor-link"
+            href="#GETSET"
+            title="Permalink to RedisCommand.GETSET">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get GETSET =&gt; _chars("GETSET");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="HDEL">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>HDEL</strong> <a class="anchor-link"
+            href="#HDEL"
+            title="Permalink to RedisCommand.HDEL">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get HDEL =&gt; _chars("HDEL");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="HEXISTS">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>HEXISTS</strong> <a class="anchor-link"
+            href="#HEXISTS"
+            title="Permalink to RedisCommand.HEXISTS">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get HEXISTS =&gt; _chars("HEXISTS");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="HGET">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>HGET</strong> <a class="anchor-link"
+            href="#HGET"
+            title="Permalink to RedisCommand.HGET">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get HGET =&gt; _chars("HGET");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="HGETALL">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>HGETALL</strong> <a class="anchor-link"
+            href="#HGETALL"
+            title="Permalink to RedisCommand.HGETALL">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get HGETALL =&gt; _chars("HGETALL");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="HINCRBY">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>HINCRBY</strong> <a class="anchor-link"
+            href="#HINCRBY"
+            title="Permalink to RedisCommand.HINCRBY">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get HINCRBY =&gt; _chars("HINCRBY");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="HINCRBYFLOAT">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>HINCRBYFLOAT</strong> <a class="anchor-link"
+            href="#HINCRBYFLOAT"
+            title="Permalink to RedisCommand.HINCRBYFLOAT">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get HINCRBYFLOAT =&gt; _chars("HINCRBYFLOAT");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="HKEYS">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>HKEYS</strong> <a class="anchor-link"
+            href="#HKEYS"
+            title="Permalink to RedisCommand.HKEYS">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get HKEYS =&gt; _chars("HKEYS");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="HLEN">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>HLEN</strong> <a class="anchor-link"
+            href="#HLEN"
+            title="Permalink to RedisCommand.HLEN">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get HLEN =&gt; _chars("HLEN");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="HMGET">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>HMGET</strong> <a class="anchor-link"
+            href="#HMGET"
+            title="Permalink to RedisCommand.HMGET">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get HMGET =&gt; _chars("HMGET");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="HMSET">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>HMSET</strong> <a class="anchor-link"
+            href="#HMSET"
+            title="Permalink to RedisCommand.HMSET">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get HMSET =&gt; _chars("HMSET");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="HSET">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>HSET</strong> <a class="anchor-link"
+            href="#HSET"
+            title="Permalink to RedisCommand.HSET">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get HSET =&gt; _chars("HSET");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="HSETNX">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>HSETNX</strong> <a class="anchor-link"
+            href="#HSETNX"
+            title="Permalink to RedisCommand.HSETNX">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get HSETNX =&gt; _chars("HSETNX");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="HVALS">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>HVALS</strong> <a class="anchor-link"
+            href="#HVALS"
+            title="Permalink to RedisCommand.HVALS">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get HVALS =&gt; _chars("HVALS");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="IDLETIME">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>IDLETIME</strong> <a class="anchor-link"
+            href="#IDLETIME"
+            title="Permalink to RedisCommand.IDLETIME">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get IDLETIME =&gt; _chars("IDLETIME");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="INCR">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>INCR</strong> <a class="anchor-link"
+            href="#INCR"
+            title="Permalink to RedisCommand.INCR">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get INCR =&gt; _chars("INCR");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="INCRBY">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>INCRBY</strong> <a class="anchor-link"
+            href="#INCRBY"
+            title="Permalink to RedisCommand.INCRBY">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get INCRBY =&gt; _chars("INCRBY");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="INCRBYFLOAT">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>INCRBYFLOAT</strong> <a class="anchor-link"
+            href="#INCRBYFLOAT"
+            title="Permalink to RedisCommand.INCRBYFLOAT">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get INCRBYFLOAT =&gt; _chars("INCRBYFLOAT");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="INFO">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>INFO</strong> <a class="anchor-link"
+            href="#INFO"
+            title="Permalink to RedisCommand.INFO">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get INFO =&gt; _chars("INFO");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="KEYS">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>KEYS</strong> <a class="anchor-link"
+            href="#KEYS"
+            title="Permalink to RedisCommand.KEYS">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get KEYS =&gt; _chars("KEYS");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="KILL">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>KILL</strong> <a class="anchor-link"
+            href="#KILL"
+            title="Permalink to RedisCommand.KILL">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get KILL =&gt; _chars("KILL");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="LASTSAVE">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>LASTSAVE</strong> <a class="anchor-link"
+            href="#LASTSAVE"
+            title="Permalink to RedisCommand.LASTSAVE">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get LASTSAVE =&gt; _chars("LASTSAVE");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="LIMIT">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>LIMIT</strong> <a class="anchor-link"
+            href="#LIMIT"
+            title="Permalink to RedisCommand.LIMIT">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get LIMIT =&gt; _chars("LIMIT");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="LINDEX">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>LINDEX</strong> <a class="anchor-link"
+            href="#LINDEX"
+            title="Permalink to RedisCommand.LINDEX">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get LINDEX =&gt; _chars("LINDEX");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="LINSERT">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>LINSERT</strong> <a class="anchor-link"
+            href="#LINSERT"
+            title="Permalink to RedisCommand.LINSERT">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get LINSERT =&gt; _chars("LINSERT");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="LLEN">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>LLEN</strong> <a class="anchor-link"
+            href="#LLEN"
+            title="Permalink to RedisCommand.LLEN">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get LLEN =&gt; _chars("LLEN");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="LOAD">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>LOAD</strong> <a class="anchor-link"
+            href="#LOAD"
+            title="Permalink to RedisCommand.LOAD">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get LOAD =&gt; _chars("LOAD");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="LPOP">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>LPOP</strong> <a class="anchor-link"
+            href="#LPOP"
+            title="Permalink to RedisCommand.LPOP">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get LPOP =&gt; _chars("LPOP");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="LPUSH">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>LPUSH</strong> <a class="anchor-link"
+            href="#LPUSH"
+            title="Permalink to RedisCommand.LPUSH">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get LPUSH =&gt; _chars("LPUSH");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="LPUSHX">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>LPUSHX</strong> <a class="anchor-link"
+            href="#LPUSHX"
+            title="Permalink to RedisCommand.LPUSHX">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get LPUSHX =&gt; _chars("LPUSHX");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="LRANGE">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>LRANGE</strong> <a class="anchor-link"
+            href="#LRANGE"
+            title="Permalink to RedisCommand.LRANGE">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get LRANGE =&gt; _chars("LRANGE");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="LREM">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>LREM</strong> <a class="anchor-link"
+            href="#LREM"
+            title="Permalink to RedisCommand.LREM">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get LREM =&gt; _chars("LREM");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="LSET">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>LSET</strong> <a class="anchor-link"
+            href="#LSET"
+            title="Permalink to RedisCommand.LSET">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get LSET =&gt; _chars("LSET");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="LTRIM">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>LTRIM</strong> <a class="anchor-link"
+            href="#LTRIM"
+            title="Permalink to RedisCommand.LTRIM">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get LTRIM =&gt; _chars("LTRIM");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="MGET">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>MGET</strong> <a class="anchor-link"
+            href="#MGET"
+            title="Permalink to RedisCommand.MGET">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get MGET =&gt; _chars("MGET");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="MIGRATE">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>MIGRATE</strong> <a class="anchor-link"
+            href="#MIGRATE"
+            title="Permalink to RedisCommand.MIGRATE">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get MIGRATE =&gt; _chars("MIGRATE");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="MOVE">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>MOVE</strong> <a class="anchor-link"
+            href="#MOVE"
+            title="Permalink to RedisCommand.MOVE">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get MOVE =&gt; _chars("MOVE");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="MSET">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>MSET</strong> <a class="anchor-link"
+            href="#MSET"
+            title="Permalink to RedisCommand.MSET">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get MSET =&gt; _chars("MSET");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="MSETNX">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>MSETNX</strong> <a class="anchor-link"
+            href="#MSETNX"
+            title="Permalink to RedisCommand.MSETNX">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get MSETNX =&gt; _chars("MSETNX");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="MULTI">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>MULTI</strong> <a class="anchor-link"
+            href="#MULTI"
+            title="Permalink to RedisCommand.MULTI">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get MULTI =&gt; _chars("MULTI");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="NO">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>NO</strong> <a class="anchor-link"
+            href="#NO"
+            title="Permalink to RedisCommand.NO">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get NO =&gt; _chars("NO");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="OBJECT">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>OBJECT</strong> <a class="anchor-link"
+            href="#OBJECT"
+            title="Permalink to RedisCommand.OBJECT">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get OBJECT =&gt; _chars("OBJECT");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="ONE">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>ONE</strong> <a class="anchor-link"
+            href="#ONE"
+            title="Permalink to RedisCommand.ONE">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get ONE =&gt; _chars("ONE");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="PERSIST">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>PERSIST</strong> <a class="anchor-link"
+            href="#PERSIST"
+            title="Permalink to RedisCommand.PERSIST">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get PERSIST =&gt; _chars("PERSIST");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="PEXPIRE">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>PEXPIRE</strong> <a class="anchor-link"
+            href="#PEXPIRE"
+            title="Permalink to RedisCommand.PEXPIRE">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get PEXPIRE =&gt; _chars("PEXPIRE");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="PEXPIREAT">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>PEXPIREAT</strong> <a class="anchor-link"
+            href="#PEXPIREAT"
+            title="Permalink to RedisCommand.PEXPIREAT">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get PEXPIREAT =&gt; _chars("PEXPIREAT");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="PING">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>PING</strong> <a class="anchor-link"
+            href="#PING"
+            title="Permalink to RedisCommand.PING">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get PING =&gt; _chars("PING");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="PSETEX">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>PSETEX</strong> <a class="anchor-link"
+            href="#PSETEX"
+            title="Permalink to RedisCommand.PSETEX">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get PSETEX =&gt; _chars("PSETEX");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="PSUBSCRIBE">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>PSUBSCRIBE</strong> <a class="anchor-link"
+            href="#PSUBSCRIBE"
+            title="Permalink to RedisCommand.PSUBSCRIBE">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get PSUBSCRIBE =&gt; _chars("PSUBSCRIBE");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="PTTL">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>PTTL</strong> <a class="anchor-link"
+            href="#PTTL"
+            title="Permalink to RedisCommand.PTTL">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get PTTL =&gt; _chars("PTTL");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="PUBLISH">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>PUBLISH</strong> <a class="anchor-link"
+            href="#PUBLISH"
+            title="Permalink to RedisCommand.PUBLISH">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get PUBLISH =&gt; _chars("PUBLISH");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="PUNSUBSCRIBE">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>PUNSUBSCRIBE</strong> <a class="anchor-link"
+            href="#PUNSUBSCRIBE"
+            title="Permalink to RedisCommand.PUNSUBSCRIBE">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get PUNSUBSCRIBE =&gt; _chars("PUNSUBSCRIBE");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="QUIT">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>QUIT</strong> <a class="anchor-link"
+            href="#QUIT"
+            title="Permalink to RedisCommand.QUIT">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get QUIT =&gt; _chars("QUIT");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="RANDOMKEY">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>RANDOMKEY</strong> <a class="anchor-link"
+            href="#RANDOMKEY"
+            title="Permalink to RedisCommand.RANDOMKEY">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get RANDOMKEY =&gt; _chars("RANDOMKEY");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="REFCOUNT">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>REFCOUNT</strong> <a class="anchor-link"
+            href="#REFCOUNT"
+            title="Permalink to RedisCommand.REFCOUNT">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get REFCOUNT =&gt; _chars("REFCOUNT");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="RENAME">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>RENAME</strong> <a class="anchor-link"
+            href="#RENAME"
+            title="Permalink to RedisCommand.RENAME">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get RENAME =&gt; _chars("RENAME");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="RENAMENX">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>RENAMENX</strong> <a class="anchor-link"
+            href="#RENAMENX"
+            title="Permalink to RedisCommand.RENAMENX">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get RENAMENX =&gt; _chars("RENAMENX");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="RESETSTAT">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>RESETSTAT</strong> <a class="anchor-link"
+            href="#RESETSTAT"
+            title="Permalink to RedisCommand.RESETSTAT">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get RESETSTAT =&gt; _chars("RESETSTAT");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="RESTORE">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>RESTORE</strong> <a class="anchor-link"
+            href="#RESTORE"
+            title="Permalink to RedisCommand.RESTORE">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get RESTORE =&gt; _chars("RESTORE");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="RPOP">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>RPOP</strong> <a class="anchor-link"
+            href="#RPOP"
+            title="Permalink to RedisCommand.RPOP">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get RPOP =&gt; _chars("RPOP");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="RPOPLPUSH">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>RPOPLPUSH</strong> <a class="anchor-link"
+            href="#RPOPLPUSH"
+            title="Permalink to RedisCommand.RPOPLPUSH">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get RPOPLPUSH =&gt; _chars("RPOPLPUSH");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="RPUSH">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>RPUSH</strong> <a class="anchor-link"
+            href="#RPUSH"
+            title="Permalink to RedisCommand.RPUSH">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get RPUSH =&gt; _chars("RPUSH");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="RPUSHX">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>RPUSHX</strong> <a class="anchor-link"
+            href="#RPUSHX"
+            title="Permalink to RedisCommand.RPUSHX">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get RPUSHX =&gt; _chars("RPUSHX");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="SADD">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>SADD</strong> <a class="anchor-link"
+            href="#SADD"
+            title="Permalink to RedisCommand.SADD">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get SADD =&gt; _chars("SADD");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="SAVE">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>SAVE</strong> <a class="anchor-link"
+            href="#SAVE"
+            title="Permalink to RedisCommand.SAVE">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get SAVE =&gt; _chars("SAVE");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="SCARD">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>SCARD</strong> <a class="anchor-link"
+            href="#SCARD"
+            title="Permalink to RedisCommand.SCARD">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get SCARD =&gt; _chars("SCARD");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="SCRIPT">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>SCRIPT</strong> <a class="anchor-link"
+            href="#SCRIPT"
+            title="Permalink to RedisCommand.SCRIPT">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get SCRIPT =&gt; _chars("SCRIPT");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="SDIFF">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>SDIFF</strong> <a class="anchor-link"
+            href="#SDIFF"
+            title="Permalink to RedisCommand.SDIFF">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get SDIFF =&gt; _chars("SDIFF");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="SDIFFSTORE">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>SDIFFSTORE</strong> <a class="anchor-link"
+            href="#SDIFFSTORE"
+            title="Permalink to RedisCommand.SDIFFSTORE">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get SDIFFSTORE =&gt; _chars("SDIFFSTORE");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="SEGFAULT">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>SEGFAULT</strong> <a class="anchor-link"
+            href="#SEGFAULT"
+            title="Permalink to RedisCommand.SEGFAULT">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get SEGFAULT =&gt; _chars("SEGFAULT");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="SET">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>SET</strong> <a class="anchor-link"
+            href="#SET"
+            title="Permalink to RedisCommand.SET">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get SET =&gt; _chars("SET");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="SETBIT">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>SETBIT</strong> <a class="anchor-link"
+            href="#SETBIT"
+            title="Permalink to RedisCommand.SETBIT">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get SETBIT =&gt; _chars("SETBIT");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="SETEX">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>SETEX</strong> <a class="anchor-link"
+            href="#SETEX"
+            title="Permalink to RedisCommand.SETEX">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get SETEX =&gt; _chars("SETEX");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="SETNX">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>SETNX</strong> <a class="anchor-link"
+            href="#SETNX"
+            title="Permalink to RedisCommand.SETNX">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get SETNX =&gt; _chars("SETNX");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="SETRANGE">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>SETRANGE</strong> <a class="anchor-link"
+            href="#SETRANGE"
+            title="Permalink to RedisCommand.SETRANGE">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get SETRANGE =&gt; _chars("SETRANGE");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="SHUTDOWN">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>SHUTDOWN</strong> <a class="anchor-link"
+            href="#SHUTDOWN"
+            title="Permalink to RedisCommand.SHUTDOWN">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get SHUTDOWN =&gt; _chars("SHUTDOWN");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="SINTER">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>SINTER</strong> <a class="anchor-link"
+            href="#SINTER"
+            title="Permalink to RedisCommand.SINTER">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get SINTER =&gt; _chars("SINTER");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="SINTERSTORE">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>SINTERSTORE</strong> <a class="anchor-link"
+            href="#SINTERSTORE"
+            title="Permalink to RedisCommand.SINTERSTORE">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get SINTERSTORE =&gt; _chars("SINTERSTORE");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="SISMEMBER">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>SISMEMBER</strong> <a class="anchor-link"
+            href="#SISMEMBER"
+            title="Permalink to RedisCommand.SISMEMBER">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get SISMEMBER =&gt; _chars("SISMEMBER");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="SLAVEOF">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>SLAVEOF</strong> <a class="anchor-link"
+            href="#SLAVEOF"
+            title="Permalink to RedisCommand.SLAVEOF">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get SLAVEOF =&gt; _chars("SLAVEOF");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="SLOWLOG">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>SLOWLOG</strong> <a class="anchor-link"
+            href="#SLOWLOG"
+            title="Permalink to RedisCommand.SLOWLOG">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get SLOWLOG =&gt; _chars("SLOWLOG");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="SMEMBERS">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>SMEMBERS</strong> <a class="anchor-link"
+            href="#SMEMBERS"
+            title="Permalink to RedisCommand.SMEMBERS">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get SMEMBERS =&gt; _chars("SMEMBERS");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="SMOVE">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>SMOVE</strong> <a class="anchor-link"
+            href="#SMOVE"
+            title="Permalink to RedisCommand.SMOVE">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get SMOVE =&gt; _chars("SMOVE");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="SORT">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>SORT</strong> <a class="anchor-link"
+            href="#SORT"
+            title="Permalink to RedisCommand.SORT">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get SORT =&gt; _chars("SORT");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="SPOP">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>SPOP</strong> <a class="anchor-link"
+            href="#SPOP"
+            title="Permalink to RedisCommand.SPOP">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get SPOP =&gt; _chars("SPOP");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="SRANDMEMBER">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>SRANDMEMBER</strong> <a class="anchor-link"
+            href="#SRANDMEMBER"
+            title="Permalink to RedisCommand.SRANDMEMBER">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get SRANDMEMBER =&gt; _chars("SRANDMEMBER");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="SREM">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>SREM</strong> <a class="anchor-link"
+            href="#SREM"
+            title="Permalink to RedisCommand.SREM">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get SREM =&gt; _chars("SREM");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="STORE">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>STORE</strong> <a class="anchor-link"
+            href="#STORE"
+            title="Permalink to RedisCommand.STORE">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get STORE =&gt; _chars("STORE");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="STRLEN">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>STRLEN</strong> <a class="anchor-link"
+            href="#STRLEN"
+            title="Permalink to RedisCommand.STRLEN">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get STRLEN =&gt; _chars("STRLEN");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="SUBSCRIBE">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>SUBSCRIBE</strong> <a class="anchor-link"
+            href="#SUBSCRIBE"
+            title="Permalink to RedisCommand.SUBSCRIBE">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get SUBSCRIBE =&gt; _chars("SUBSCRIBE");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="SUBSTR">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>SUBSTR</strong> <a class="anchor-link"
+            href="#SUBSTR"
+            title="Permalink to RedisCommand.SUBSTR">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get SUBSTR =&gt; _chars("SUBSTR");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="SUNION">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>SUNION</strong> <a class="anchor-link"
+            href="#SUNION"
+            title="Permalink to RedisCommand.SUNION">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get SUNION =&gt; _chars("SUNION");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="SUNIONSTORE">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>SUNIONSTORE</strong> <a class="anchor-link"
+            href="#SUNIONSTORE"
+            title="Permalink to RedisCommand.SUNIONSTORE">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get SUNIONSTORE =&gt; _chars("SUNIONSTORE");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="TIME">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>TIME</strong> <a class="anchor-link"
+            href="#TIME"
+            title="Permalink to RedisCommand.TIME">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get TIME =&gt; _chars("TIME");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="TTL">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>TTL</strong> <a class="anchor-link"
+            href="#TTL"
+            title="Permalink to RedisCommand.TTL">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get TTL =&gt; _chars("TTL");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="TYPE">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>TYPE</strong> <a class="anchor-link"
+            href="#TYPE"
+            title="Permalink to RedisCommand.TYPE">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get TYPE =&gt; _chars("TYPE");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="UNSUBSCRIBE">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>UNSUBSCRIBE</strong> <a class="anchor-link"
+            href="#UNSUBSCRIBE"
+            title="Permalink to RedisCommand.UNSUBSCRIBE">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get UNSUBSCRIBE =&gt; _chars("UNSUBSCRIBE");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="UNWATCH">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>UNWATCH</strong> <a class="anchor-link"
+            href="#UNWATCH"
+            title="Permalink to RedisCommand.UNWATCH">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get UNWATCH =&gt; _chars("UNWATCH");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="WATCH">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>WATCH</strong> <a class="anchor-link"
+            href="#WATCH"
+            title="Permalink to RedisCommand.WATCH">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get WATCH =&gt; _chars("WATCH");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="WITHSCORES">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>WITHSCORES</strong> <a class="anchor-link"
+            href="#WITHSCORES"
+            title="Permalink to RedisCommand.WITHSCORES">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get WITHSCORES =&gt; _chars("WITHSCORES");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="ZADD">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>ZADD</strong> <a class="anchor-link"
+            href="#ZADD"
+            title="Permalink to RedisCommand.ZADD">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get ZADD =&gt; _chars("ZADD");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="ZCARD">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>ZCARD</strong> <a class="anchor-link"
+            href="#ZCARD"
+            title="Permalink to RedisCommand.ZCARD">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get ZCARD =&gt; _chars("ZCARD");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="ZINCRBY">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>ZINCRBY</strong> <a class="anchor-link"
+            href="#ZINCRBY"
+            title="Permalink to RedisCommand.ZINCRBY">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get ZINCRBY =&gt; _chars("ZINCRBY");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="ZINTERSTORE">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>ZINTERSTORE</strong> <a class="anchor-link"
+            href="#ZINTERSTORE"
+            title="Permalink to RedisCommand.ZINTERSTORE">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get ZINTERSTORE =&gt; _chars("ZINTERSTORE");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="ZRANGE">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>ZRANGE</strong> <a class="anchor-link"
+            href="#ZRANGE"
+            title="Permalink to RedisCommand.ZRANGE">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get ZRANGE =&gt; _chars("ZRANGE");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="ZRANGEBYSCORE">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>ZRANGEBYSCORE</strong> <a class="anchor-link"
+            href="#ZRANGEBYSCORE"
+            title="Permalink to RedisCommand.ZRANGEBYSCORE">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get ZRANGEBYSCORE =&gt; _chars("ZRANGEBYSCORE");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="ZRANK">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>ZRANK</strong> <a class="anchor-link"
+            href="#ZRANK"
+            title="Permalink to RedisCommand.ZRANK">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get ZRANK =&gt; _chars("ZRANK");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="ZREM">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>ZREM</strong> <a class="anchor-link"
+            href="#ZREM"
+            title="Permalink to RedisCommand.ZREM">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get ZREM =&gt; _chars("ZREM");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="ZREMRANGEBYRANK">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>ZREMRANGEBYRANK</strong> <a class="anchor-link"
+            href="#ZREMRANGEBYRANK"
+            title="Permalink to RedisCommand.ZREMRANGEBYRANK">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get ZREMRANGEBYRANK =&gt; _chars("ZREMRANGEBYRANK");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="ZREMRANGEBYSCORE">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>ZREMRANGEBYSCORE</strong> <a class="anchor-link"
+            href="#ZREMRANGEBYSCORE"
+            title="Permalink to RedisCommand.ZREMRANGEBYSCORE">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get ZREMRANGEBYSCORE =&gt; _chars("ZREMRANGEBYSCORE");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="ZREVRANGE">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>ZREVRANGE</strong> <a class="anchor-link"
+            href="#ZREVRANGE"
+            title="Permalink to RedisCommand.ZREVRANGE">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get ZREVRANGE =&gt; _chars("ZREVRANGE");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="ZREVRANGEBYSCORE">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>ZREVRANGEBYSCORE</strong> <a class="anchor-link"
+            href="#ZREVRANGEBYSCORE"
+            title="Permalink to RedisCommand.ZREVRANGEBYSCORE">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get ZREVRANGEBYSCORE =&gt; _chars("ZREVRANGEBYSCORE");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="ZREVRANK">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>ZREVRANK</strong> <a class="anchor-link"
+            href="#ZREVRANK"
+            title="Permalink to RedisCommand.ZREVRANK">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get ZREVRANK =&gt; _chars("ZREVRANK");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="ZSCORE">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>ZSCORE</strong> <a class="anchor-link"
+            href="#ZSCORE"
+            title="Permalink to RedisCommand.ZSCORE">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get ZSCORE =&gt; _chars("ZSCORE");
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="ZUNIONSTORE">
+<button class="show-code">Code</button>
+final List&lt;int&gt;         <strong>ZUNIONSTORE</strong> <a class="anchor-link"
+            href="#ZUNIONSTORE"
+            title="Permalink to RedisCommand.ZUNIONSTORE">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+static List&lt;int&gt; get ZUNIONSTORE =&gt; _chars("ZUNIONSTORE");
+</pre>
+</div>
+</div>
+</div>
+        </div>
+        <div class="clear"></div>
+        </div>
+        <div class="footer">
+          <div>This page was generated at 2013-06-10 23:30:36.072</div>
+        </div>
+        <script async src="../client-live-nav.js"></script>
+        </body></html>
+        

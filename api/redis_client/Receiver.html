@@ -66,7 +66,7 @@ class Receiver {
   * Note that **all** redis replies are checked for valid syntax and format.
   * This reply just doesn't check for a specific reply type.
   */
- Future receive() =&gt; _received;
+ Future&lt;RedisReply&gt; receive() =&gt; _received;
 
  /**
   * Checks that the received reply is of type [IntegerReply].
@@ -95,12 +95,25 @@ class Receiver {
 
 
  /**
+  * Checks that the received reply is of type [IntegerReply] and returns `true`
+  * if `1` and `false` otherwise.
+  */
+ Future&lt;bool&gt; receiveBool() {
+   return receiveInteger().then((int value) =&gt; value == 1 ? true : false);
+ }
+
+
+ /**
   * Checks that the received reply is of type [StatusReply].
   */
  Future&lt;String&gt; receiveStatus([ String expectedStatus ]) {
    return _received.then((reply) {
      if (reply is! StatusReply) {
-       throw new RedisClientException("The returned reply was not of type StatusReply.");
+       var error = "";
+       if (reply is ErrorReply) {
+         error = " Error: ${reply.error}";
+       }
+       throw new RedisClientException("The returned reply was not of type StatusReply but ${reply.runtimeType}.${error}");
      }
      if (?expectedStatus &amp;&amp; (expectedStatus != reply.status)) {
        throw new RedisClientException("The returned status was not $expectedStatus but ${reply.status}.");
@@ -113,10 +126,10 @@ class Receiver {
   * Checks that the received reply is of type [BulkReply] and returns the byte
   * list.
   */
- Future&lt;RedisReply&gt; receiveBulkData() {
+ Future&lt;List&lt;int&gt;&gt; receiveBulkData() {
    return _received.then((reply) {
      if (reply is! BulkReply) {
-       throw new RedisClientException("The returned reply was not of type BulkReply.");
+       throw new RedisClientException("The returned reply was not of type BulkReply but ${reply.runtimeType}.");
      }
      return reply.bytes;
    });
@@ -128,11 +141,51 @@ class Receiver {
  Future&lt;String&gt; receiveBulkString() {
    return _received.then((reply) {
      if (reply is! BulkReply) {
-       throw new RedisClientException("The returned reply was not of type BulkReply.");
+       throw new RedisClientException("The returned reply was not of type BulkReply but ${reply.runtimeType}.");
      }
      return reply.string;
    });
  }
+
+ /**
+  * Returns the data received by this bulk reply deserialized.
+  */
+ Future&lt;Object&gt; receiveBulkDeserialized(RedisSerializer serializer) {
+   return receiveBulkData().then(serializer.deserialize);
+ }
+
+ /**
+  * Checks that the received reply is of type [MultiBulkReply].
+  */
+ Future&lt;MultiBulkReply&gt; receiveMultiBulk() {
+   return _received.then((reply) {
+     if (reply is! MultiBulkReply) {
+       throw new RedisClientException("The returned reply was not of type MultiBulkReply but ${reply.runtimeType}.");
+     }
+     return reply;
+   });
+ }
+
+ /**
+  * Checks that the received reply is of type [MultiBulkReply] and returns a list
+  * of strings.
+  */
+ Future&lt;List&lt;String&gt;&gt; receiveMultiBulkStrings() {
+   return receiveMultiBulk().then((MultiBulkReply reply) {
+     return reply.replies.map((BulkReply reply) =&gt; reply.string).toList(growable: false);
+   });
+ }
+
+ /**
+  * Checks that the received reply is of type [MultiBulkReply] and returns a list
+  * of deserialized objects.
+  */
+ Future&lt;List&lt;Object&gt;&gt; receiveMultiBulkDeserialized(RedisSerializer serializer) {
+   return receiveMultiBulk().then((MultiBulkReply reply) {
+     return reply.replies.map((BulkReply reply) =&gt; serializer.deserialize(reply.bytes)).toList(growable: false);
+   });
+ }
+
 
 
 
@@ -204,32 +257,59 @@ void set reply(reply) {
 <h3>Methods</h3>
 <div class="method"><h4 id="receive">
 <button class="show-code">Code</button>
-Future <strong>receive</strong>() <a class="anchor-link" href="#receive"
+Future&lt;<a href="../redis_protocol_transformer/RedisReply.html">RedisReply</a>&gt; <strong>receive</strong>() <a class="anchor-link" href="#receive"
               title="Permalink to Receiver.receive">#</a></h4>
 <div class="doc">
 <p>Returns a <code>Future</code> that gets resolved and doesn't check the return value.</p>
 <p>Note that <strong>all</strong> redis replies are checked for valid syntax and format.
 This reply just doesn't check for a specific reply type.</p>
 <pre class="source">
-Future receive() =&gt; _received;
+Future&lt;RedisReply&gt; receive() =&gt; _received;
+</pre>
+</div>
+</div>
+<div class="method"><h4 id="receiveBool">
+<button class="show-code">Code</button>
+Future&lt;bool&gt; <strong>receiveBool</strong>() <a class="anchor-link" href="#receiveBool"
+              title="Permalink to Receiver.receiveBool">#</a></h4>
+<div class="doc">
+<p>Checks that the received reply is of type <code>IntegerReply</code> and returns <code>true</code>
+if <code>1</code> and <code>false</code> otherwise.</p>
+<pre class="source">
+Future&lt;bool&gt; receiveBool() {
+ return receiveInteger().then((int value) =&gt; value == 1 ? true : false);
+}
 </pre>
 </div>
 </div>
 <div class="method"><h4 id="receiveBulkData">
 <button class="show-code">Code</button>
-Future&lt;<a href="../redis_protocol_transformer/RedisReply.html">RedisReply</a>&gt; <strong>receiveBulkData</strong>() <a class="anchor-link" href="#receiveBulkData"
+Future&lt;List&lt;int&gt;&gt; <strong>receiveBulkData</strong>() <a class="anchor-link" href="#receiveBulkData"
               title="Permalink to Receiver.receiveBulkData">#</a></h4>
 <div class="doc">
 <p>Checks that the received reply is of type <code>BulkReply</code> and returns the byte
 list.</p>
 <pre class="source">
-Future&lt;RedisReply&gt; receiveBulkData() {
+Future&lt;List&lt;int&gt;&gt; receiveBulkData() {
  return _received.then((reply) {
    if (reply is! BulkReply) {
-     throw new RedisClientException("The returned reply was not of type BulkReply.");
+     throw new RedisClientException("The returned reply was not of type BulkReply but ${reply.runtimeType}.");
    }
    return reply.bytes;
  });
+}
+</pre>
+</div>
+</div>
+<div class="method"><h4 id="receiveBulkDeserialized">
+<button class="show-code">Code</button>
+Future&lt;Object&gt; <strong>receiveBulkDeserialized</strong>(<a href="../redis_client/RedisSerializer.html">RedisSerializer</a> serializer) <a class="anchor-link" href="#receiveBulkDeserialized"
+              title="Permalink to Receiver.receiveBulkDeserialized">#</a></h4>
+<div class="doc">
+<p>Returns the data received by this bulk reply deserialized.</p>
+<pre class="source">
+Future&lt;Object&gt; receiveBulkDeserialized(RedisSerializer serializer) {
+ return receiveBulkData().then(serializer.deserialize);
 }
 </pre>
 </div>
@@ -244,7 +324,7 @@ Future&lt;String&gt; <strong>receiveBulkString</strong>() <a class="anchor-link"
 Future&lt;String&gt; receiveBulkString() {
  return _received.then((reply) {
    if (reply is! BulkReply) {
-     throw new RedisClientException("The returned reply was not of type BulkReply.");
+     throw new RedisClientException("The returned reply was not of type BulkReply but ${reply.runtimeType}.");
    }
    return reply.string;
  });
@@ -288,6 +368,56 @@ Future&lt;int&gt; receiveInteger() {
 </pre>
 </div>
 </div>
+<div class="method"><h4 id="receiveMultiBulk">
+<button class="show-code">Code</button>
+Future&lt;<a href="../redis_protocol_transformer/MultiBulkReply.html">MultiBulkReply</a>&gt; <strong>receiveMultiBulk</strong>() <a class="anchor-link" href="#receiveMultiBulk"
+              title="Permalink to Receiver.receiveMultiBulk">#</a></h4>
+<div class="doc">
+<p>Checks that the received reply is of type <code>MultiBulkReply</code>.</p>
+<pre class="source">
+Future&lt;MultiBulkReply&gt; receiveMultiBulk() {
+ return _received.then((reply) {
+   if (reply is! MultiBulkReply) {
+     throw new RedisClientException("The returned reply was not of type MultiBulkReply but ${reply.runtimeType}.");
+   }
+   return reply;
+ });
+}
+</pre>
+</div>
+</div>
+<div class="method"><h4 id="receiveMultiBulkDeserialized">
+<button class="show-code">Code</button>
+Future&lt;List&lt;Object&gt;&gt; <strong>receiveMultiBulkDeserialized</strong>(<a href="../redis_client/RedisSerializer.html">RedisSerializer</a> serializer) <a class="anchor-link" href="#receiveMultiBulkDeserialized"
+              title="Permalink to Receiver.receiveMultiBulkDeserialized">#</a></h4>
+<div class="doc">
+<p>Checks that the received reply is of type <code>MultiBulkReply</code> and returns a list
+of deserialized objects.</p>
+<pre class="source">
+Future&lt;List&lt;Object&gt;&gt; receiveMultiBulkDeserialized(RedisSerializer serializer) {
+ return receiveMultiBulk().then((MultiBulkReply reply) {
+   return reply.replies.map((BulkReply reply) =&gt; serializer.deserialize(reply.bytes)).toList(growable: false);
+ });
+}
+</pre>
+</div>
+</div>
+<div class="method"><h4 id="receiveMultiBulkStrings">
+<button class="show-code">Code</button>
+Future&lt;List&lt;String&gt;&gt; <strong>receiveMultiBulkStrings</strong>() <a class="anchor-link" href="#receiveMultiBulkStrings"
+              title="Permalink to Receiver.receiveMultiBulkStrings">#</a></h4>
+<div class="doc">
+<p>Checks that the received reply is of type <code>MultiBulkReply</code> and returns a list
+of strings.</p>
+<pre class="source">
+Future&lt;List&lt;String&gt;&gt; receiveMultiBulkStrings() {
+ return receiveMultiBulk().then((MultiBulkReply reply) {
+   return reply.replies.map((BulkReply reply) =&gt; reply.string).toList(growable: false);
+ });
+}
+</pre>
+</div>
+</div>
 <div class="method"><h4 id="receiveStatus">
 <button class="show-code">Code</button>
 Future&lt;String&gt; <strong>receiveStatus</strong>([String expectedStatus]) <a class="anchor-link" href="#receiveStatus"
@@ -298,7 +428,11 @@ Future&lt;String&gt; <strong>receiveStatus</strong>([String expectedStatus]) <a 
 Future&lt;String&gt; receiveStatus([ String expectedStatus ]) {
  return _received.then((reply) {
    if (reply is! StatusReply) {
-     throw new RedisClientException("The returned reply was not of type StatusReply.");
+     var error = "";
+     if (reply is ErrorReply) {
+       error = " Error: ${reply.error}";
+     }
+     throw new RedisClientException("The returned reply was not of type StatusReply but ${reply.runtimeType}.${error}");
    }
    if (?expectedStatus &amp;&amp; (expectedStatus != reply.status)) {
      throw new RedisClientException("The returned status was not $expectedStatus but ${reply.status}.");
@@ -314,7 +448,7 @@ Future&lt;String&gt; receiveStatus([ String expectedStatus ]) {
         <div class="clear"></div>
         </div>
         <div class="footer">
-          <div>This page was generated at 2013-05-20 18:31:25.218</div>
+          <div>This page was generated at 2013-06-10 23:30:35.945</div>
         </div>
         <script async src="../client-live-nav.js"></script>
         </body></html>

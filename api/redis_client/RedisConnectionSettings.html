@@ -50,7 +50,9 @@ class RedisConnectionSettings {
  ///
  /// See the [RedisConnection] class documentation on which connectionStrings
  /// are allowed.
- RedisConnectionSettings(String this.connectionString){
+ RedisConnectionSettings([ String this.connectionString ]) {
+   if (connectionString == null || connectionString.isEmpty) return;
+
    List&lt;String&gt; parts = connectionString.split("@");
 
    if (parts.length == 2) password = parts.first;
@@ -74,14 +76,16 @@ class RedisConnectionSettings {
 <h3>Constructors</h3>
 <div class="method"><h4 id="RedisConnectionSettings">
 <button class="show-code">Code</button>
-new <strong>RedisConnectionSettings</strong>(String connectionString) <a class="anchor-link" href="#RedisConnectionSettings"
+new <strong>RedisConnectionSettings</strong>([String connectionString]) <a class="anchor-link" href="#RedisConnectionSettings"
               title="Permalink to RedisConnectionSettings.RedisConnectionSettings">#</a></h4>
 <div class="doc">
 <p>Parses provided connection string and sets the corresponding settings.</p>
 <p>See the <a class="crossref" href="../redis_client/RedisConnection.html">RedisConnection</a> class documentation on which connectionStrings
 are allowed.</p>
 <pre class="source">
-RedisConnectionSettings(String this.connectionString){
+RedisConnectionSettings([ String this.connectionString ]) {
+ if (connectionString == null || connectionString.isEmpty) return;
+
  List&lt;String&gt; parts = connectionString.split("@");
 
  if (parts.length == 2) password = parts.first;
@@ -168,7 +172,7 @@ int port = 6379
         <div class="clear"></div>
         </div>
         <div class="footer">
-          <div>This page was generated at 2013-05-20 18:31:25.187</div>
+          <div>This page was generated at 2013-06-10 23:30:35.918</div>
         </div>
         <script async src="../client-live-nav.js"></script>
         </body></html>

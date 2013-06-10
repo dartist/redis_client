@@ -70,7 +70,6 @@ class RedisProtocolTransformer extends StreamEventTransformer&lt;List&lt;int&gt;
   * sink when they're ready.
   */
  void handleData(List&lt;int&gt; data, EventSink&lt;RedisReply&gt; output) {
-
    // I'm not entirely sure this is necessary, but better be safe.
    if (data.length == 0) return;
 
@@ -196,22 +195,7 @@ Stream&lt;<a href="../redis_protocol_transformer/RedisProtocolTransformer.html">
 <div class="inherited-from">inherited from StreamEventTransformer </div><div class="doc">
 <pre class="source">
 Stream&lt;T&gt; bind(Stream&lt;S&gt; source) {
- // Hackish way of buffering data that goes out of the event-transformer.
- // TODO(floitsch): replace this with a correct solution.
- Stream transformingStream = new EventTransformStream&lt;S, T&gt;(source, this);
- StreamController controller;
- StreamSubscription subscription;
- controller = new StreamController&lt;T&gt;(
-     onListen: () {
-       subscription = transformingStream.listen(
-           controller.add,
-           onError: controller.addError,
-           onDone: controller.close);
-     },
-     onPause: () =&gt; subscription.pause(),
-     onResume: () =&gt; subscription.resume(),
-     onCancel: () =&gt; subscription.cancel());
- return controller.stream;
+ return new EventTransformStream&lt;S, T&gt;(source, this);
 }
 </pre>
 </div>
@@ -225,7 +209,6 @@ void <strong>handleData</strong>(List&lt;int&gt; data, EventSink&lt;<a href="../
 sink when they're ready.</p>
 <pre class="source">
 void handleData(List&lt;int&gt; data, EventSink&lt;RedisReply&gt; output) {
-
  // I'm not entirely sure this is necessary, but better be safe.
  if (data.length == 0) return;
 
@@ -297,7 +280,7 @@ void handleError(error, EventSink&lt;T&gt; sink) {
         <div class="clear"></div>
         </div>
         <div class="footer">
-          <div>This page was generated at 2013-05-20 18:31:25.470</div>
+          <div>This page was generated at 2013-06-10 23:30:36.122</div>
         </div>
         <script async src="../client-live-nav.js"></script>
         </body></html>
