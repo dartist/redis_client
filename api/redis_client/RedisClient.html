@@ -419,8 +419,19 @@ class RedisClient {
   * This operation is limited to 64 bit signed integers.
   */
  Future&lt;int&gt; incr(String key) =&gt; connection.rawSend([ RedisCommand.INCR, _keyBytes(key) ]).receiveInteger();
-//
-//  Future&lt;int&gt; incrby(String key, int count) =&gt; connection.sendExpectInt([RedisCommand.INCRBY, _keyBytes(key), serializer.serialize(count)]);
+
+ /**
+  * Increments the number stored at key by increment and returns the value after
+  * the increment.
+  *
+  * If the key does not exist, it is set to 0 before performing the operation.
+  *
+  * An error is returned if the key contains a value of the wrong type or
+  * contains a string that can not be represented as integer.
+  *
+  * This operation is limited to 64 bit signed integers.
+  */
+  Future&lt;int&gt; incrby(String key, int count) =&gt; connection.rawSend([ RedisCommand.INCRBY, _keyBytes(key), serializer.serialize(count) ]).receiveInteger();
 //
 //  Future&lt;double&gt; incrbyfloat(String key, double count) =&gt; connection.sendExpectDouble([RedisCommand.INCRBYFLOAT, _keyBytes(key), serializer.serialize(count)]);
 //
@@ -1029,6 +1040,22 @@ Future&lt;int&gt; incr(String key) =&gt; connection.rawSend([ RedisCommand.INCR,
 </pre>
 </div>
 </div>
+<div class="method"><h4 id="incrby">
+<button class="show-code">Code</button>
+Future&lt;int&gt; <strong>incrby</strong>(String key, int count) <a class="anchor-link" href="#incrby"
+              title="Permalink to RedisClient.incrby">#</a></h4>
+<div class="doc">
+<p>Increments the number stored at key by increment and returns the value after
+the increment.</p>
+<p>If the key does not exist, it is set to 0 before performing the operation.</p>
+<p>An error is returned if the key contains a value of the wrong type or
+contains a string that can not be represented as integer.</p>
+<p>This operation is limited to 64 bit signed integers.</p>
+<pre class="source">
+Future&lt;int&gt; incrby(String key, int count) =&gt; connection.rawSend([ RedisCommand.INCRBY, _keyBytes(key), serializer.serialize(count) ]).receiveInteger();
+</pre>
+</div>
+</div>
 <div class="method"><h4 id="keys">
 <button class="show-code">Code</button>
 Future&lt;List&lt;String&gt;&gt; <strong>keys</strong>(String pattern) <a class="anchor-link" href="#keys"
@@ -1318,7 +1345,7 @@ Future&lt;String&gt; type(String key) =&gt; connection.rawSend([ RedisCommand.TY
         <div class="clear"></div>
         </div>
         <div class="footer">
-          <div>This page was generated at 2013-06-10 23:30:36.012</div>
+          <div>This page was generated at 2013-06-10 23:35:58.413</div>
         </div>
         <script async src="../client-live-nav.js"></script>
         </body></html>
