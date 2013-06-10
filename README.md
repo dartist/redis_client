@@ -28,14 +28,18 @@ dependencies:
 ## Example Usage
 
 ```dart
-var connectionString = "localhost:6379";
-RedisClient.connect(connectionString)
-    .then((RedisClient client) {
-      // Use your client here. Eg.:
-      client.set("test", "value")
-          .then((_) => client.get("test"))
-          .then((value) => print("success: $value"));
-    });
+import "package:redis_client/redis_client.dart";
+
+main() {
+  var connectionString = "localhost:6379";
+  RedisClient.connect(connectionString)
+      .then((RedisClient client) {
+        // Use your client here. Eg.:
+        client.set("test", "value")
+            .then((_) => client.get("test"))
+            .then((value) => print("success: $value"));
+      });
+}
 ```
 
 More examples can be found in the tests in
@@ -64,6 +68,17 @@ Valid example:
 ```dart    
 RedisClient.connect("password@localhost:6379/0");
 ```
+
+## RedisProtocolTransformer
+
+If you're not interested in the high level RedisClient API, you can use the
+[RedisProtocolTransformer](lib/redis_protocol_transformer.dart) directly.
+
+Just include it like this:
+
+```dart
+import "package:redis_client/redis_protocol_transformer.dart";
+``` 
 
 ## RoadMap
 
