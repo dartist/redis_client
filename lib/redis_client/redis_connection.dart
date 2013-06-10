@@ -98,7 +98,7 @@ class _RedisConnection extends RedisConnection {
   /// The character sequence that ends data.
   ///
   /// `\r\n`
-  const List<int> _lineEnd = const [ 13, 10 ];
+  static const List<int> _lineEnd = const [ 13, 10 ];
 
 
   /// Used to output debug information
