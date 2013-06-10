@@ -340,6 +340,16 @@ invalid_line
         );
       });
 
+      test("INCRBY", () {
+        async(
+            client.set("some-field", 12)
+            .then((_) => client.incrby("some-field", 4))
+            .then((num inc) => expect(inc, equals(16)))
+            .then((_) => client.get("some-field"))
+            .then((int value) => expect(value, equals(16)))
+        );
+      });
+
 
     });
 
