@@ -330,6 +330,16 @@ invalid_line
         );
       });
 
+      test("INCR", () {
+        async(
+            client.set("some-field", 12)
+            .then((_) => client.incr("some-field"))
+            .then((num inc) => expect(inc, equals(13)))
+            .then((_) => client.get("some-field"))
+            .then((int value) => expect(value, equals(13)))
+        );
+      });
+
 
     });
 

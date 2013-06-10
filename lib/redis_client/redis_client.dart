@@ -382,7 +382,18 @@ class RedisClient {
    */
   Future<int> mdel(List<String> keys) => keys.isEmpty ? new Future.value(0) : connection.rawSend(_CommandUtils.mergeCommandWithStringArgs(RedisCommand.DEL, keys)).receiveInteger();
 
-//  Future<int> incr(String key) => connection.sendExpectInt([RedisCommand.INCR, _keyBytes(key)]);
+  /**
+   * Increments the number stored at key by one returning the value of key after
+   * the increment.
+   *
+   * If the key does not exist, it is set to 0 before performing the operation.
+   *
+   * An error is returned if the key contains a value of the wrong type or
+   * contains a string that can not be represented as integer.
+   *
+   * This operation is limited to 64 bit signed integers.
+   */
+  Future<int> incr(String key) => connection.rawSend([ RedisCommand.INCR, _keyBytes(key) ]).receiveInteger();
 //
 //  Future<int> incrby(String key, int count) => connection.sendExpectInt([RedisCommand.INCRBY, _keyBytes(key), serializer.serialize(count)]);
 //
