@@ -12,7 +12,7 @@ for better handling of asynchronous operations.
 
 The Redis Client API is now feature complete with support for all ADMIN tasks as
 well as all KEYS, LISTS, SETS, SORTED SETS and HASH collections
-[including tests for all operations](https://github.com/dartist/redis_client/blob/master/test/).
+[including tests for all operations](test/).
 
 Follow [@demisbellot](http://twitter.com/demisbellot) for project updates.
 
@@ -39,7 +39,7 @@ RedisClient.connect(connectionString)
 ```
 
 More examples can be found in the tests in
-[redis_client_tests.dart](https://github.com/dartist/redis_client/blob/master/test/redis_client_tests.dart).
+[redis_client_tests.dart](test/redis_client_tests.dart).
 
 
 ## API
