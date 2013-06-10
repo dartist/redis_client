@@ -8,7 +8,7 @@ import 'package:unittest/unittest.dart';
 
 import 'package:unittest/mock.dart';
 
-import '../lib/redis_client.dart';
+import 'package:redis_client/redis_client.dart';
 
 
 import 'helper.dart';
