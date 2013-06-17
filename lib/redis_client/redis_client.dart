@@ -446,9 +446,15 @@ class RedisClient {
      * This operation is limited to 64 bit signed integers.
      */
     Future<int> decrby(String key, int count) => connection.rawSend([ RedisCommand.DECRBY, _keyBytes(key), serializer.serialize(count) ]).receiveInteger();
-//
-//  Future<int> strlen(String key) => connection.sendExpectInt([RedisCommand.STRLEN, _keyBytes(key)]);
-//
+
+
+    /**
+     * Returns the length of the string value stored at key.
+     *
+     * An error is returned when key holds a non-string value.
+     */
+    Future<int> strlen(String key) => connection.rawSend([ RedisCommand.STRLEN, _keyBytes(key) ]).receiveInteger();
+
 //  /// Wrapper for [RawRedisCommands.append].
 //  Future<int> append(String key, String value) => raw.append(key, serializer.serialize(value));
 //

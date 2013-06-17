@@ -381,6 +381,14 @@ invalid_line
         );
       });
 
+      test("STRLEN", () {
+        async(
+            client.set("some-field", "somevalue")
+            .then((_) => client.strlen("some-field"))
+            .then((num len) => expect(len, equals(11))) // 11 not 9 because of the JSON quotes.
+        );
+      });
+
   });
 
 
