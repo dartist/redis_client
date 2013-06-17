@@ -429,12 +429,23 @@ class RedisClient {
      *
      * If the key does not exist, it is set to 0 before performing the operation.
      * An error is returned if the key contains a value of the wrong type or
-     * contains a string that can not be represented as integer. This operation
-     * is limited to 64 bit signed integers.
+     * contains a string that can not be represented as integer.
+     *
+     * This operation is limited to 64 bit signed integers.
      */
     Future<int> decr(String key) => connection.rawSend([ RedisCommand.DECR, _keyBytes(key) ]).receiveInteger();
 
-//    Future<int> decrby(String key, int count) => connection.sendExpectInt([RedisCommand.DECRBY, _keyBytes(key), serializer.serialize(count)]);
+    /**
+     * Decrements the number stored at key by decrement and returns the value of
+     * the key after the decrement.
+     *
+     * If the key does not exist, it is set to 0 before performing the operation.
+     * An error is returned if the key contains a value of the wrong type or
+     * contains a string that can not be represented as integer.
+     *
+     * This operation is limited to 64 bit signed integers.
+     */
+    Future<int> decrby(String key, int count) => connection.rawSend([ RedisCommand.DECRBY, _keyBytes(key), serializer.serialize(count) ]).receiveInteger();
 //
 //  Future<int> strlen(String key) => connection.sendExpectInt([RedisCommand.STRLEN, _keyBytes(key)]);
 //

@@ -371,7 +371,17 @@ invalid_line
         );
       });
 
-   });
+      test("DECRBY", () {
+        async(
+          client.set("some-field", 12)
+              .then((_) => client.decrby("some-field", 4))
+              .then((num inc) => expect(inc, equals(8)))
+              .then((_) => client.get("some-field"))
+              .then((int value) => expect(value, equals(8)))
+        );
+      });
+
+  });
 
 
   });
