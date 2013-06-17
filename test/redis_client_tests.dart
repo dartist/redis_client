@@ -361,7 +361,17 @@ invalid_line
       });
 
 
-    });
+      test("DECR", () {
+        async(
+          client.set("some-field", 12)
+              .then((_) => client.decr("some-field"))
+              .then((num inc) => expect(inc, equals(11)))
+              .then((_) => client.get("some-field"))
+              .then((int value) => expect(value, equals(11)))
+        );
+      });
+
+   });
 
 
   });
