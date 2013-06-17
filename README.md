@@ -8,6 +8,23 @@ A high-performance async/non-blocking Redis client for Dart. This project includ
 
 As all operations are async they return [Futures](http://api.dartlang.org/dart_core/Future.html) for better handling of asynchronous operations. 
 
+### Latest dart version
+
+We are currently working on porting `redis_client` to the latest dart version.
+
+You can find the latest version in the [`latestdart`](https://github.com/dartist/redis_client/tree/latestdart) branch.
+It doesn't support all commands yet, but is fully functional otherwise.
+
+To use it in your project, add this to your `pubspec.yaml`:
+
+```yaml
+dependencies:
+  redis_client:
+    git:
+      ref: latestdart
+      url: git@github.com:dartist/redis_client.git
+```
+
 ### v1.0 Released
 The Redis Client API is now feature complete with support for all ADMIN tasks as well as all KEYS, LISTS, SETS, SORTED SETS and HASH collections [including tests for all operations](https://github.com/Dartist/RedisClient/blob/master/test/RedisClientTests.dart).
 
