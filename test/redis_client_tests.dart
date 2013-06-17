@@ -213,7 +213,7 @@ invalid_line
               .then((_) => client.set("twokey", "a"))
               .then((_) => client.set("threekey", "a"))
               .then((_) => client.keys("*o*"))
-              .then((List<String> keys) => expect(keys, equals([ "twokey", "onekey" ])))
+              .then((List<String> keys) => expect(keys..sort((String a, b) => a. compareTo(b)), equals([ "onekey", "twokey" ])))
         );
       });
 
