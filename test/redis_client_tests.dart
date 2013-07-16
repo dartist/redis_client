@@ -177,14 +177,11 @@ invalid_line
         async(
           client.echo("TEST echo")
               .then((response) => expect(response, equals("TEST echo")))
-              .then((_) => client.echo(false))
-              .then((response) => expect(response, isFalse))
         );
       });
       test("TYPE", () {
         async(
           client.set("test1", "String")
-              .then((_) => client.set("test2", 1234))
               .then((_) => client.type("test1"))
               .then((response) => expect(response, equals("string")))
               .then((_) => client.type("testxxx"))
@@ -280,21 +277,21 @@ invalid_line
 
       test("MSET", () {
         async(
-            client.mset({ "key1": "test1", "key2": true, "key3": 123 })
+            client.mset({ "key1": "test1", "key2": "true", "key3": "123" })
             .then((_) => client.get("key1"))
             .then((String value) => expect(value, equals("test1")))
             .then((_) => client.get("key2"))
-            .then((bool value) => expect(value, equals(true)))
+            .then((String value) => expect(value, equals("true")))
             .then((_) => client.get("key3"))
-            .then((int value) => expect(value, equals(123)))
+            .then((String value) => expect(value, equals("123")))
         );
       });
 
       test("MSETNX", () {
         async(
-            client.msetnx({ "key1": "test1", "key2": true, "key3": 123 })
+            client.msetnx({ "key1": "test1", "key2": "true", "key3": "123" })
             .then((bool value) => expect(value, equals(true)))
-            .then((_) => client.msetnx({ "key2": "test1", "randomkey": true, "randomkey2": 123 }))
+            .then((_) => client.msetnx({ "key2": "test1", "randomkey": "true", "randomkey2": "123" }))
             // Should return false if **one** key already existed.
             .then((bool value) => expect(value, equals(false)))
         );
@@ -332,52 +329,52 @@ invalid_line
 
       test("INCR", () {
         async(
-          client.set("some-field", 12)
+          client.set("some-field", "12")
               .then((_) => client.incr("some-field"))
               .then((num inc) => expect(inc, equals(13)))
               .then((_) => client.get("some-field"))
-              .then((int value) => expect(value, equals(13)))
+              .then((String value) => expect(value, equals("13")))
         );
       });
 
       test("INCRBY", () {
         async(
-          client.set("some-field", 12)
+          client.set("some-field", "12")
               .then((_) => client.incrby("some-field", 4))
               .then((num inc) => expect(inc, equals(16)))
               .then((_) => client.get("some-field"))
-              .then((int value) => expect(value, equals(16)))
+              .then((String value) => expect(value, equals("16")))
         );
       });
 
       test("INCRBYFLOAT", () {
         async(
-            client.set("some-field", 12.5)
+            client.set("some-field", "12.5")
             .then((_) => client.incrbyfloat("some-field", 4.3))
             .then((double inc) => expect(inc, equals(16.8)))
             .then((_) => client.get("some-field"))
-            .then((double value) => expect(value, equals(16.8)))
+            .then((String value) => expect(value, equals("16.8")))
         );
       });
 
 
       test("DECR", () {
         async(
-          client.set("some-field", 12)
+          client.set("some-field", "12")
               .then((_) => client.decr("some-field"))
               .then((num inc) => expect(inc, equals(11)))
               .then((_) => client.get("some-field"))
-              .then((int value) => expect(value, equals(11)))
+              .then((String value) => expect(value, equals("11")))
         );
       });
 
       test("DECRBY", () {
         async(
-          client.set("some-field", 12)
+          client.set("some-field", "12")
               .then((_) => client.decrby("some-field", 4))
               .then((num inc) => expect(inc, equals(8)))
               .then((_) => client.get("some-field"))
-              .then((int value) => expect(value, equals(8)))
+              .then((String value) => expect(value, equals("8")))
         );
       });
 
@@ -385,7 +382,17 @@ invalid_line
         async(
             client.set("some-field", "somevalue")
             .then((_) => client.strlen("some-field"))
-            .then((num len) => expect(len, equals(11))) // 11 not 9 because of the JSON quotes.
+            .then((num len) => expect(len, equals(9)))
+        );
+      });
+
+      test("APPEND", () {
+        async(
+            client.set("some-field", "somevalue")
+            .then((_) => client.append("some-field", "additional"))
+            .then((num len) => expect(len, equals(19)))
+            .then((_) => client.get("some-field"))
+            .then((val) => expect(val, equals("somevalueadditional")))
         );
       });
 

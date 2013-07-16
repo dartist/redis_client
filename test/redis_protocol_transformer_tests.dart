@@ -7,7 +7,7 @@ import 'package:unittest/unittest.dart';
 
 import 'package:unittest/mock.dart';
 
-import '../lib/redis_protocol_transformer.dart';
+import 'package:redis_client/redis_protocol_transformer.dart';
 
 
 

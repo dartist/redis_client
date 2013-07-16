@@ -59,6 +59,9 @@ abstract class RedisConnection {
   /// Convenient method to send [String] commands.
   Receiver send(List<String> cmdWithArgs);
 
+  /// Convenient method to send a command with a list of [String] arguments.
+  Receiver sendCommand(List<int> command, List<String> args);
+
   /// Sends the commands already in binary.
   Receiver rawSend(List<List<int>> cmdWithArgs);
 
@@ -245,6 +248,18 @@ class _RedisConnection extends RedisConnection {
 
 
   /**
+   * Conveniance wrapper for `rawSend`.
+   *
+   * The command is one of [RedisCommand].
+   */
+  Receiver sendCommand(List<int> command, List<String> args) {
+    var commands = new List<List<int>>(args.length + 1);
+    commands[0] = command;
+    commands.setAll(1, args.map((String line) => encodeUtf8(line)).toList(growable: false));
+    return rawSend(commands);
+  }
+
+  /**
    * This is the same as [send] except that it takes a list of binary data.
    *
    * Eg.:
@@ -368,7 +383,7 @@ class Receiver {
         }
         throw new RedisClientException("The returned reply was not of type StatusReply but ${reply.runtimeType}.${error}");
       }
-      if (?expectedStatus && (expectedStatus != reply.status)) {
+      if (expectedStatus != null && (expectedStatus != reply.status)) {
         throw new RedisClientException("The returned status was not $expectedStatus but ${reply.status}.");
       }
       return reply.status;

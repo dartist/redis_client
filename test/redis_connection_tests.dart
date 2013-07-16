@@ -8,7 +8,7 @@ import 'package:unittest/unittest.dart';
 
 import 'package:unittest/mock.dart';
 
-import '../lib/redis_client.dart';
+import 'package:redis_client/redis_client.dart';
 
 
 import 'helper.dart';
@@ -52,6 +52,10 @@ main() {
             })
             .then((_) {
               return connection.rawSend([ "GET".codeUnits, "test1".codeUnits ]).receiveBulkString()
+                  .then((response) => expect(response, equals("value1")));
+            })
+            .then((_) {
+              return connection.sendCommand(RedisCommand.GET, [ "test1" ]).receiveBulkString()
                   .then((response) => expect(response, equals("value1")));
             })
       );
