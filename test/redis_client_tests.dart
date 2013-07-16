@@ -396,6 +396,20 @@ invalid_line
         );
       });
 
+      test("GETRANGE", () {
+        async(
+            client.set("some-field", "This is a string")
+              .then((_) => client.getrange("some-field", 0, 3))
+              .then((String sub) => expect(sub, equals("This")))
+              .then((_) => client.getrange("some-field", -3, -1))
+              .then((String sub) => expect(sub, equals("ing")))
+              .then((_) => client.getrange("some-field", 0, -1))
+              .then((String sub) => expect(sub, equals("This is a string")))
+              .then((_) => client.getrange("some-field", 10, 100))
+              .then((String sub) => expect(sub, equals("string")))
+        );
+      });
+
   });
 
 

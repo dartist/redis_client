@@ -59,7 +59,6 @@ class RedisCommand {
   static List<int> get DECR => _chars("DECR");
   static List<int> get DECRBY => _chars("DECRBY");
   static List<int> get APPEND => _chars("APPEND");
-  static List<int> get SUBSTR => _chars("SUBSTR");
   static List<int> get GETRANGE => _chars("GETRANGE");
   static List<int> get SETRANGE => _chars("SETRANGE");
   static List<int> get GETBIT => _chars("GETBIT");
