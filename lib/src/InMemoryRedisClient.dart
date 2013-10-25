@@ -46,7 +46,7 @@ class InMemoryRedisClient {
   Future incr(String key){
     Completer task = new Completer();
     var counter = _keys[key];
-    counter = counter == null ? 1 : Math.parseInt(counter.toString()) + 1;
+    counter = counter == null ? 1 : int.parse(counter.toString()) + 1;
     _keys[key] = counter;
     task.complete(counter);
     return task.future;

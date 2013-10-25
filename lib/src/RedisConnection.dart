@@ -132,8 +132,8 @@ class _RedisConnection implements RedisConnection {
     hostName = parts[0];
     if (hasPort) {
       parts = $(parts.last).splitOnLast("/");
-      port = Math.parseInt(parts[0]);
-      db = parts.length == 2 ? Math.parseInt(parts[1]) : 0;
+      port = int.parse(parts[0]);
+      db = parts.length == 2 ? int.parse(parts[1]) : 0;
     }
   }
 
@@ -394,7 +394,7 @@ class _RedisConnection implements RedisConnection {
     sendExpectData(cmdWithArgs).transform((List<int> bytes) => new String.fromCharCodes(bytes));
 
   Future<double> sendExpectDouble(List<List> cmdWithArgs) =>
-    sendExpectData(cmdWithArgs).transform((List<int> bytes) => Math.parseDouble(new String.fromCharCodes(bytes)));
+    sendExpectData(cmdWithArgs).transform((List<int> bytes) => double.parse(new String.fromCharCodes(bytes)));
 
   Future<String> sendExpectCode(List<List> cmdWithArgs){
     Completer task = new Completer();
@@ -535,7 +535,7 @@ class _Utils {
       if (c == COLON || c == DOLLAR){
         int ret = null;
         try {
-          ret = Math.parseInt(line);
+          ret = int.parse(line);
         }catch (e){
           task.completeException(createError("Unknown reply in readInt: $c/$line"));
           return;
@@ -593,7 +593,7 @@ class _Utils {
       if (c == ASTERIX){
         int dataCount = null;
         try{
-          dataCount = Math.parseInt(line);
+          dataCount = int.parse(line);
         }catch (e){
           task.completeException(createError("readMultiData: Unknown reply on integer response: $c$line: $e"));
           return;

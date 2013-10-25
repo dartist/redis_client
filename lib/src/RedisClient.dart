@@ -314,7 +314,7 @@ class _RedisClient implements RedisClient {
     Map<Object,double> map = new Map<String,double>();
     for (int i=0; i<multiData.length; i+= 2){
       Object key = toObject(multiData[i]);
-      map[key] = Math.parseDouble(toStr(multiData[i + 1]));
+      map[key] = double.parse(toStr(multiData[i + 1]));
     }
     return map;
   }
@@ -387,7 +387,7 @@ class JsonEncoder implements BytesEncoder {
     try{
       String str = new String.fromCharCodes(bytes);
       if (str.startsWith(DATE_PREFIX)) {
-        int epoch = Math.parseInt(str.substring(DATE_PREFIX.length, str.length - DATE_SUFFIX.length));
+        int epoch = int.parse(str.substring(DATE_PREFIX.length, str.length - DATE_SUFFIX.length));
         return new Date.fromMillisecondsSinceEpoch(epoch, isUtc: true);
       }
       if (str == TRUE)  return true;
