@@ -4,7 +4,7 @@ library redis_connection;
 import 'dart:io';
 import 'dart:json';
 import 'dart:math' as Math;
-import 'dart:scalarlist';
+import 'dart:typed_data';
 import 'dart:isolate';
 
 import 'package:dartmixins/mixin.dart';
