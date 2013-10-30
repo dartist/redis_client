@@ -64,8 +64,8 @@ class RedisClient {
 
     var i = 1;
     map.forEach((key, value) {
-      completeList[i++] = encodeUtf8(key);
-      completeList[i++] = encodeUtf8(value);
+      completeList[i++] = UTF8.encode(key);
+      completeList[i++] = UTF8.encode(value);
     });
 
     return completeList;

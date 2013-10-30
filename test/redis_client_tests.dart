@@ -1,16 +1,8 @@
 library redis_client_tests;
 
 import 'dart:async';
-import 'dart:utf';
-
-import 'package:logging/logging.dart';
 import 'package:unittest/unittest.dart';
-
-import 'package:unittest/mock.dart';
-
 import 'package:redis_client/redis_client.dart';
-
-
 import 'helper.dart';
 
 

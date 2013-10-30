@@ -39,9 +39,9 @@ class JsonRedisSerializer implements RedisSerializer {
     else if (obj is String) serialized = obj;
     else if (obj is DateTime) serialized = "$DATE_PREFIX${obj.millisecondsSinceEpoch}$DATE_SUFFIX";
     else if (obj is bool || obj is num) serialized = obj.toString();
-    else serialized = stringify(obj);
+    else serialized = JSON.encode(obj);
 
-    return encodeUtf8(serialized);
+    return UTF8.encode(serialized);
   }
 
 
@@ -52,7 +52,7 @@ class JsonRedisSerializer implements RedisSerializer {
   Object deserialize(List<int> bytes) {
     if (bytes == null || bytes.length == 0) return "";
 
-    return parse(decodeUtf8(bytes));
+    return JSON.decode(UTF8.decode(bytes));
   }
 
 

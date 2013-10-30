@@ -37,12 +37,12 @@ class _CommandUtils {
 
   /// Returns a single list with the command and the arguments as bytes merged into one.
   static List<List<int>> mergeCommandWithStringArgs(List<int> cmd, List<String> args) =>
-    mergeCommandWithArgs(cmd, args.map((x) => encodeUtf8(x)).toList(growable: false));
+    mergeCommandWithArgs(cmd, args.map((x) => UTF8.encode(x)).toList(growable: false));
 
   /// Returns a single list with the command, the key and the arguments as bytes merged into one.
   static List<List<int>> mergeCommandWithKeyAndStringArgs(List<int> cmd, String key, List<String> args){
     args.insert(0, key);
-    return mergeCommandWithArgs(cmd, args.map((x) => encodeUtf8(x)).toList(growable: false));
+    return mergeCommandWithArgs(cmd, args.map((x) => UTF8.encode(x)).toList(growable: false));
   }
 
   static List<List<int>> mergeCommandWithKeyAndArgs(List<int> cmd, String key, List<List<int>> args){

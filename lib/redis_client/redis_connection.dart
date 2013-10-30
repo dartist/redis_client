@@ -45,7 +45,13 @@ abstract class RedisConnection {
   /// Redis database
   int db;
 
+  
 
+  void handleDone(EventSink<RedisReply> output);
+  
+  void handleError(Object error, StackTrace stackTrace, EventSink<RedisReply> sink);
+  
+  void handleData(List<int> data, EventSink<RedisReply> output);
 
   /// Closes the connection.
   Future close();
@@ -84,8 +90,55 @@ class _RedisConnection extends RedisConnection {
   final int port;
 
   int db;
+  
 
+  RedisReply _currentReply;
 
+  void handleDone(EventSink<RedisReply> output) {
+
+    if (_currentReply != null) {
+      var error = new UnexpectedRedisClosureError("Some data has already been sent but was not complete.");
+      // Apparently some data has already been sent, but the stream is done.
+      handleError(error, error.stackTrace, output);
+    }
+
+    output.close();
+  }
+  
+  void handleError(Object error, StackTrace stackTrace, EventSink<RedisReply> sink) {
+    sink.addError(error, stackTrace);
+  }
+  
+  void handleData(List<int> data, EventSink<RedisReply> output) {
+    // I'm not entirely sure this is necessary, but better be safe.
+    if (data.length == 0) return;
+  
+    if (_currentReply == null) {
+      // This is a fresh RedisReply. How exciting!
+  
+      try {
+        _currentReply = new RedisReply.fromType(data.first);
+      }
+      on RedisProtocolTransformerException catch (e) {
+        handleError(e, e.stackTrace, output);
+      }
+    }
+  
+    List<int> unconsumedData = _currentReply.consumeData(data);
+  
+    // Make sure that unconsumedData can't be returned unless the reply is actually done.
+    assert(unconsumedData == null || _currentReply.done);
+  
+    if (_currentReply.done) {
+      // Reply is done!
+      output.add(_currentReply);
+      _currentReply = null;
+      if (unconsumedData != null && !unconsumedData.isEmpty) {
+        handleData(unconsumedData, output);
+      }
+    }
+  }
+  
   /// The [Socket] used in this connection.
   Socket _socket;
 
@@ -157,10 +210,10 @@ class _RedisConnection extends RedisConnection {
           logger.info("Connected socket");
 
           _socket = socket;
-
+          
           // Setting up all the listeners so Redis responses can be interpreted.
           socket
-              .transform(new RedisProtocolTransformer())
+              .transform(new StreamTransformer.fromHandlers(handleData: handleData, handleError: handleError, handleDone: handleDone))
               .listen(_onRedisReply, onError: _onStreamError, onDone: _onStreamDone);
 
           if (password != null) return _authenticate(password);
@@ -244,7 +297,7 @@ class _RedisConnection extends RedisConnection {
    * This function converts the [String]s to binary data, and forwards to
    * [rawSend].
    */
-  Receiver send(List<String> cmdWithArgs) => rawSend(cmdWithArgs.map((String line) => encodeUtf8(line)).toList(growable: false));
+  Receiver send(List<String> cmdWithArgs) => rawSend(cmdWithArgs.map((String line) => UTF8.encode(line)).toList(growable: false));
 
 
   /**
@@ -255,7 +308,7 @@ class _RedisConnection extends RedisConnection {
   Receiver sendCommand(List<int> command, List<String> args) {
     var commands = new List<List<int>>(args.length + 1);
     commands[0] = command;
-    commands.setAll(1, args.map((String line) => encodeUtf8(line)).toList(growable: false));
+    commands.setAll(1, args.map((String line) => UTF8.encode(line)).toList(growable: false));
     return rawSend(commands);
   }
 
@@ -264,12 +317,12 @@ class _RedisConnection extends RedisConnection {
    *
    * Eg.:
    *
-   *     rawSend([ "GET".codeUnits, encodeUtf8("keyname") ]).receiveBulkString().then((String value) { });
+   *     rawSend([ "GET".codeUnits, UTF8.encode("keyname") ]).receiveBulkString().then((String value) { });
    */
   Receiver rawSend(List<List<int>> cmdWithArgs) {
     var response = new Receiver();
 
-    logger.finest("Sending message ${decodeUtf8(cmdWithArgs[0])}");
+    logger.finest("Sending message ${UTF8.decode(cmdWithArgs[0])}");
 
     connected.then((_) {
       _socket.add("*${cmdWithArgs.length}\r\n".codeUnits);
@@ -481,4 +534,5 @@ class Receiver {
 //  }
 
 }
+
 
