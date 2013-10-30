@@ -3,8 +3,7 @@ library redis_client;
 
 import 'dart:async';
 import 'dart:core';
-
-
+import 'dart:convert';
 import 'RedisNativeClient.dart';
 
 abstract class BytesEncoder {

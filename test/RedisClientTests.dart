@@ -174,8 +174,8 @@ RedisClientTests (){
         client.dbsize.then((keysCount) => equal(keysCount, 1, "DBSIZE") );
 
         client.save().then((__){
-          client.lastsave.then((Date lastSave) {
-            Date now = new Date.now();
+          client.lastsave.then((DateTime lastSave) {
+            DateTime now = new DateTime.now();
             int timeSinceLastSaveSecs = (now.difference(lastSave)).inSeconds;
             ok(timeSinceLastSaveSecs < 2, "SAVE, LASTSAVE");
           });
