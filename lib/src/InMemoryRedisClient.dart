@@ -1,7 +1,7 @@
 //part of redis_client;
 library in_memory_redis_client;
 
-import 'dart:math' as Math;
+import 'dart:async';
 
 class InMemoryRedisClient {
 

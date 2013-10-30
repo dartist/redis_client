@@ -2,10 +2,10 @@
 library redis_connection;
 
 import 'dart:io';
-import 'dart:json';
 import 'dart:math' as Math;
 import 'dart:typed_data';
-import 'dart:isolate';
+import 'dart:async';
+
 
 import 'package:dartmixins/mixin.dart';
 
@@ -118,7 +118,7 @@ class _RedisConnection implements RedisConnection {
     : cmdBuffer = new Int8List(32 * 1024),
       _pendingReads = new Queue<ExpectRead>(),
       readChunks = new Queue<List>(),
-      endData = "\r\n".charCodes
+      endData = "\r\n".codeUnits
   {
     parse(connStr);
   }
@@ -208,9 +208,9 @@ class _RedisConnection implements RedisConnection {
     return task.future;
   }
 
-  Future select(int _db) => sendExpectSuccess(["SELECT".charCodes, (db = _db).toString().charCodes]);
+  Future select(int _db) => sendExpectSuccess(["SELECT".codeUnits, (db = _db).toString().codeUnits]);
 
-  Future auth(String _password) => sendExpectSuccess(["AUTH".charCodes, (password = _password).charCodes]);
+  Future auth(String _password) => sendExpectSuccess(["AUTH".codeUnits, (password = _password).codeUnits]);
 
   int _available() => _connected ? _socket.available() : 0;
 
@@ -297,8 +297,8 @@ class _RedisConnection implements RedisConnection {
     int strLinesLen = strLines.length;
 
     List bytes = new Int8List(1 + strLinesLen + 2);
-    bytes[0] = cmdPrefix.charCodeAt(0);
-    List strBytes = strLines.charCodes;
+    bytes[0] = cmdPrefix.codeUnitAt(0);
+    List strBytes = strLines.codeUnits;
     bytes.setRange(1, strBytes.length, strBytes);
     bytes[1 + strLinesLen] = _Utils.CR;
     bytes[2 + strLinesLen] = _Utils.LF;

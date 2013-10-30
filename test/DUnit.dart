@@ -1,5 +1,7 @@
 library DUnit;
 
+import 'dart:collection';
+
 /*
  * A minimal port of the QUnit subset that Underscore.js uses.
  */

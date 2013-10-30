@@ -1,10 +1,7 @@
 //part of redis_client;
 library redis_native_client;
 
-import 'dart:io';
-import 'dart:json';
-import 'dart:math' as Math;
-import 'dart:typed_data';
+import 'dart:async';
 
 import 'package:dartmixins/mixin.dart';
 
@@ -173,10 +170,10 @@ class _RedisNativeClient implements RedisNativeClient {
   }
 
   static String string(List<int> bytes) => bytes == null ? null : new String.fromCharCodes(bytes);
-  static List<int> toBytes(val) => val == null ? new List<int>() : val.toString().charCodes;
+  static List<int> toBytes(val) => val == null ? new List<int>() : val.toString().codeUnits;
   static List<int> keyBytes(String key){
     if (key == null || key.isEmpty) throw new Exception("key is null");
-    return key.charCodes;
+    return key.codeUnits;
   }
 
   Function _onConnect;
@@ -577,168 +574,168 @@ class _RedisNativeClient implements RedisNativeClient {
 class _Cmd {
 
   //ADMIN
-  static get DBSIZE => "DBSIZE".charCodes;
-  static get INFO => "INFO".charCodes;
-  static get LASTSAVE => "LASTSAVE".charCodes;
-  static get PING => "PING".charCodes;
-  static get ECHO => "ECHO".charCodes;
-  static get SLAVEOF => "SLAVEOF".charCodes;
-  static get NO => "NO".charCodes;
-  static get ONE => "ONE".charCodes;
-  static get CONFIG => "CONFIG".charCodes; //GET SET
-  static get RESETSTAT => "RESETSTAT".charCodes;
-  static get TIME => "TIME".charCodes;
-  static get DEBUG => "DEBUG".charCodes; //OBJECT SEGFAULT
-  static get SEGFAULT => "SEGFAULT".charCodes;
-  static get RESTORE => "RESTORE".charCodes;
-  static get MIGRATE => "MIGRATE".charCodes;
-  static get MOVE => "MOVE".charCodes;
-  static get OBJECT => "OBJECT".charCodes; //REFCOUNT ENCODING IDLETIME
-  static get REFCOUNT => "REFCOUNT".charCodes;
-  static get ENCODING => "ENCODING".charCodes;
-  static get IDLETIME => "IDLETIME".charCodes;
-  static get SAVE => "SAVE".charCodes;
-  static get BGSAVE => "BGSAVE".charCodes;
-  static get SHUTDOWN => "SHUTDOWN".charCodes;
-  static get BGREWRITEAOF => "BGREWRITEAOF".charCodes;
-  static get QUIT => "QUIT".charCodes;
-  static get FLUSHDB => "FLUSHDB".charCodes;
-  static get FLUSHALL => "FLUSHALL".charCodes;
-  static get KEYS => "KEYS".charCodes;
-  static get SLOWLOG => "SLOWLOG".charCodes;
+  static get DBSIZE => "DBSIZE".codeUnits;
+  static get INFO => "INFO".codeUnits;
+  static get LASTSAVE => "LASTSAVE".codeUnits;
+  static get PING => "PING".codeUnits;
+  static get ECHO => "ECHO".codeUnits;
+  static get SLAVEOF => "SLAVEOF".codeUnits;
+  static get NO => "NO".codeUnits;
+  static get ONE => "ONE".codeUnits;
+  static get CONFIG => "CONFIG".codeUnits; //GET SET
+  static get RESETSTAT => "RESETSTAT".codeUnits;
+  static get TIME => "TIME".codeUnits;
+  static get DEBUG => "DEBUG".codeUnits; //OBJECT SEGFAULT
+  static get SEGFAULT => "SEGFAULT".codeUnits;
+  static get RESTORE => "RESTORE".codeUnits;
+  static get MIGRATE => "MIGRATE".codeUnits;
+  static get MOVE => "MOVE".codeUnits;
+  static get OBJECT => "OBJECT".codeUnits; //REFCOUNT ENCODING IDLETIME
+  static get REFCOUNT => "REFCOUNT".codeUnits;
+  static get ENCODING => "ENCODING".codeUnits;
+  static get IDLETIME => "IDLETIME".codeUnits;
+  static get SAVE => "SAVE".codeUnits;
+  static get BGSAVE => "BGSAVE".codeUnits;
+  static get SHUTDOWN => "SHUTDOWN".codeUnits;
+  static get BGREWRITEAOF => "BGREWRITEAOF".codeUnits;
+  static get QUIT => "QUIT".codeUnits;
+  static get FLUSHDB => "FLUSHDB".codeUnits;
+  static get FLUSHALL => "FLUSHALL".codeUnits;
+  static get KEYS => "KEYS".codeUnits;
+  static get SLOWLOG => "SLOWLOG".codeUnits;
 
   //Keys
-  static get TYPE => "TYPE".charCodes;
-  static get STRLEN => "STRLEN".charCodes;
-  static get SET => "SET".charCodes;
-  static get GET => "GET".charCodes;
-  static get DEL => "DEL".charCodes;
-  static get SETEX => "SETEX".charCodes;
-  static get PSETEX => "PSETEX".charCodes;
-  static get SETNX => "SETNX".charCodes;
-  static get PERSIST => "PERSIST".charCodes;
-  static get MSET => "MSET".charCodes;
-  static get MSETNX => "MSETNX".charCodes;
-  static get GETSET => "GETSET".charCodes;
-  static get EXISTS => "EXISTS".charCodes;
-  static get INCR => "INCR".charCodes;
-  static get INCRBY => "INCRBY".charCodes;
-  static get INCRBYFLOAT => "INCRBYFLOAT".charCodes;
-  static get DECR => "DECR".charCodes;
-  static get DECRBY => "DECRBY".charCodes;
-  static get APPEND => "APPEND".charCodes;
-  static get SUBSTR => "SUBSTR".charCodes;
-  static get GETRANGE => "GETRANGE".charCodes;
-  static get SETRANGE => "SETRANGE".charCodes;
-  static get GETBIT => "GETBIT".charCodes;
-  static get SETBIT => "SETBIT".charCodes;
-  static get RANDOMKEY => "RANDOMKEY".charCodes;
-  static get RENAME => "RENAME".charCodes;
-  static get RENAMENX => "RENAMENX".charCodes;
-  static get EXPIRE => "EXPIRE".charCodes;
-  static get PEXPIRE => "PEXPIRE".charCodes;
-  static get EXPIREAT => "EXPIREAT".charCodes;
-  static get PEXPIREAT => "PEXPIREAT".charCodes;
-  static get TTL => "TTL".charCodes;
-  static get PTTL => "PTTL".charCodes;
+  static get TYPE => "TYPE".codeUnits;
+  static get STRLEN => "STRLEN".codeUnits;
+  static get SET => "SET".codeUnits;
+  static get GET => "GET".codeUnits;
+  static get DEL => "DEL".codeUnits;
+  static get SETEX => "SETEX".codeUnits;
+  static get PSETEX => "PSETEX".codeUnits;
+  static get SETNX => "SETNX".codeUnits;
+  static get PERSIST => "PERSIST".codeUnits;
+  static get MSET => "MSET".codeUnits;
+  static get MSETNX => "MSETNX".codeUnits;
+  static get GETSET => "GETSET".codeUnits;
+  static get EXISTS => "EXISTS".codeUnits;
+  static get INCR => "INCR".codeUnits;
+  static get INCRBY => "INCRBY".codeUnits;
+  static get INCRBYFLOAT => "INCRBYFLOAT".codeUnits;
+  static get DECR => "DECR".codeUnits;
+  static get DECRBY => "DECRBY".codeUnits;
+  static get APPEND => "APPEND".codeUnits;
+  static get SUBSTR => "SUBSTR".codeUnits;
+  static get GETRANGE => "GETRANGE".codeUnits;
+  static get SETRANGE => "SETRANGE".codeUnits;
+  static get GETBIT => "GETBIT".codeUnits;
+  static get SETBIT => "SETBIT".codeUnits;
+  static get RANDOMKEY => "RANDOMKEY".codeUnits;
+  static get RENAME => "RENAME".codeUnits;
+  static get RENAMENX => "RENAMENX".codeUnits;
+  static get EXPIRE => "EXPIRE".codeUnits;
+  static get PEXPIRE => "PEXPIRE".codeUnits;
+  static get EXPIREAT => "EXPIREAT".codeUnits;
+  static get PEXPIREAT => "PEXPIREAT".codeUnits;
+  static get TTL => "TTL".codeUnits;
+  static get PTTL => "PTTL".codeUnits;
 
   //Transactions
-  static get MGET => "MGET".charCodes;
-  static get WATCH => "WATCH".charCodes;
-  static get UNWATCH => "UNWATCH".charCodes;
-  static get MULTI => "MULTI".charCodes;
-  static get EXEC => "EXEC".charCodes;
-  static get DISCARD => "DISCARD".charCodes;
+  static get MGET => "MGET".codeUnits;
+  static get WATCH => "WATCH".codeUnits;
+  static get UNWATCH => "UNWATCH".codeUnits;
+  static get MULTI => "MULTI".codeUnits;
+  static get EXEC => "EXEC".codeUnits;
+  static get DISCARD => "DISCARD".codeUnits;
 
   //SET
-  static get SMEMBERS => "SMEMBERS".charCodes;
-  static get SADD => "SADD".charCodes;
-  static get SREM => "SREM".charCodes;
-  static get SPOP => "SPOP".charCodes;
-  static get SMOVE => "SMOVE".charCodes;
-  static get SCARD => "SCARD".charCodes;
-  static get SISMEMBER => "SISMEMBER".charCodes;
-  static get SINTER => "SINTER".charCodes;
-  static get SINTERSTORE => "SINTERSTORE".charCodes;
-  static get SUNION => "SUNION".charCodes;
-  static get SUNIONSTORE => "SUNIONSTORE".charCodes;
-  static get SDIFF => "SDIFF".charCodes;
-  static get SDIFFSTORE => "SDIFFSTORE".charCodes;
-  static get SRANDMEMBER => "SRANDMEMBER".charCodes;
+  static get SMEMBERS => "SMEMBERS".codeUnits;
+  static get SADD => "SADD".codeUnits;
+  static get SREM => "SREM".codeUnits;
+  static get SPOP => "SPOP".codeUnits;
+  static get SMOVE => "SMOVE".codeUnits;
+  static get SCARD => "SCARD".codeUnits;
+  static get SISMEMBER => "SISMEMBER".codeUnits;
+  static get SINTER => "SINTER".codeUnits;
+  static get SINTERSTORE => "SINTERSTORE".codeUnits;
+  static get SUNION => "SUNION".codeUnits;
+  static get SUNIONSTORE => "SUNIONSTORE".codeUnits;
+  static get SDIFF => "SDIFF".codeUnits;
+  static get SDIFFSTORE => "SDIFFSTORE".codeUnits;
+  static get SRANDMEMBER => "SRANDMEMBER".codeUnits;
 
   //Sort Set/List
-  static get SORT => "SORT".charCodes; //BY LIMIT GET DESC ALPHA STORE
-  static get BY => "BY".charCodes;
-  static get DESC => "DESC".charCodes;
-  static get ALPHA => "ALPHA".charCodes;
-  static get STORE => "STORE".charCodes;
+  static get SORT => "SORT".codeUnits; //BY LIMIT GET DESC ALPHA STORE
+  static get BY => "BY".codeUnits;
+  static get DESC => "DESC".codeUnits;
+  static get ALPHA => "ALPHA".codeUnits;
+  static get STORE => "STORE".codeUnits;
 
   //List
-  static get LRANGE => "LRANGE".charCodes;
-  static get RPUSH => "RPUSH".charCodes;
-  static get RPUSHX => "RPUSHX".charCodes;
-  static get LPUSH => "LPUSH".charCodes;
-  static get LPUSHX => "LPUSHX".charCodes;
-  static get LTRIM => "LTRIM".charCodes;
-  static get LREM => "LREM".charCodes;
-  static get LLEN => "LLEN".charCodes;
-  static get LINDEX => "LINDEX".charCodes;
-  static get LINSERT => "LINSERT".charCodes;
-  static get AFTER => "AFTER".charCodes;
-  static get BEFORE => "BEFORE".charCodes;
-  static get LSET => "LSET".charCodes;
-  static get LPOP => "LPOP".charCodes;
-  static get RPOP => "RPOP".charCodes;
-  static get BLPOP => "BLPOP".charCodes;
-  static get BRPOP => "BRPOP".charCodes;
-  static get RPOPLPUSH => "RPOPLPUSH".charCodes;
+  static get LRANGE => "LRANGE".codeUnits;
+  static get RPUSH => "RPUSH".codeUnits;
+  static get RPUSHX => "RPUSHX".codeUnits;
+  static get LPUSH => "LPUSH".codeUnits;
+  static get LPUSHX => "LPUSHX".codeUnits;
+  static get LTRIM => "LTRIM".codeUnits;
+  static get LREM => "LREM".codeUnits;
+  static get LLEN => "LLEN".codeUnits;
+  static get LINDEX => "LINDEX".codeUnits;
+  static get LINSERT => "LINSERT".codeUnits;
+  static get AFTER => "AFTER".codeUnits;
+  static get BEFORE => "BEFORE".codeUnits;
+  static get LSET => "LSET".codeUnits;
+  static get LPOP => "LPOP".codeUnits;
+  static get RPOP => "RPOP".codeUnits;
+  static get BLPOP => "BLPOP".codeUnits;
+  static get BRPOP => "BRPOP".codeUnits;
+  static get RPOPLPUSH => "RPOPLPUSH".codeUnits;
 
   //Sorted Sets
-  static get ZADD => "ZADD".charCodes;
-  static get ZREM => "ZREM".charCodes;
-  static get ZINCRBY => "ZINCRBY".charCodes;
-  static get ZRANK => "ZRANK".charCodes;
-  static get ZREVRANK => "ZREVRANK".charCodes;
-  static get ZRANGE => "ZRANGE".charCodes;
-  static get ZREVRANGE => "ZREVRANGE".charCodes;
-  static get WITHSCORES => "WITHSCORES".charCodes;
-  static get LIMIT => "LIMIT".charCodes;
-  static get ZRANGEBYSCORE => "ZRANGEBYSCORE".charCodes;
-  static get ZREVRANGEBYSCORE => "ZREVRANGEBYSCORE".charCodes;
-  static get ZREMRANGEBYRANK => "ZREMRANGEBYRANK".charCodes;
-  static get ZREMRANGEBYSCORE => "ZREMRANGEBYSCORE".charCodes;
-  static get ZCARD => "ZCARD".charCodes;
-  static get ZSCORE => "ZSCORE".charCodes;
-  static get ZUNIONSTORE => "ZUNIONSTORE".charCodes;
-  static get ZINTERSTORE => "ZINTERSTORE".charCodes;
+  static get ZADD => "ZADD".codeUnits;
+  static get ZREM => "ZREM".codeUnits;
+  static get ZINCRBY => "ZINCRBY".codeUnits;
+  static get ZRANK => "ZRANK".codeUnits;
+  static get ZREVRANK => "ZREVRANK".codeUnits;
+  static get ZRANGE => "ZRANGE".codeUnits;
+  static get ZREVRANGE => "ZREVRANGE".codeUnits;
+  static get WITHSCORES => "WITHSCORES".codeUnits;
+  static get LIMIT => "LIMIT".codeUnits;
+  static get ZRANGEBYSCORE => "ZRANGEBYSCORE".codeUnits;
+  static get ZREVRANGEBYSCORE => "ZREVRANGEBYSCORE".codeUnits;
+  static get ZREMRANGEBYRANK => "ZREMRANGEBYRANK".codeUnits;
+  static get ZREMRANGEBYSCORE => "ZREMRANGEBYSCORE".codeUnits;
+  static get ZCARD => "ZCARD".codeUnits;
+  static get ZSCORE => "ZSCORE".codeUnits;
+  static get ZUNIONSTORE => "ZUNIONSTORE".codeUnits;
+  static get ZINTERSTORE => "ZINTERSTORE".codeUnits;
 
   //Hash
-  static get HSET => "HSET".charCodes;
-  static get HSETNX => "HSETNX".charCodes;
-  static get HMSET => "HMSET".charCodes;
-  static get HINCRBY => "HINCRBY".charCodes;
-  static get HINCRBYFLOAT => "HINCRBYFLOAT".charCodes;
-  static get HGET => "HGET".charCodes;
-  static get HMGET => "HMGET".charCodes;
-  static get HDEL => "HDEL".charCodes;
-  static get HEXISTS => "HEXISTS".charCodes;
-  static get HLEN => "HLEN".charCodes;
-  static get HKEYS => "HKEYS".charCodes;
-  static get HVALS => "HVALS".charCodes;
-  static get HGETALL => "HGETALL".charCodes;
+  static get HSET => "HSET".codeUnits;
+  static get HSETNX => "HSETNX".codeUnits;
+  static get HMSET => "HMSET".codeUnits;
+  static get HINCRBY => "HINCRBY".codeUnits;
+  static get HINCRBYFLOAT => "HINCRBYFLOAT".codeUnits;
+  static get HGET => "HGET".codeUnits;
+  static get HMGET => "HMGET".codeUnits;
+  static get HDEL => "HDEL".codeUnits;
+  static get HEXISTS => "HEXISTS".codeUnits;
+  static get HLEN => "HLEN".codeUnits;
+  static get HKEYS => "HKEYS".codeUnits;
+  static get HVALS => "HVALS".codeUnits;
+  static get HGETALL => "HGETALL".codeUnits;
 
   //Pub/Sub
-  static get PUBLISH => "PUBLISH".charCodes;
-  static get SUBSCRIBE => "SUBSCRIBE".charCodes;
-  static get UNSUBSCRIBE => "UNSUBSCRIBE".charCodes;
-  static get PSUBSCRIBE => "PSUBSCRIBE".charCodes;
-  static get PUNSUBSCRIBE => "PUNSUBSCRIBE".charCodes;
+  static get PUBLISH => "PUBLISH".codeUnits;
+  static get SUBSCRIBE => "SUBSCRIBE".codeUnits;
+  static get UNSUBSCRIBE => "UNSUBSCRIBE".codeUnits;
+  static get PSUBSCRIBE => "PSUBSCRIBE".codeUnits;
+  static get PUNSUBSCRIBE => "PUNSUBSCRIBE".codeUnits;
 
   //Scripting
-  static get EVAL => "EVAL".charCodes;
-  static get SCRIPT => "SCRIPT".charCodes; //EXISTS FLUSH KILL LOAD
-  static get KILL => "KILL".charCodes;
-  static get LOAD => "LOAD".charCodes;
+  static get EVAL => "EVAL".codeUnits;
+  static get SCRIPT => "SCRIPT".codeUnits; //EXISTS FLUSH KILL LOAD
+  static get KILL => "KILL".codeUnits;
+  static get LOAD => "LOAD".codeUnits;
 
 }
 
@@ -776,15 +773,15 @@ class _Utils {
   }
 
   static List<List<int>> mergeCommandWithStringArgs(List<int> cmd, List<String> args) =>
-    mergeCommandWithArgs(cmd, args.map((x) => x.charCodes));
+    mergeCommandWithArgs(cmd, args.map((x) => x.codeUnits));
 
   static List<List<int>> mergeCommandWithKeyAndStringArgs(List<int> cmd, String key, List<String> args){
     args.insertRange(0, 1, key);
-    return mergeCommandWithArgs(cmd, args.map((x) => x.charCodes));
+    return mergeCommandWithArgs(cmd, args.map((x) => x.codeUnits));
   }
 
   static List<List<int>> mergeCommandWithKeyAndArgs(List<int> cmd, String key, List<List<int>> args){
-    args.insertRange(0, 1, key.charCodes);
+    args.insertRange(0, 1, key.codeUnits);
     return mergeCommandWithArgs(cmd, args);
   }
 

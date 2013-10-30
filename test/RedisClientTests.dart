@@ -1,7 +1,6 @@
 library RedisClientTests;
 
-import "dart:io";
-import "dart:isolate";
+import 'dart:async';
 import "DUnit.dart";
 import "package:dartmixins/mixin.dart";
 import "package:redis_client/redis_client.dart";
@@ -126,7 +125,7 @@ RedisClientTests (){
             isNull(val,"PEXPIRE: expires after 1s")));
       });
 
-      Date in1Sec = new Date.now().add(new Duration(seconds: 1));
+      DateTime in1Sec = new DateTime.now().add(new Duration(seconds: 1));
       client.set("keyAt", "expires in 1 sec");
       client.expireat("keyAt", in1Sec).then((_){
         client.get("keyAt").then((val) => isNotNull(val,"EXPIREAT: doesn't expire immediately"));

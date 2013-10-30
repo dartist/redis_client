@@ -1,7 +1,7 @@
 library jsonEncoderTests;
 
-import "dart:json";
 import "DUnit.dart";
+import 'dart:core';
 import "package:redis_client/redis_client.dart";
 
 
@@ -24,7 +24,7 @@ JsonEncoderTests() {
     equal(enc.stringify([]), "[]", "can encode empty List");
     equal(enc.stringify({'A':1}), '{"A":1}', "can encode Map");
     equal(enc.stringify(['A']), '["A"]', "can encode List");
-    equal(enc.stringify(new Date(2012,05,09,0,0,0,0)), "/Date(1336546800000)/", "can encode Date");
+    equal(enc.stringify(new DateTime(2012,05,09,0,0,0,0)), "/Date(1336546800000)/", "can encode Date");
   });
 
   test("Encoder: deserialize", (){
@@ -41,7 +41,7 @@ JsonEncoderTests() {
     deepEqual(enc.toObject(enc.toBytes([])), [], "can decode empty List");
     deepEqual(enc.toObject(enc.toBytes({'A':1})), {"A":1}, "can decode Map");
     deepEqual(enc.toObject(enc.toBytes(['A'])), ["A"], "can decode List");
-    Date utcDate = new Date.utc(2012,05,09,0,0,0,0);
+    DateTime utcDate = new DateTime.utc(2012,05,09,0,0,0,0);
     equal(enc.toObject(enc.toBytes(utcDate)), utcDate, "can decode UTC Date");
 
 //TODO support non UTC dates
