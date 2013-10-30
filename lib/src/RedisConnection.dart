@@ -562,7 +562,7 @@ class _Utils {
 
       int count;
       try {
-        count = Math.parseInt(line.substring(1));
+        count = int.parse(line.substring(1));
       }catch (e){
         task.completeException(createError("readData: Invalid length: $line: $e"));
         return null;

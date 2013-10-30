@@ -1,7 +1,7 @@
 library RedisConnectionTests;
 
 import "DUnit.dart";
-import "package:dartredisclient/redis_client.dart";
+import "package:redis_client/redis_client.dart";
 
 RedisConnectionTests(){
 

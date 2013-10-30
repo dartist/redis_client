@@ -1,4 +1,4 @@
-import "package:dartredisclient/redis_client.dart";
+import "package:redis_client/redis_client.dart";
 
 main() {
   print("main():");

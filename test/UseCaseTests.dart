@@ -2,7 +2,7 @@ library UseCaseTests;
 import "dart:io";
 import "DUnit.dart";
 import "package:dartmixins/mixin.dart";
-import "package:dartredisclient/redis_client.dart";
+import "package:redis_client/redis_client.dart";
 
 UseCaseTests() {
 
