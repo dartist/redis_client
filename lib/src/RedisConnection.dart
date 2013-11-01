@@ -70,7 +70,7 @@ class ExpectRead {
     }
 
     reader(_socketBuffer, task);
-
+    
     return task.future.isComplete;
   }
 }
@@ -662,7 +662,8 @@ class SocketWrapper {
 }
 
 //Records what's read so can be replayed if all data hasn't been received.
-class SocketBuffer implements InputStream {
+// implements InputStream - doesnt exist anymore, http://news.dartlang.org/2013/02/io-library-now-uses-streams.html
+class SocketBuffer  {
   List<int> _buffer;
   int _position = 0;
   List<List<int>> _chunks;
