@@ -161,12 +161,12 @@ class _RedisClient implements RedisClient {
   int get db => client.db;
   Future select(int db) => client.select(db);
   Future<int> get dbsize => client.dbsize;
-  Future<DateTime> get lastsave => client.lastsave.transform((int unixTs) => new DateTime.fromMillisecondsSinceEpoch(unixTs * 1000, isUtc:true));
+  Future<DateTime> get lastsave => client.lastsave.then((int unixTs) => new DateTime.fromMillisecondsSinceEpoch(unixTs * 1000, isUtc:true));
   Future<Map> get info => client.info;
   Future flushdb() => client.flushdb();
   Future flushall() => client.flushall();
   Future<bool> ping() => client.ping();
-  Future<Object> echo(Object value) => client.echo(toBytes(value)).transform(toObject);
+  Future<Object> echo(Object value) => client.echo(toBytes(value)).then(toObject);
   Future save() => client.save();
   Future bgsave() => client.bgsave();
   Future shutdown() => client.shutdown();
@@ -176,9 +176,9 @@ class _RedisClient implements RedisClient {
   //KEYS
   Future<String> type(String key) => client.type(key);
   Future<List<String>> keys(String pattern) => client.keys(pattern);
-  Future<Object> get(String key) => client.get(key).transform(toObject);
-  Future<List<Object>> mget(List<String> keys) => client.mget(keys).transform((x) => x.map(toObject));
-  Future<Object> getset(String key, Object value) => client.getset(key, toBytes(value)).transform(toObject);
+  Future<Object> get(String key) => client.get(key).then(toObject);
+  Future<List<Object>> mget(List<String> keys) => client.mget(keys).then((x) => x.map(toObject));
+  Future<Object> getset(String key, Object value) => client.getset(key, toBytes(value)).then(toObject);
   Future set(String key, Object value) => client.set(key, toBytes(value));
   Future setex(String key, int expireInSecs, Object value) => client.setex(key, expireInSecs, toBytes(value));
   Future psetex(String key, int expireInMs, Object value) => client.psetex(key, expireInMs, toBytes(value));
@@ -195,12 +195,12 @@ class _RedisClient implements RedisClient {
   Future<int> decrby(String key, int decrBy) => client.decrby(key, decrBy);
   Future<int> strlen(String key) => client.strlen(key);
   Future<int> append(String key, String value) => client.append(key, toBytes(value));
-  Future<String> substr(String key, int fromIndex, int toIndex) => client.substr(key, fromIndex, toIndex).transform(toStr);
-  Future<String> getrange(String key, int fromIndex, int toIndex) => client.getrange(key, fromIndex, toIndex).transform(toStr);
-  Future<String> setrange(String key, int offset, String value) => client.setrange(key, offset, toBytes(value)).transform(toStr);
+  Future<String> substr(String key, int fromIndex, int toIndex) => client.substr(key, fromIndex, toIndex).then(toStr);
+  Future<String> getrange(String key, int fromIndex, int toIndex) => client.getrange(key, fromIndex, toIndex).then(toStr);
+  Future<String> setrange(String key, int offset, String value) => client.setrange(key, offset, toBytes(value)).then(toStr);
   Future<int> getbit(String key, int offset) => client.getbit(key, offset);
   Future<int> setbit(String key, int offset, int value) => client.setbit(key, offset, value);
-  Future<String> randomkey() => client.randomkey().transform(toStr);
+  Future<String> randomkey() => client.randomkey().then(toStr);
   Future rename(String oldKey, String newKey) => client.rename(oldKey, newKey);
   Future<bool> renamenx(String oldKey, String newKey) => client.renamenx(oldKey, newKey);
   Future<bool> expire(String key, int expireInSecs) => client.expire(key, expireInSecs);
@@ -211,25 +211,25 @@ class _RedisClient implements RedisClient {
   Future<int> pttl(String key) => client.pttl(key);
 
   //SET
-  Future<List<Object>> smembers(String setId) => client.smembers(setId).transform((x) => x.map(toObject));
+  Future<List<Object>> smembers(String setId) => client.smembers(setId).then((x) => x.map(toObject));
   Future<int> sadd(String setId, Object value) => client.sadd(setId, toBytes(value));
   Future<int> smadd(String setId, List<Object> values) => client.smadd(setId, values.map((x) => toBytes(x)));
   Future<int> srem(String setId, Object value) => client.srem(setId, toBytes(value));
-  Future<Object> spop(String setId) => client.spop(setId).transform(toObject);
+  Future<Object> spop(String setId) => client.spop(setId).then(toObject);
   Future<bool> smove(String fromSetId, String toSetId, Object value) => client.smove(fromSetId, toSetId, toBytes(value));
   Future<int> scard(String setId) => client.scard(setId);
   Future<bool> sismember(String setId, Object value) => client.sismember(setId, toBytes(value));
-  Future<List<Object>> sinter(List<String> setIds) => client.sinter(setIds).transform((x) => x.map(toObject));
+  Future<List<Object>> sinter(List<String> setIds) => client.sinter(setIds).then((x) => x.map(toObject));
   Future<int> sinterstore(String intoSetId, List<String> setIds) => client.sinterstore(intoSetId, setIds);
-  Future<List<Object>> sunion(List<String> setIds) => client.sunion(setIds).transform((x) => x.map(toObject));
+  Future<List<Object>> sunion(List<String> setIds) => client.sunion(setIds).then((x) => x.map(toObject));
   Future<int> sunionstore(String intoSetId, List<String> setIds) => client.sunionstore(intoSetId, setIds);
-  Future<List<Object>> sdiff(String fromSetId, List<String> withSetIds) => client.sdiff(fromSetId, withSetIds).transform((x) => x.map(toObject));
+  Future<List<Object>> sdiff(String fromSetId, List<String> withSetIds) => client.sdiff(fromSetId, withSetIds).then((x) => x.map(toObject));
   Future<int> sdiffstore(String intoSetId, String fromSetId, List<String> withSetIds) => client.sdiffstore(intoSetId, fromSetId, withSetIds);
-  Future<Object> srandmember(String setId) => client.srandmember(setId).transform(toObject);
+  Future<Object> srandmember(String setId) => client.srandmember(setId).then(toObject);
 
   //LIST
   Future<List<Object>> lrange(String listId, [int startingFrom=0, int endingAt=-1]) =>
-      client.lrange(listId, startingFrom, endingAt).transform((x) => x.map(toObject));
+      client.lrange(listId, startingFrom, endingAt).then((x) => x.map(toObject));
   Future<int> lpush(String listId, Object value) => client.lpush(listId, toBytes(value));
   Future<int> mlpush(String listId, List<Object> values) => client.mlpush(listId, values.map((x) => toBytes(x)));
   Future<int> lpushx(String listId, Object value) => client.lpushx(listId, toBytes(value));
@@ -241,11 +241,11 @@ class _RedisClient implements RedisClient {
   Future ltrim(String listId, int keepStartingFrom, int keepEndingAt) => client.ltrim(listId, keepStartingFrom, keepEndingAt);
   Future<int> lrem(String listId, int removeNoOfMatches, Object value) => client.lrem(listId, removeNoOfMatches, toBytes(value));
   Future<int> llen(String listId) => client.llen(listId);
-  Future<Object> lindex(String listId, int listIndex) => client.lindex(listId, listIndex).transform(toObject);
+  Future<Object> lindex(String listId, int listIndex) => client.lindex(listId, listIndex).then(toObject);
   Future lset(String listId, int listIndex, Object value) => client.lset(listId, listIndex, toBytes(value));
-  Future<Object> lpop(String listId) => client.lpop(listId).transform(toObject);
-  Future<Object> rpop(String listId) => client.rpop(listId).transform(toObject);
-  Future<Object> rpoplpush(String fromListId, String toListId) => client.rpoplpush(fromListId, toListId).transform(toObject);
+  Future<Object> lpop(String listId) => client.lpop(listId).then(toObject);
+  Future<Object> rpop(String listId) => client.rpop(listId).then(toObject);
+  Future<Object> rpoplpush(String fromListId, String toListId) => client.rpoplpush(fromListId, toListId).then(toObject);
 
   //SORTED SET
   Future<int> zadd(String setId, num score, Object value) => client.zadd(setId, score, toBytes(value));
@@ -262,16 +262,16 @@ class _RedisClient implements RedisClient {
   Future<double> zincrby(String setId, num incrBy, Object value) => client.zincrby(setId, incrBy, toBytes(value));
   Future<int> zrank(String setId, Object value) => client.zrank(setId, toBytes(value));
   Future<int> zrevrank(String setId, Object value) => client.zrevrank(setId, toBytes(value));
-  Future<List<Object>> zrange(String setId, int min, int max) => client.zrange(setId, min, max).transform((x) => x.map(toObject));
+  Future<List<Object>> zrange(String setId, int min, int max) => client.zrange(setId, min, max).then((x) => x.map(toObject));
   Future<Map<Object,double>> zrangeWithScores(String setId, int min, int max) =>
-      client.zrangeWithScores(setId, min, max).transform(_toScoreMap);
-  Future<List<Object>> zrevrange(String setId, int min, int max) => client.zrevrange(setId, min, max).transform((x) => x.map(toObject));
+      client.zrangeWithScores(setId, min, max).then(_toScoreMap);
+  Future<List<Object>> zrevrange(String setId, int min, int max) => client.zrevrange(setId, min, max).then((x) => x.map(toObject));
   Future<Map<Object,double>> zrevrangeWithScores(String setId, int min, int max) =>
-      client.zrevrangeWithScores(setId, min, max).transform(_toScoreMap);
+      client.zrevrangeWithScores(setId, min, max).then(_toScoreMap);
   Future<List<Object>> zrangebyscore(String setId, num min, num max, [int skip, int take]) =>
-      client.zrangebyscore(setId, min, max, skip, take).transform((x) => x.map(toObject));
+      client.zrangebyscore(setId, min, max, skip, take).then((x) => x.map(toObject));
   Future<Map<Object,double>> zrangebyscoreWithScores(String setId, num min, num max, [int skip, int take]) =>
-      client.zrangebyscoreWithScores(setId, min, max, skip, take).transform(_toScoreMap);
+      client.zrangebyscoreWithScores(setId, min, max, skip, take).then(_toScoreMap);
   Future<int> zremrangebyrank(String setId, int min, int max) => client.zremrangebyrank(setId, min, max);
   Future<int> zremrangebyscore(String setId, num min, num max) => client.zremrangebyscore(setId, min, max);
   Future<int> zcard(String setId) => client.zcard(setId);
@@ -286,14 +286,14 @@ class _RedisClient implements RedisClient {
     client.hmset(hashId, map.keys.map(toBytes), map.values.map(toBytes));
   Future<int> hincrby(String hashId, String key, int incrBy) => client.hincrby(hashId, key, incrBy);
   Future<double> hincrbyfloat(String hashId, String key, double incrBy) => client.hincrbyfloat(hashId, key, incrBy);
-  Future<Object> hget(String hashId, String key) => client.hget(hashId, key).transform(toObject);
-  Future<List<Object>> hmget(String hashId, List<String> keys) => client.hmget(hashId, keys).transform((x) => x.map(toObject));
+  Future<Object> hget(String hashId, String key) => client.hget(hashId, key).then(toObject);
+  Future<List<Object>> hmget(String hashId, List<String> keys) => client.hmget(hashId, keys).then((x) => x.map(toObject));
   Future<int> hdel(String hashId, String key) => client.hdel(hashId, key);
   Future<bool> hexists(String hashId, String key) => client.hexists(hashId, key);
   Future<int> hlen(String hashId) => client.hlen(hashId);
   Future<List<String>> hkeys(String hashId) => client.hkeys(hashId);
-  Future<List<Object>> hvals(String hashId) => client.hvals(hashId).transform((x) => x.map(toObject));
-  Future<Map<String,Object>> hgetall(String hashId) => client.hgetall(hashId).transform(_toMap);
+  Future<List<Object>> hvals(String hashId) => client.hvals(hashId).then((x) => x.map(toObject));
+  Future<Map<String,Object>> hgetall(String hashId) => client.hgetall(hashId).then(_toMap);
 
   void close() => raw.close();
 

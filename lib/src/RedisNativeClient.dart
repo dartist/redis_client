@@ -212,7 +212,7 @@ class _RedisNativeClient implements RedisNativeClient {
 
   Future<Map> get info{
     return conn.sendExpectString([_Cmd.INFO])
-      .transform((String lines){
+      .then((String lines){
          Map info = {};
          for(String line in lines.split("\r\n")){
            List<String> kvp = $(line).splitOnFirst(":");
@@ -222,14 +222,14 @@ class _RedisNativeClient implements RedisNativeClient {
       });
   }
 
-  Future<bool> ping() => conn.sendExpectCode([_Cmd.PING]).transform((String r) => r == "PONG");
+  Future<bool> ping() => conn.sendExpectCode([_Cmd.PING]).then((String r) => r == "PONG");
 
   Future<List<int>> echo(List<int> value) => conn.sendExpectData([_Cmd.ECHO, value]);
 
   Future<String> type(String key) => conn.sendExpectCode([_Cmd.TYPE, keyBytes(key)]);
 
   Future<List<String>> keys(String pattern) =>
-      conn.sendExpectMultiData([_Cmd.KEYS, keyBytes(pattern)]).transform((x) => x.map((k) => new String.fromCharCodes(k)));
+      conn.sendExpectMultiData([_Cmd.KEYS, keyBytes(pattern)]).then((x) => x.map((k) => new String.fromCharCodes(k)));
 
   Future<List<int>> get(String key) =>
       conn.sendExpectData([_Cmd.GET, keyBytes(key)]);
@@ -557,7 +557,7 @@ class _RedisNativeClient implements RedisNativeClient {
       conn.sendExpectInt([_Cmd.HLEN, keyBytes(hashId)]);
 
   Future<List<String>> hkeys(String hashId) =>
-      conn.sendExpectMultiData([_Cmd.HKEYS, keyBytes(hashId)]).transform((bytes) => bytes.map((x) => new String.fromCharCodes(x)));
+      conn.sendExpectMultiData([_Cmd.HKEYS, keyBytes(hashId)]).then((bytes) => bytes.map((x) => new String.fromCharCodes(x)));
 
   Future<List<List<int>>> hvals(String hashId) =>
       conn.sendExpectMultiData([_Cmd.HVALS, keyBytes(hashId)]);

@@ -349,7 +349,7 @@ class _RedisConnection implements RedisConnection {
   }
 
   Future<bool> sendExpectIntSuccess(List<List> cmdWithArgs) =>
-    sendExpectInt(cmdWithArgs).transform((success) => success == 1);
+    sendExpectInt(cmdWithArgs).then((success) => success == 1);
 
   Future<int> sendExpectInt(List<List> cmdWithArgs){
     Completer task = new Completer();
@@ -391,10 +391,10 @@ class _RedisConnection implements RedisConnection {
   }
 
   Future<String> sendExpectString(List<List> cmdWithArgs) =>
-    sendExpectData(cmdWithArgs).transform((List<int> bytes) => new String.fromCharCodes(bytes));
+    sendExpectData(cmdWithArgs).then((List<int> bytes) => new String.fromCharCodes(bytes));
 
   Future<double> sendExpectDouble(List<List> cmdWithArgs) =>
-    sendExpectData(cmdWithArgs).transform((List<int> bytes) => double.parse(new String.fromCharCodes(bytes)));
+    sendExpectData(cmdWithArgs).then((List<int> bytes) => double.parse(new String.fromCharCodes(bytes)));
 
   Future<String> sendExpectCode(List<List> cmdWithArgs){
     Completer task = new Completer();
