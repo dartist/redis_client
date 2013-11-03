@@ -52,9 +52,16 @@ class MockRedisConnection extends Mock implements RedisConnection {
 
   Receiver sendCommand(List<int> command, List<String> args) {}
 
-
-  Receiver rawSend(List<List<int>> cmdWithArgs) {}
+  Receiver sendCommandWithVariadicValues(List<int> command, List<String> args, List<String> values) { }
   
+  Receiver sendCommandWithVariadicArguments(List<int> command, List<String> args) { }
+  
+  Receiver rawSend(List<List<int>> cmdWithArgs) {}
+
+  void handleError(Object error, StackTrace stackTrace, EventSink<RedisReply> sink) {
+    sink.addError(error, stackTrace);
+  }
+
   void handleDone(EventSink<RedisReply> output) {
 
     if (_currentReply != null) {
@@ -64,11 +71,7 @@ class MockRedisConnection extends Mock implements RedisConnection {
     }
 
     output.close();
-  }
-  
-  void handleError(Object error, StackTrace stackTrace, EventSink<RedisReply> sink) {
-    sink.addError(error, stackTrace);
-  }
+  }  
   
   void handleData(List<int> data, EventSink<RedisReply> output) {
     // I'm not entirely sure this is necessary, but better be safe.
