@@ -1,16 +1,8 @@
 library redis_client_tests;
 
 import 'dart:async';
-import 'dart:utf';
-
-import 'package:logging/logging.dart';
 import 'package:unittest/unittest.dart';
-
-import 'package:unittest/mock.dart';
-
 import 'package:redis_client/redis_client.dart';
-
-
 import 'helper.dart';
 
 
@@ -353,7 +345,7 @@ invalid_line
             .then((_) => client.incrbyfloat("some-field", 4.3))
             .then((double inc) => expect(inc, equals(16.8)))
             .then((_) => client.get("some-field"))
-            .then((String value) => expect(value, equals("16.8")))
+            .then((String value) => expect(value, equals("16.800000000000001")))
         );
       });
 
@@ -409,9 +401,147 @@ invalid_line
               .then((String sub) => expect(sub, equals("string")))
         );
       });
+      
 
   });
 
+  group('Set commands:', () {
+    test('SMEMBERS', () {
+      Set<Object> objectSet = new Set()..addAll(['some-string', 'other-string']);
+      
+      async(
+          client.sadd("setId", objectSet)
+            .then((_) => client.smembers("setId")
+            .then((result) => expect(result, equals(objectSet))))
+      );
+    });
+    
+    test('SADD', () {      
+      async(
+          client.sadd('setId', new Set()..addAll(['string', 5]))
+            .then((addResult) =>
+              expect(addResult, equals(2)))
+      );
+    });
+    
+    test('SREM', () {
+      async(
+          client.sadd('setId', 'remove-me')
+            .then((_) => client.srem('setId', 'remove-me'))
+            .then((remResult) => expect(remResult, equals(1)))
+          );
+    });
+    
+    test('SPOP', () {
+      var list = ['some-string', 'some-other-string'];
+      async(
+            client.sadd('setId', list)
+            .then((_) => client.spop('setId'))
+            .then((popResult) => expect(list.contains(popResult), isTrue))
+          );
+    });
+    
+    test('SMOVE', () {
+      var list = ['some-string', 'some-other-string'];
+      var list2 = ['some-list2-string'];
+      async(
+            client.sadd('setId', list)
+            .then((_) => client.sadd('setId2', list2))
+            .then((_) => client.smove('setId', 'setId2', 'some-string'))
+            .then((moveResult) => expect(moveResult, isTrue))
+            .then((_) => client.smove('setId', 'setId2', 'some-string'))
+            .then((moveResult) => expect(moveResult, isFalse))
+          );
+    }); 
+    
+    test('SCARD', () {      
+      async(
+            client.sadd('setId', ['some-string', 'some-other-string'])
+            .then((_) => client.scard('setId'))
+            .then((cardResult) => expect(cardResult, equals(2)))
+          );
+    });
+    
+    test('SISMEMBER', () {
+      async(
+          client.sadd('setId', ['some-member'])
+          .then((_) => client.sismember('setId', 'some-member'))
+          .then((isMemberResult) => expect(isMemberResult, isTrue))
+      );
+    });
+    
+    test('SINTER', () {
+      async(
+          client.sadd('setId', ['a', 'b', 'c', 'd'])
+          .then((_) => client.sadd('setId2', ['c'])
+          .then((_) => client.sadd('setId3', ['a', 'c', 'e'])
+          .then((_) => client.sinter(['setId', 'setId2', 'setId3']))
+          .then((isInterResult) => expect(isInterResult, equals(['c'])))))
+      );
+    });
+    
+    test('SINTERSTORE', () {
+      async(
+          client.sadd('setId', ['a', 'b', 'c', 'd'])
+          .then((_) => client.sadd('setId2', ['b', 'c'])
+          .then((_) => client.sinterstore('newSet', [ 'setId', 'setId2']))
+          .then((interStoreResult) => expect(interStoreResult, equals(2))))
+      );
+    });
+    
+    
+    test('SUNION', () {
+      Set<String> unionSet = new Set()..addAll(['a', 'b', 'c', 'd', 'e']);
+      async(
+          client.sadd('setId', ['a', 'b', 'c', 'd'])
+          .then((_) => client.sadd('setId2', ['c'])
+          .then((_) => client.sadd('setId3', ['a', 'c', 'e'])
+          .then((_) => client.sunion(['setId', 'setId2', 'setId3']))
+          .then((isInterResult) => expect(isInterResult.containsAll(unionSet), isTrue))))
+      );
+    });
+    
+    test('SUNIONSTORE', () {
+      async(
+          client.sadd('setId', ['a', 'b', 'c', 'd'])
+          .then((_) => client.sadd('setId2', ['b'])
+          .then((_) => client.sunionstore('newSet', [ 'setId', 'setId2']))
+          .then((unionStoreResult) => expect(unionStoreResult, equals(4))))
+      );
+    });
+    
+    test('SDIFF', () {
+      async(
+          client.sadd('setId', ['a', 'b', 'c', 'd'])
+          .then((_) => client.sadd('setId2', ['c'])
+          .then((_) => client.sadd('setId3', ['a', 'c', 'e'])
+          .then((_) => client.sdiff('setId', [ 'setId2', 'setId3' ]))
+          .then((diffResult) => expect(diffResult, equals(['b', 'd'])))))
+      );
+    });
+    
+    test('SDIFFSTORE', () {
+      async(
+          client.sadd('setId', ['a', 'b', 'c', 'd'])
+          .then((_) => client.sadd('setId2', ['b'])
+          .then((_) => client.sdiffstore('newSet', [ 'setId', 'setId2']))
+          .then((unionStoreResult) => expect(unionStoreResult, equals(3))))
+      );
+    });
+    
+    test('SRANDMEMBER', () {
+      var list = ['one', 'two', 'three'];
+      async(
+            client.sadd('setId', list)
+            .then((_) => client.srandmember('setId')
+            .then((srandmemberResult) {
+              expect(list.contains(srandmemberResult), isTrue);
+              client.srandmember('setId', 2)
+              .then((srandmemberResult2) => expect(srandmemberResult2.length, equals(2)));
+              })
+            ));
+    });
+  });
 
   });
 

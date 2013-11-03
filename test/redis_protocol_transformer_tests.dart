@@ -1,14 +1,14 @@
 library redis_protocol_transformer_tests;
 
 import 'dart:async';
-import 'dart:utf';
+import 'dart:convert';
 
 import 'package:unittest/unittest.dart';
 
 import 'package:unittest/mock.dart';
 
 import 'package:redis_client/redis_protocol_transformer.dart';
-
+import 'package:redis_client/redis_client.dart';
 
 
 class MockSink extends Mock implements EventSink<RedisReply> {
@@ -17,6 +17,8 @@ class MockSink extends Mock implements EventSink<RedisReply> {
 
   MockSink();
 
+  close() {}
+  addError(errorEvent, [stackTrace]) {}
 
   List<RedisReply> replies = <RedisReply>[ ];
   void add(RedisReply reply) {
@@ -25,6 +27,82 @@ class MockSink extends Mock implements EventSink<RedisReply> {
 
 }
 
+class MockRedisConnection extends Mock implements RedisConnection {
+
+  String connectionString;
+   
+  String hostname;
+
+  String password;
+
+  int port;
+
+  int db;
+  
+  RedisReply _currentReply;
+  Future close() {}
+
+
+  Map get stats {}
+
+
+  Future select([ int db ]) {}
+
+  Receiver send(List<String> cmdWithArgs) {}
+
+  Receiver sendCommand(List<int> command, List<String> args) {}
+
+  Receiver sendCommandWithVariadicValues(List<int> command, List<String> args, List<String> values) { }
+  
+  Receiver sendCommandWithVariadicArguments(List<int> command, List<String> args) { }
+  
+  Receiver rawSend(List<List<int>> cmdWithArgs) {}
+
+  void handleError(Object error, StackTrace stackTrace, EventSink<RedisReply> sink) {
+    sink.addError(error, stackTrace);
+  }
+
+  void handleDone(EventSink<RedisReply> output) {
+
+    if (_currentReply != null) {
+      var error = new UnexpectedRedisClosureError("Some data has already been sent but was not complete.");
+      // Apparently some data has already been sent, but the stream is done.
+      handleError(error, error.stackTrace, output);
+    }
+
+    output.close();
+  }  
+  
+  void handleData(List<int> data, EventSink<RedisReply> output) {
+    // I'm not entirely sure this is necessary, but better be safe.
+    if (data.length == 0) return;
+  
+    if (_currentReply == null) {
+      // This is a fresh RedisReply. How exciting!
+  
+      try {
+        _currentReply = new RedisReply.fromType(data.first);
+      }
+      on RedisProtocolTransformerException catch (e) {
+        handleError(e, e.stackTrace, output);
+      }
+    }
+  
+    List<int> unconsumedData = _currentReply.consumeData(data);
+  
+    // Make sure that unconsumedData can't be returned unless the reply is actually done.
+    assert(unconsumedData == null || _currentReply.done);
+  
+    if (_currentReply.done) {
+      // Reply is done!
+      output.add(_currentReply);
+      _currentReply = null;
+      if (unconsumedData != null && !unconsumedData.isEmpty) {
+        handleData(unconsumedData, output);
+      }
+    }
+  }
+}
 
 
 main() {
@@ -33,7 +111,7 @@ main() {
   group("RedisProtocolTransformer:", () {
 
     group("Exceptions", () {
-      test("should be able to instantiated all exceptions", () {
+      test("should all be able to be instantiated", () {
         // Had a problem with that at the beginning. Just making sure.
         new InvalidRedisResponseError("test");
         new UnexpectedRedisClosureError("test");
@@ -44,21 +122,21 @@ main() {
       test("should properly return RedisReplies of all kinds", () {
         var sink = new MockSink();
 
-        var rpt = new RedisProtocolTransformer();
-
-        rpt.handleData(encodeUtf8("+Status message\r\n"), sink);
+        var redisConnection = new MockRedisConnection();
+        
+        redisConnection.handleData(UTF8.encode("+Status message\r\n"), sink);
         expect(sink.replies.length, equals(1));
         expect(sink.replies.last.runtimeType, equals(StatusReply));
         StatusReply tested1 = sink.replies.last;
         expect(tested1.status, equals("Status message"));
 
-        rpt.handleData(encodeUtf8("-Error message\r\n"), sink);
+        redisConnection.handleData(UTF8.encode("-Error message\r\n"), sink);
         expect(sink.replies.length, equals(2));
         expect(sink.replies.last.runtimeType, equals(ErrorReply));
         ErrorReply tested2 = sink.replies.last;
         expect(tested2.error, equals("Error message"));
 
-        rpt.handleData(encodeUtf8(":12345\r\n"), sink);
+        redisConnection.handleData(UTF8.encode(":12345\r\n"), sink);
         expect(sink.replies.length, equals(3));
         expect(sink.replies.last.runtimeType, equals(IntegerReply));
         IntegerReply tested3 = sink.replies.last;
@@ -67,11 +145,11 @@ main() {
       test("should properly handle it if only the symbol is passed", () {
         var sink = new MockSink();
 
-        var rpt = new RedisProtocolTransformer();
-
-        rpt.handleData(encodeUtf8("+"), sink);
+        var redisConnection = new MockRedisConnection();
+        
+        redisConnection.handleData(UTF8.encode("+"), sink);
         expect(sink.replies.length, equals(0));
-        rpt.handleData(encodeUtf8("Hi there\r\n"), sink);
+        redisConnection.handleData(UTF8.encode("Hi there\r\n"), sink);
         expect(sink.replies.length, equals(1));
         expect(sink.replies[0].runtimeType, equals(StatusReply));
         StatusReply testedStatus = sink.replies[0];
@@ -80,10 +158,10 @@ main() {
       });
       test("should properly handle it if all data is passed at once", () {
         var sink = new MockSink();
-
-        var rpt = new RedisProtocolTransformer();
-
-        rpt.handleData(encodeUtf8("+Status message\r\n:132\r\n-Error message\r\n"), sink);
+        
+        var redisConnection = new MockRedisConnection();
+        
+        redisConnection.handleData(UTF8.encode("+Status message\r\n:132\r\n-Error message\r\n"), sink);
         expect(sink.replies.length, equals(3));
         expect(sink.replies[0].runtimeType, equals(StatusReply));
         expect(sink.replies[1].runtimeType, equals(IntegerReply));
@@ -99,22 +177,22 @@ main() {
       });
       test("should properly handle chunked data", () {
         var sink = new MockSink();
+        
+        var redisConnection = new MockRedisConnection();
 
-        var rpt = new RedisProtocolTransformer();
-
-        rpt.handleData(encodeUtf8("+Status m"), sink);
+        redisConnection.handleData(UTF8.encode("+Status m"), sink);
         expect(sink.replies.length, equals(0));
 
-        rpt.handleData(encodeUtf8("essage\r"), sink);
+        redisConnection.handleData(UTF8.encode("essage\r"), sink);
         // Shouldn't be handled yet because of the missing \n
         expect(sink.replies.length, equals(0));
 
-        rpt.handleData(encodeUtf8("\n:1234\r\n-Start of err"), sink);
+        redisConnection.handleData(UTF8.encode("\n:1234\r\n-Start of err"), sink);
 
         // Should have handled the status and the integer
         expect(sink.replies.length, equals(2));
 
-        rpt.handleData(encodeUtf8("or end\r\n"), sink);
+        redisConnection.handleData(UTF8.encode("or end\r\n"), sink);
 
         expect(sink.replies.length, equals(3));
 
@@ -136,9 +214,9 @@ main() {
       test("should properly return single bulk replies", () {
         var sink = new MockSink();
 
-        var rpt = new RedisProtocolTransformer();
+        var redisConnection = new MockRedisConnection();
 
-        rpt.handleData(encodeUtf8("\$6\r\nfoobar\r\n"), sink);
+        redisConnection.handleData(UTF8.encode("\$6\r\nfoobar\r\n"), sink);
 
         expect(sink.replies.length, equals(1));
         expect(sink.replies.first.runtimeType, equals(BulkReply));
@@ -149,9 +227,9 @@ main() {
       test("should properly handle multiple bulk replies in one data chunk", () {
         var sink = new MockSink();
 
-        var rpt = new RedisProtocolTransformer();
+        var redisConnection = new MockRedisConnection();
 
-        rpt.handleData(encodeUtf8("\$6\r\nfoobar\r\n\$8\r\nfoobars2\r\n"), sink);
+        redisConnection.handleData(UTF8.encode("\$6\r\nfoobar\r\n\$8\r\nfoobars2\r\n"), sink);
 
         expect(sink.replies.length, equals(2));
         expect(sink.replies.first.runtimeType, equals(BulkReply));
@@ -164,12 +242,12 @@ main() {
       test("should properly handle null replies", () {
         var sink = new MockSink();
 
-        var rpt = new RedisProtocolTransformer();
+        var redisConnection = new MockRedisConnection();
 
-        rpt.handleData(encodeUtf8("\$-"), sink);
-        rpt.handleData(encodeUtf8("1\r"), sink);
+        redisConnection.handleData(UTF8.encode("\$-"), sink);
+        redisConnection.handleData(UTF8.encode("1\r"), sink);
         expect(sink.replies.length, equals(0));
-        rpt.handleData(encodeUtf8("\n"), sink);
+        redisConnection.handleData(UTF8.encode("\n"), sink);
         expect(sink.replies.length, equals(1));
 
         BulkReply reply = sink.replies.first;
@@ -179,26 +257,26 @@ main() {
       });
       test("should properly handle multiple chopped data chunks", () {
         var sink = new MockSink();
+        
+        var redisConnection = new MockRedisConnection();
 
-        var rpt = new RedisProtocolTransformer();
-
-        rpt.handleData(encodeUtf8("\$6\r\nfoo"), sink);
-
-        expect(sink.replies.length, equals(0));
-
-        rpt.handleData(encodeUtf8("bar\r"), sink);
+        redisConnection.handleData(UTF8.encode("\$6\r\nfoo"), sink);
 
         expect(sink.replies.length, equals(0));
 
-        rpt.handleData(encodeUtf8("\n\$4\r\ntest\r\n\$"), sink);
+        redisConnection.handleData(UTF8.encode("bar\r"), sink);
+
+        expect(sink.replies.length, equals(0));
+
+        redisConnection.handleData(UTF8.encode("\n\$4\r\ntest\r\n\$"), sink);
 
         expect(sink.replies.length, equals(2));
 
-        rpt.handleData(encodeUtf8("3\r\nend\r\n\$1"), sink);
+        redisConnection.handleData(UTF8.encode("3\r\nend\r\n\$1"), sink);
 
         expect(sink.replies.length, equals(3));
 
-        rpt.handleData(encodeUtf8("1\r\nabcdefghijk\r\n"), sink);
+        redisConnection.handleData(UTF8.encode("1\r\nabcdefghijk\r\n"), sink);
 
         expect(sink.replies.length, equals(4));
 
@@ -223,13 +301,13 @@ main() {
       test("should properly be handled (one line and bulk replies together)", () {
         var sink = new MockSink();
 
-        var rpt = new RedisProtocolTransformer();
+        var redisConnection = new MockRedisConnection();
 
-        rpt.handleData(encodeUtf8("\$6\r\nfoo"), sink);
-        rpt.handleData(encodeUtf8("bar\r\n+Mess"), sink);
-        rpt.handleData(encodeUtf8("age"), sink);
-        rpt.handleData(encodeUtf8("\r\n-Error message\r\n:12345\r"), sink);
-        rpt.handleData(encodeUtf8("\n"), sink);
+        redisConnection.handleData(UTF8.encode("\$6\r\nfoo"), sink);
+        redisConnection.handleData(UTF8.encode("bar\r\n+Mess"), sink);
+        redisConnection.handleData(UTF8.encode("age"), sink);
+        redisConnection.handleData(UTF8.encode("\r\n-Error message\r\n:12345\r"), sink);
+        redisConnection.handleData(UTF8.encode("\n"), sink);
 
         expect(sink.replies.length, equals(4));
 
@@ -249,15 +327,15 @@ main() {
       test("should properly handle one MultiBulkReply with mixed Replies.", () {
         var sink = new MockSink();
 
-        var rpt = new RedisProtocolTransformer();
+        var redisConnection = new MockRedisConnection();
 
-        rpt.handleData(encodeUtf8("\*4\r\n:5\r"), sink);
-        rpt.handleData(encodeUtf8("\n-Error\r\n+Status\r\n\$6\r"), sink);
-        rpt.handleData(encodeUtf8("\nfoobar"), sink);
+        redisConnection.handleData(UTF8.encode("\*4\r\n:5\r"), sink);
+        redisConnection.handleData(UTF8.encode("\n-Error\r\n+Status\r\n\$6\r"), sink);
+        redisConnection.handleData(UTF8.encode("\nfoobar"), sink);
 
         expect(sink.replies.length, equals(0));
 
-        rpt.handleData(encodeUtf8("\r\n"), sink);
+        redisConnection.handleData(UTF8.encode("\r\n"), sink);
 
         expect(sink.replies.length, equals(1));
 
@@ -284,13 +362,13 @@ main() {
       test("should handle multi bulk replies with 0 bulk replies", () {
         var sink = new MockSink();
 
-        var rpt = new RedisProtocolTransformer();
+        var redisConnection = new MockRedisConnection();
 
-        rpt.handleData(encodeUtf8("\*"), sink);
+        redisConnection.handleData(UTF8.encode("\*"), sink);
         expect(sink.replies.length, equals(0));
-        rpt.handleData(encodeUtf8("0\r"), sink);
+        redisConnection.handleData(UTF8.encode("0\r"), sink);
         expect(sink.replies.length, equals(0));
-        rpt.handleData(encodeUtf8("\n"), sink);
+        redisConnection.handleData(UTF8.encode("\n"), sink);
         expect(sink.replies.length, equals(1));
 
         MultiBulkReply test = sink.replies.first;
@@ -303,9 +381,9 @@ main() {
       test("should properly be handled in bulk and one line replies", () {
         var sink = new MockSink();
 
-        var rpt = new RedisProtocolTransformer();
+        var redisConnection = new MockRedisConnection();
 
-        rpt.handleData(encodeUtf8("\$9\r\nfo¢b€r\r\n"), sink);
+        redisConnection.handleData(UTF8.encode("\$9\r\nfo¢b€r\r\n"), sink);
 
         BulkReply tested1 = sink.replies[0];
         expect(tested1.string, equals("fo¢b€r"));

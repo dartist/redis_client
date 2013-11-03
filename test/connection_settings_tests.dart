@@ -1,13 +1,6 @@
 library connection_settings_tests;
 
-import 'dart:async';
-import 'dart:utf';
-
-import 'package:logging/logging.dart';
 import 'package:unittest/unittest.dart';
-
-import 'package:unittest/mock.dart';
-
 import '../lib/redis_client.dart';
 
 

@@ -5,7 +5,11 @@ abstract class RedisSerializer {
 
   factory RedisSerializer() => new JsonRedisSerializer();
 
-  List<int> serialize(Object obj);
+  List<int> serialize(Object obj);  
+
+  String serializeToString(Object obj);
+  
+  List<String> serializeToList(Object obj);
 
   Object deserialize(List<int> bytes);
 
@@ -27,45 +31,53 @@ class JsonRedisSerializer implements RedisSerializer {
   static final String TRUE  = "true";
   static final String FALSE = "false";
 
-
   /**
-   * Serializes given object into it's String representation and returns the
+   * Serializes given object into its' String representation and returns the
    * binary of it.
    */
   List<int> serialize(Object obj) {
-    String serialized;
-
-    if (obj == null) serialized = "";
-    else if (obj is String) serialized = obj;
-    else if (obj is DateTime) serialized = "$DATE_PREFIX${obj.millisecondsSinceEpoch}$DATE_SUFFIX";
-    else if (obj is bool || obj is num) serialized = obj.toString();
-    else serialized = stringify(obj);
-
-    return encodeUtf8(serialized);
+    if (obj == null) return obj;
+    return UTF8.encode(serializeToString(obj));
   }
-
+  
+  /**
+   * Serializes given object into its' String representation.
+   */    
+  String serializeToString(Object obj) {
+    if (obj == null || obj is String) return obj;
+    else if (obj is DateTime) return "$DATE_PREFIX${obj.millisecondsSinceEpoch}$DATE_SUFFIX";
+    else if (obj is Set) return serializeToString(obj.toList());
+    else return JSON.encode(obj);
+  }
+  
+  List<String> serializeToList(Object obj) {
+    if(obj == null) return obj;
+    List<String> values = new List();
+    if(obj is Iterable) {
+      values.addAll(obj.map(serializeToString));
+    } else { values.add(serializeToString(obj)); }
+    return values;
+  }
 
   /**
    * Deserializes the String form of given bytes and returns the native object
    * for it.
    */
-  Object deserialize(List<int> bytes) {
-    if (bytes == null || bytes.length == 0) return "";
-
-    return parse(decodeUtf8(bytes));
+  Object deserialize(List<int> deserializable) {
+    if (deserializable == null) return deserializable;
+    
+    var decodedObject = UTF8.decode(deserializable);
+    try { decodedObject = JSON.decode(decodedObject); } 
+    on FormatException catch (e) { }
+    
+    if(decodedObject is String){ 
+      if (_isDate(decodedObject)) {
+        int timeSinceEpoch = int.parse(decodedObject.substring(DATE_PREFIX.length, decodedObject.length - DATE_SUFFIX.length));
+        return new DateTime.fromMillisecondsSinceEpoch(timeSinceEpoch, isUtc: true);    
+      }
+    } 
+    return decodedObject;
   }
-
-
-  /**
-   * Wheter given bytes are encoded JSON.
-   *
-   * This is determined by looking at the first byte.
-   */
-  bool _isSerializedJSON(List <int> bytes) {
-    var firstByte = bytes.first;
-    return firstByte == OBJECT_START || firstByte == ARRAY_START || firstByte == SIGN
-        || (firstByte >= ZERO && firstByte <= NINE); // JSON deserializes numbers just fine.
-  }
-
-
+  
+  bool _isDate(decodedString) => decodedString.startsWith(DATE_PREFIX);
 }

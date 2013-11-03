@@ -64,8 +64,8 @@ class RedisClient {
 
     var i = 1;
     map.forEach((key, value) {
-      completeList[i++] = encodeUtf8(key);
-      completeList[i++] = encodeUtf8(value);
+      completeList[i++] = UTF8.encode(key);
+      completeList[i++] = UTF8.encode(value);
     });
 
     return completeList;
@@ -474,55 +474,163 @@ class RedisClient {
 //
 //
 //
-//  /// SET
-//  /// ===
-//
-//  /// Wrapper for [RawRedisCommands.smembers].
-//  Future<List<Object>> smembers(String setId) => raw.smembers(setId).then((x) => x.map(serializer.deserialize));
-//
-//  /// Wrapper for [RawRedisCommands.sadd].
-//  Future<int> sadd(String setId, Object value) => raw.sadd(setId, serializer.serialize(value));
-//
-//  /// Wrapper for [RawRedisCommands.smadd].
-//  Future<int> smadd(String setId, List<Object> values) => raw.smadd(setId, values.map((x) => serializer.serialize(x)));
-//
-//  /// Wrapper for [RawRedisCommands.srem].
-//  Future<int> srem(String setId, Object value) => raw.srem(setId, serializer.serialize(value));
-//
-//  /// Wrapper for [RawRedisCommands.spop].
-//  Future<Object> spop(String setId) => raw.spop(setId).then(serializer.deserialize);
-//
-//  /// Wrapper for [RawRedisCommands.smove].
-//  Future<bool> smove(String fromSetId, String toSetId, Object value) => raw.smove(fromSetId, toSetId, serializer.serialize(value));
-//
-//  Future<int> scard(String setId) => connection.sendExpectInt([RedisCommand.SCARD, _keyBytes(setId)]);
-//
-//  /// Wrapper for [RawRedisCommands.sismember].
-//  Future<bool> sismember(String setId, Object value) => raw.sismember(setId, serializer.serialize(value));
-//
-//  /// Wrapper for [RawRedisCommands.sinter].
-//  Future<List<Object>> sinter(List<String> setIds) => raw.sinter(setIds).then((x) => x.map(serializer.deserialize));
-//
-//  /// Wrapper for [RawRedisCommands.sinterstore].
-//  Future<int> sinterstore(String intoSetId, List<String> setIds) => raw.sinterstore(intoSetId, setIds);
-//
-//  /// Wrapper for [RawRedisCommands.sunion].
-//  Future<List<Object>> sunion(List<String> setIds) => raw.sunion(setIds).then((x) => x.map(serializer.deserialize));
-//
-//  Future<int> sunionstore(String intoSetId, List<String> setIds) =>
-//      connection.sendExpectInt(_CommandUtils.mergeCommandWithStringArgs(RedisCommand.SUNIONSTORE, $(setIds).insert(0, intoSetId)));
-//
-//  /// Wrapper for [RawRedisCommands.sdiff].
-//  Future<List<Object>> sdiff(String fromSetId, List<String> withSetIds) => raw.sdiff(fromSetId, withSetIds).then((x) => x.map(serializer.deserialize));
-//
-//  Future<int> sdiffstore(String intoSetId, String fromSetId, List<String> withSetIds) {
-//    withSetIds.insert(0, fromSetId);
-//    withSetIds.insert(0, intoSetId);
-//    return connection.sendExpectInt(_CommandUtils.mergeCommandWithStringArgs(RedisCommand.SDIFFSTORE, withSetIds));
-//  }
-//
-//  /// Wrapper for [RawRedisCommands.srandmember].
-//  Future<Object> srandmember(String setId) => raw.srandmember(setId).then(serializer.deserialize);
+  /// SET
+  /// ===
+
+  /**
+   *  Returns all the elements of the set.
+   *  
+   *  This has the same effect as running SINTER with one argument key
+   */
+  Future<Set<Object>> smembers(String setId) => connection.sendCommand(RedisCommand.SMEMBERS, [setId]).receiveMultiBulkSetDeserialized(serializer);
+  
+  
+  /**
+   * Returns the number of elements that were added to the set, not including all the 
+   * elements already present in the set.
+   * 
+   * Adds the specified members to the set stored at key. Specified members that are 
+   * already a member of this set are ignored. If key does not exist, a new set is 
+   * created before adding the specified members. 
+   * An error is returned when the value stored at key is not a set.
+   */
+  Future<int> sadd(String setId, Object value) => 
+      connection.sendCommandWithVariadicValues(RedisCommand.SADD, [ setId ], serializer.serializeToList(value) ).receiveInteger();
+  
+  /**
+   * Returns the number of members that were removed from the set, not including 
+   * non existing members.
+   * 
+   * Remove the specified members from the set stored at key. 
+   * Specified members that are not a member of this set are ignored. 
+   * If key does not exist, it is treated as an empty set and this command returns 0.
+   * An error is returned when the value stored at key is not a set.
+   */
+  Future<int> srem(String setId, Object value) => 
+      connection.sendCommandWithVariadicValues(RedisCommand.SREM, [ setId ], serializer.serializeToList(value)).receiveInteger();
+  
+  /**
+   * Returns the removed element, or nil when key does not exist.
+   * Removes and returns a random element from the set value stored at key.
+   * This operation is similar to SRANDMEMBER, that returns a random element
+   * from a set but does not remove it.
+   */
+  Future<Object> spop(String setId) => connection.sendCommand(RedisCommand.SPOP, [ setId ]).receiveBulkDeserialized(serializer);
+      
+  /**
+   * Returns an int, specifically:
+   * 1 if the element is moved.
+   * 0 if the element is not a member of source and no operation was performed.
+   * 
+   * Move member from the set at source to the set at destination. This 
+   * operation is atomic. In every given moment the element will appear 
+   * to be a member of source or destination for other clients.
+   * If the source set does not exist or does not contain the specified 
+   * element, no operation is performed and 0 is returned. 
+   * Otherwise, the element is removed from the source set and added to the 
+   * destination set. 
+   * When the specified element already exists in the destination set, it is 
+   * only removed from the source set. 
+   * 
+   * An error is returned if source or destination does not hold a set value.
+   */  
+  Future<bool> smove(String fromSetId, String toSetId, Object value) => 
+      connection.sendCommand(RedisCommand.SMOVE, [ fromSetId, toSetId, serializer.serializeToString(value)]).receiveBool();
+
+  /**
+   * Returns the cardinality (number of elements) of the set, or 0 if key does not exist.   * 
+   */
+  Future<int> scard(String setId) => connection.sendCommand(RedisCommand.SCARD, [ setId ]).receiveInteger();
+  
+  /**
+   * Returns an int, specifically:
+   * 1 if the element is a member of the set.
+   * 0 if the element is not a member of the set, or if key does not exist.
+   */
+  Future<bool> sismember(String setId, Object value) => connection.sendCommand(RedisCommand.SISMEMBER, [ setId, serializer.serializeToString(value) ]).receiveBool();
+    
+  /**
+   * Returns the members of the set resulting from the intersection of all 
+   * the given sets. For example:
+   * 
+   *     key1 = {a,b,c,d}
+   *     key2 = {c}
+   *     key3 = {a,c,e}
+   *     SINTER key1 key2 key3 = {c}
+   *     
+   * Keys that do not exist are considered to be empty sets. With one of the 
+   * keys being an empty set, the resulting set is also empty (since set 
+   * intersection with an empty set always results in an empty set).
+   */
+  Future<Set<Object>> sinter(List<String> setIds) => 
+      connection.sendCommandWithVariadicArguments(RedisCommand.SINTER, serializer.serializeToList(setIds)).receiveMultiBulkSetDeserialized(serializer);
+
+  /**
+   * Returns the number of elements in the resulting set.
+   * 
+   * This command is equal to SINTER, but instead of returning the resulting set, it is stored in [destination].
+   * If destination already exists, it is overwritten.
+   */
+  Future<int> sinterstore(String destination, List<String> setIds) => 
+      connection.sendCommandWithVariadicValues(RedisCommand.SINTERSTORE, [ destination ], serializer.serializeToList(setIds)).receiveInteger();
+      
+  /**
+   * Returns the members of the set resulting from the union of all the given sets.
+   * For example: 
+   * 
+   *     key1 = {a,b,c,d}
+   *     key2 = {c}
+   *     key3 = {a,c,e}
+   *     SUNION key1 key2 key3 = {a,b,c,d,e}
+   * 
+   * Keys that do not exist are considered to be empty sets.
+   */
+  Future<Set<Object>> sunion(List<String> setIds) => 
+      connection.sendCommandWithVariadicArguments(RedisCommand.SUNION, serializer.serializeToList(setIds)).receiveMultiBulkSetDeserialized(serializer);
+
+
+  /**
+   * Returns the number of elements in the resulting set.
+   * 
+   * This command is equal to SUNION, but instead of returning the resulting set, it is stored in [destination].
+   * If destination already exists, it is overwritten.
+   */  
+  Future<int> sunionstore(String destination, List<String> setIds) =>
+      connection.sendCommandWithVariadicValues(RedisCommand.SUNIONSTORE, [ destination ], serializer.serializeToList(setIds)).receiveInteger();
+
+  /**
+   * Returns the members of the set resulting from the difference between the
+   * first set and all the successive sets. For example:
+   * 
+   *     key1 = {a,b,c,d}    
+   *     key2 = {c}
+   *     key3 = {a,c,e}
+   *     SDIFF key1 key2 key3 = {b,d}
+   *     
+   * Keys that do not exist are considered to be empty sets.
+   */
+  Future<Set<Object>> sdiff(String fromSetId, List<String> withSetIds) => 
+      connection.sendCommandWithVariadicValues(RedisCommand.SDIFF, [ fromSetId ], serializer.serializeToList(withSetIds)).receiveMultiBulkSetDeserialized(serializer);
+
+  /**
+   * Returns the number of elements in the resulting set.
+   * 
+   * This command is equal to SDIFF, but instead of returning the resulting 
+   * set, it is stored in destination. 
+   * 
+   * If destination already exists, it is overwritten.
+   */
+  
+  Future<int> sdiffstore(String destination, List<String> setIds) =>
+      connection.sendCommandWithVariadicValues(RedisCommand.SDIFFSTORE, [ destination ], serializer.serializeToList(setIds)).receiveInteger();
+
+  /**
+   * Returns 
+   */
+  Future<Object> srandmember(String setId, [int count]) { 
+    if(count == null) return connection.sendCommand(RedisCommand.SRANDMEMBER, [ setId ]).receiveBulkDeserialized(serializer);
+    return connection.sendCommand(RedisCommand.SRANDMEMBER, [ setId, serializer.serializeToString(count)]).receiveMultiBulkSetDeserialized(serializer);
+  }
 //
 //
 //

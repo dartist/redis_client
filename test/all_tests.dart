@@ -1,6 +1,3 @@
-
-import 'package:logging/logging.dart';
-
 import "connection_settings_tests.dart" as connectionSettingsTests;
 import "redis_serializer_tests.dart" as redisSerializerTests;
 import "redis_client_tests.dart" as redisClientTests;

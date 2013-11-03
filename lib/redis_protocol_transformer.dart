@@ -18,13 +18,10 @@
  */
 library redis_protocol_transformer;
 
-import "dart:async";
-import "dart:collection";
-import "dart:typed_data";
-import "dart:utf";
-import "package:meta/meta.dart";
+import 'dart:collection';
+import 'dart:convert';
 
-part 'transformer/transformer.dart';
+part 'transformer/transformer_exceptions.dart';
 
 part 'transformer/data_consumers.dart';
 

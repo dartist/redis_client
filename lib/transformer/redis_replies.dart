@@ -9,19 +9,19 @@ part of redis_protocol_transformer;
 abstract class RedisReply {
 
   /// A reply type
-  static const int STATUS = RedisProtocolTransformer.PLUS;
+  static const int STATUS = 43;
 
   /// A reply type
-  static const int ERROR = RedisProtocolTransformer.DASH;
+  static const int ERROR = 45;
 
   /// A reply type
-  static const int INTEGER = RedisProtocolTransformer.COLON;
+  static const int INTEGER = 58;
 
   /// A reply type
-  static const int BULK = RedisProtocolTransformer.DOLLAR;
+  static const int BULK = 36;
 
   /// A reply type
-  static const int MULTI_BULK = RedisProtocolTransformer.ASTERIX;
+  static const int MULTI_BULK = 42;
 
 
   /// Specifies if this reply has been fully received.
@@ -29,7 +29,7 @@ abstract class RedisReply {
 
 
   /// Consumes the data and returns the uncosumed data if any, null otherwise.
-  List<int> _consumeData(List<int> data);
+  List<int> consumeData(List<int> data);
 
   /// Default constructor does nothing.
   RedisReply();
@@ -83,7 +83,7 @@ abstract class _OneLineReply extends RedisReply {
    * the ending CR LF characters.
    */
   @override
-  List<int> _consumeData(List<int> data) {
+  List<int> consumeData(List<int> data) {
     _dataConsumer.consumeData(data);
 
     if (_dataConsumer.done && _dataConsumer.unconsumedData != null) {
@@ -100,7 +100,7 @@ abstract class _OneLineReply extends RedisReply {
   String _getLine() {
     if (_line == null) {
       // [data] checks if this reply is [done] and fails if not.
-      _line = decodeUtf8(_dataConsumer.data);
+      _line = UTF8.decode(_dataConsumer.data);
     }
     return _line;
   }
@@ -160,7 +160,7 @@ class BulkReply extends RedisReply {
    * [_BytesDataConsumer].
    */
   @override
-  List<int> _consumeData(List<int> data) {
+  List<int> consumeData(List<int> data) {
 
     if (!_initialLineDataConsumer.done) {
       _initialLineDataConsumer.consumeData(data);
@@ -217,7 +217,7 @@ class BulkReply extends RedisReply {
     if (byteLength == -1) return null;
 
     if (_dataAsString == null) {
-      _dataAsString = decodeUtf8(bytes);
+      _dataAsString = UTF8.decode(bytes);
     }
     return _dataAsString;
   }
@@ -266,7 +266,7 @@ class MultiBulkReply extends RedisReply {
    * number of replies from it.
    */
   @override
-  List<int> _consumeData(List<int> data) {
+  List<int> consumeData(List<int> data) {
 
     if (!_initialLineDataConsumer.done) {
       _initialLineDataConsumer.consumeData(data);
@@ -295,7 +295,7 @@ class MultiBulkReply extends RedisReply {
       _replies.add(lastReply);
     }
 
-    var unconsumedData = lastReply._consumeData(data);
+    var unconsumedData = lastReply.consumeData(data);
 
     if (lastReply.done) {
       if (_replies.length == _numberOfReplies) {
@@ -303,7 +303,7 @@ class MultiBulkReply extends RedisReply {
         return unconsumedData;
       }
       else {
-        _consumeData(unconsumedData);
+        consumeData(unconsumedData);
       }
     }
 
