@@ -4,8 +4,9 @@ authors:
   - Demis Bellot <demis.bellot@gmail.com>
   - Adam Singer <financeCoding@gmail.com>
   - Matias Meno <m@tias.me>
+  - Baruch Berger
   - Max Horstmann <max.horstmann@gmail.com>
-version: 0.1.7
+version: 0.1.8
 homepage: https://github.com/dartist/redis_client
 dependencies:
   dartmixins: ">=0.0.3 <0.0.4"
