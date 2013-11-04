@@ -1,7 +1,15 @@
-name: dartredisclient
+name: redis_client
 description: A high-performance async/non-blocking Redis client for Dart.
-authors: ["Demis Bellot", "Adam Singer <financeCoding@gmail.com>"]
-homepage: https://github.com/Dartist/RedisClient.git
-version: 0.1.2-dev
+authors:
+  - Demis Bellot <demis.bellot@gmail.com>
+  - Adam Singer <financeCoding@gmail.com>
+  - Matias Meno <m@tias.me>
+  - Baruch Berger
+  - Max Horstmann <max.horstmann@gmail.com>
+version: 0.1.8
+homepage: https://github.com/dartist/redis_client
 dependencies:
-  dartmixins: ">=0.0.1 <0.0.2"
+  dartmixins: ">=0.0.3 <0.0.4"
+  logging: any
+  unittest: any
+  meta: any
