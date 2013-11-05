@@ -323,9 +323,7 @@ class _RedisConnection extends RedisConnection {
   }
   
   Receiver sendCommandWithVariadicValues(List<int> command, List<String> args, List<String> values) {
-    var commands = new List<List<int>>(args.length + values.length + 1);
-
-    
+    var commands = new List<List<int>>(args.length + values.length + 1);    
     commands[0] = command;
     commands.setAll(1, args.map((String line) => UTF8.encode(line)).toList(growable: false));
     commands.setAll(args.length + 1, values.map((String line) => UTF8.encode(line)).toList(growable: false));
@@ -535,7 +533,7 @@ class Receiver {
   }
   
   /**
-   * Checks that the received reply is of type [MultiBulkReply] and returns a list
+   * Checks that the received reply is of type [MultiBulkReply] and returns a set
    * of deserialized objects.
    */
   Future<Set<Object>> receiveMultiBulkSetDeserialized(RedisSerializer serializer) {
@@ -544,7 +542,15 @@ class Receiver {
     });
   }
 
-
+  /**
+   * Checks that the received reply is of type [MultiBulkReply] and returns a map
+   * of String keys and deserialized objects.
+   */
+  Future<Map<String, Object>> receiveMultiBulkMapDeserialized(RedisSerializer serializer) {
+    return receiveMultiBulk().then((MultiBulkReply reply) {
+      return serializer.deserializeToMap(reply.replies);
+    });
+  }
 
 
   /**

@@ -543,6 +543,134 @@ invalid_line
     });
   });
 
+  group('Hash commands:', () {
+    test('HSET', () {
+      async(
+          client.hset('hashKey', 'key1', 'value')
+          .then((hSetResult)  => expect(hSetResult, isTrue))
+      );
+    });
+
+    test('HSETNX', () {
+      async(
+          client.hset('hashKey', 'key1', 'value')
+          .then((hSetResult)  {            
+            client.hset('hashKey', 'key1', 'value')
+              .then((hSetResult)  => 
+              expect(hSetResult, isFalse));
+            expect(hSetResult, isTrue);
+          })
+      );
+    });
+    
+    test('HMSET', () {
+      Map hashMap = new Map();
+      hashMap['key1'] = 'value';
+      hashMap['key2'] = 'value2';
+      async(
+          client.hmset('hashKey', hashMap)
+          .then((hSetResult)  => expect(hSetResult, equals('OK')))
+      );
+    });
+    
+    test('HINCRBY', () {
+      async(
+          client.hset('hashId', 'field', 5)
+          .then((_) => client.hincrby('hashId', 'field', -1)
+          .then((hIncrResult) => expect(hIncrResult, equals(4))))
+      );
+    });
+    
+    test('HINCRBYFLOAT', () {
+      async(
+          client.hset('hashId', 'field', 10.50)
+          .then((_) => client.hincrbyfloat('hashId', 'field', 0.1)
+          .then((incrByFloatResult) => expect(incrByFloatResult, equals(10.6))))
+          );      
+    });
+    
+    test('HGET', () {
+      Map someMap = {'some-key' : 'some-value'};
+      async(
+          client.hset('hashId', 'field', someMap)
+          .then((_) => client.hget('hashId', 'field')
+          .then((hGetResult) => expect(hGetResult, equals(someMap))))
+      );
+    });
+    
+    test('HMGET', () {
+      int someInt = 4;
+      String someString = 'some-string';
+      async(
+          client.hset('hashId', 'field', someInt)
+          .then((_) => client.hset('hashId', 'field2', someString)
+          .then((_) => client.hmget('hashId', [ 'field', 'field2' ])
+          .then(
+              (hMGetResult) { 
+                expect(hMGetResult.contains(someString), isTrue);
+                expect(hMGetResult.contains(someInt), isTrue);
+              })))
+      );
+    });
+    
+    test('HDEL', () {
+      int someInt = 4;
+      String someString = 'some-string';
+      async(
+            client.hset('hashId', 'field', someInt)
+            .then((_) => client.hdel('hashId', 'field')
+            .then((hDelResult) => expect(hDelResult, equals(1))))
+          );
+      });
+
+    test('HEXISTS', () {      
+      async(
+          client.hset('hashId', 'field', 4)
+          .then((_) => client.hexists('hashId', 'field')
+          .then((hExistsResult) => expect(hExistsResult, isTrue)))
+      );
+    });
+
+    test('HLEN', () {
+      async(
+          client.hset('hashId', 'field', 4)
+          .then((_) => client.hset('hashId', 'field2', 'some-string')
+          .then((_) => client.hlen('hashId')
+          .then((hLenResult) => expect(hLenResult, equals(2)))))
+      );
+    });
+    
+    test('HKEYS', () {
+      async(
+          client.hset('hashId', 'some-key', 'some-value')
+          .then((_) => client.hset('hashId', 'some-other-key', 'other-value')
+          .then((_) => client.hkeys('hashId')
+          .then((hKeysResult) => expect(hKeysResult, equals(['some-key', 'some-other-key'])))))
+      );
+    });
+    
+    test('HVALS', () {
+      async(
+          client.hset('hashId', 'some-key', 'some-value')
+            .then((_) => client.hset('hashId', 'some-other-key', 'other-value')
+            .then((_) => client.hvals('hashId')
+            .then((hValsResult) => expect(hValsResult, equals(['some-value', 'other-value'])))))
+      );
+    });
+    
+    test('HGETALL', () {
+      Map<String, Object> getAllMap = {
+                                       'some-key' : 'some-value',
+                                       'some-other-key' : 'other-value'
+      };
+      async(
+          client.hset('hashId', 'some-key', 'some-value')
+            .then((_) => client.hset('hashId', 'some-other-key', 'other-value')
+            .then((_) => client.hgetall('hashId')
+            .then((hGetAllResult) => expect(hGetAllResult, equals(getAllMap)))))
+      );
+    });
+  });
   });
 
 }
