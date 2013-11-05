@@ -55,7 +55,7 @@ class RedisClient {
   }
 
 
-
+  //TODO: (Baruch) refactor to serializer
   /// Takes a command and a map and returns a list of all binary values.
   List<List<int>> _keyValueMapToList(List<int> command, Map<String, String> map) {
 
@@ -482,7 +482,9 @@ class RedisClient {
    *  
    *  This has the same effect as running SINTER with one argument key
    */
-  Future<Set<Object>> smembers(String setId) => connection.sendCommand(RedisCommand.SMEMBERS, [setId]).receiveMultiBulkSetDeserialized(serializer);
+  Future<Set<Object>> smembers(String setId) => 
+      connection.sendCommand(RedisCommand.SMEMBERS, 
+          [setId]).receiveMultiBulkSetDeserialized(serializer);
   
   
   /**
@@ -495,7 +497,8 @@ class RedisClient {
    * An error is returned when the value stored at key is not a set.
    */
   Future<int> sadd(String setId, Object value) => 
-      connection.sendCommandWithVariadicValues(RedisCommand.SADD, [ setId ], serializer.serializeToList(value) ).receiveInteger();
+      connection.sendCommandWithVariadicValues(RedisCommand.SADD, 
+          [ setId ], serializer.serializeToList(value) ).receiveInteger();
   
   /**
    * Returns the number of members that were removed from the set, not including 
@@ -507,7 +510,8 @@ class RedisClient {
    * An error is returned when the value stored at key is not a set.
    */
   Future<int> srem(String setId, Object value) => 
-      connection.sendCommandWithVariadicValues(RedisCommand.SREM, [ setId ], serializer.serializeToList(value)).receiveInteger();
+      connection.sendCommandWithVariadicValues(RedisCommand.SREM, 
+          [ setId ], serializer.serializeToList(value)).receiveInteger();
   
   /**
    * Returns the removed element, or nil when key does not exist.
@@ -515,7 +519,9 @@ class RedisClient {
    * This operation is similar to SRANDMEMBER, that returns a random element
    * from a set but does not remove it.
    */
-  Future<Object> spop(String setId) => connection.sendCommand(RedisCommand.SPOP, [ setId ]).receiveBulkDeserialized(serializer);
+  Future<Object> spop(String setId) => 
+      connection.sendCommand(RedisCommand.SPOP, [ setId ])
+        .receiveBulkDeserialized(serializer);
       
   /**
    * Returns an int, specifically:
@@ -535,19 +541,24 @@ class RedisClient {
    * An error is returned if source or destination does not hold a set value.
    */  
   Future<bool> smove(String fromSetId, String toSetId, Object value) => 
-      connection.sendCommand(RedisCommand.SMOVE, [ fromSetId, toSetId, serializer.serializeToString(value)]).receiveBool();
+      connection.sendCommand(RedisCommand.SMOVE, 
+          [ fromSetId, toSetId, serializer.serializeToString(value)]).receiveBool();
 
   /**
-   * Returns the cardinality (number of elements) of the set, or 0 if key does not exist.   * 
+   * Returns the cardinality (number of elements) of the set, or 0 if key 
+   * does not exist. 
    */
-  Future<int> scard(String setId) => connection.sendCommand(RedisCommand.SCARD, [ setId ]).receiveInteger();
+  Future<int> scard(String setId) => 
+      connection.sendCommand(RedisCommand.SCARD, [ setId ]).receiveInteger();
   
   /**
    * Returns an int, specifically:
    * 1 if the element is a member of the set.
    * 0 if the element is not a member of the set, or if key does not exist.
    */
-  Future<bool> sismember(String setId, Object value) => connection.sendCommand(RedisCommand.SISMEMBER, [ setId, serializer.serializeToString(value) ]).receiveBool();
+  Future<bool> sismember(String setId, Object value) => 
+      connection.sendCommand(RedisCommand.SISMEMBER, 
+          [ setId, serializer.serializeToString(value) ]).receiveBool();
     
   /**
    * Returns the members of the set resulting from the intersection of all 
@@ -563,16 +574,20 @@ class RedisClient {
    * intersection with an empty set always results in an empty set).
    */
   Future<Set<Object>> sinter(List<String> setIds) => 
-      connection.sendCommandWithVariadicArguments(RedisCommand.SINTER, serializer.serializeToList(setIds)).receiveMultiBulkSetDeserialized(serializer);
+      connection.sendCommandWithVariadicArguments(RedisCommand.SINTER, 
+          serializer.serializeToList(setIds))
+            .receiveMultiBulkSetDeserialized(serializer);
 
   /**
    * Returns the number of elements in the resulting set.
    * 
-   * This command is equal to SINTER, but instead of returning the resulting set, it is stored in [destination].
-   * If destination already exists, it is overwritten.
+   * This command is equal to SINTER, but instead of returning the resulting 
+   * set, it is stored in [destination]. If destination already exists, it 
+   * is overwritten.
    */
   Future<int> sinterstore(String destination, List<String> setIds) => 
-      connection.sendCommandWithVariadicValues(RedisCommand.SINTERSTORE, [ destination ], serializer.serializeToList(setIds)).receiveInteger();
+      connection.sendCommandWithVariadicValues(RedisCommand.SINTERSTORE, 
+          [ destination ], serializer.serializeToList(setIds)).receiveInteger();
       
   /**
    * Returns the members of the set resulting from the union of all the given sets.
@@ -586,7 +601,8 @@ class RedisClient {
    * Keys that do not exist are considered to be empty sets.
    */
   Future<Set<Object>> sunion(List<String> setIds) => 
-      connection.sendCommandWithVariadicArguments(RedisCommand.SUNION, serializer.serializeToList(setIds)).receiveMultiBulkSetDeserialized(serializer);
+      connection.sendCommandWithVariadicArguments(RedisCommand.SUNION, 
+          serializer.serializeToList(setIds)).receiveMultiBulkSetDeserialized(serializer);
 
 
   /**
@@ -596,7 +612,8 @@ class RedisClient {
    * If destination already exists, it is overwritten.
    */  
   Future<int> sunionstore(String destination, List<String> setIds) =>
-      connection.sendCommandWithVariadicValues(RedisCommand.SUNIONSTORE, [ destination ], serializer.serializeToList(setIds)).receiveInteger();
+      connection.sendCommandWithVariadicValues(RedisCommand.SUNIONSTORE, 
+          [ destination ], serializer.serializeToList(setIds)).receiveInteger();
 
   /**
    * Returns the members of the set resulting from the difference between the
@@ -610,7 +627,8 @@ class RedisClient {
    * Keys that do not exist are considered to be empty sets.
    */
   Future<Set<Object>> sdiff(String fromSetId, List<String> withSetIds) => 
-      connection.sendCommandWithVariadicValues(RedisCommand.SDIFF, [ fromSetId ], serializer.serializeToList(withSetIds)).receiveMultiBulkSetDeserialized(serializer);
+      connection.sendCommandWithVariadicValues(RedisCommand.SDIFF, 
+          [ fromSetId ], serializer.serializeToList(withSetIds)).receiveMultiBulkSetDeserialized(serializer);
 
   /**
    * Returns the number of elements in the resulting set.
@@ -622,14 +640,27 @@ class RedisClient {
    */
   
   Future<int> sdiffstore(String destination, List<String> setIds) =>
-      connection.sendCommandWithVariadicValues(RedisCommand.SDIFFSTORE, [ destination ], serializer.serializeToList(setIds)).receiveInteger();
+      connection.sendCommandWithVariadicValues(RedisCommand.SDIFFSTORE, 
+          [ destination ], serializer.serializeToList(setIds)).receiveInteger();
 
   /**
-   * Returns 
+   * Returns without the additional count argument the command returns a 
+   * Bulk Reply with the randomly selected element, or nil when key does
+   * not exist. Multi-bulk reply: when the additional count argument is 
+   * passed the command returns an array of elements, or an empty array 
+   * when key does not exist.
+   * 
+   * When called with just the key argument, return a random element from the 
+   * set value stored at key.
+   * 
+   * More at: http://redis.io/commands/srandmember
    */
   Future<Object> srandmember(String setId, [int count]) { 
-    if(count == null) return connection.sendCommand(RedisCommand.SRANDMEMBER, [ setId ]).receiveBulkDeserialized(serializer);
-    return connection.sendCommand(RedisCommand.SRANDMEMBER, [ setId, serializer.serializeToString(count)]).receiveMultiBulkSetDeserialized(serializer);
+    if(count == null) return connection.sendCommand(RedisCommand.SRANDMEMBER, 
+        [ setId ]).receiveBulkDeserialized(serializer);
+    return connection.sendCommand(RedisCommand.SRANDMEMBER, 
+        [ setId, serializer.serializeToString(count)])
+          .receiveMultiBulkSetDeserialized(serializer);
   }
 //
 //
@@ -805,44 +836,142 @@ class RedisClient {
 //
 //
 //
-//  /// HASH
-//  /// ====
-//
-//
-//  /// Wrapper for [RawRedisCommands.hset].
-//  Future<bool> hset(String hashId, String key, Object value) => raw.hset(hashId, key, serializer.serialize(value));
-//
-//  /// Wrapper for [RawRedisCommands.hsetnx].
-//  Future<bool> hsetnx(String hashId, String key, Object value) => raw.hsetnx(hashId, key, serializer.serialize(value));
-//
-//  /// Wrapper for [RawRedisCommands.hmset].
-//  Future hmset(String hashId, Map<String,Object> map) => raw.hmset(hashId, map.keys.map(serializer.serialize), map.values.map(serializer.serialize));
-//
-//  Future<int> hincrby(String hashId, String key, int incrBy) => connection.sendExpectInt([RedisCommand.HINCRBY, _keyBytes(hashId), _keyBytes(key), serializer.serialize(incrBy)]);
-//
-//  Future<double> hincrbyfloat(String hashId, String key, double incrBy) => connection.sendExpectDouble([RedisCommand.HINCRBYFLOAT, _keyBytes(hashId), _keyBytes(key), serializer.serialize(incrBy)]);
-//
-//  /// Wrapper for [RawRedisCommands.hget].
-//  Future<Object> hget(String hashId, String key) => raw.hget(hashId, key).then(serializer.deserialize);
-//
-//  /// Wrapper for [RawRedisCommands.hmget].
-//  Future<List<Object>> hmget(String hashId, List<String> keys) => raw.hmget(hashId, keys).then((x) => x.map(serializer.deserialize));
-//
-//  Future<int> hdel(String hashId, String key) => connection.sendExpectInt([RedisCommand.HDEL, _keyBytes(hashId), _keyBytes(key)]);
-//
-//  Future<bool> hexists(String hashId, String key) => connection.sendExpectIntSuccess([RedisCommand.HEXISTS, _keyBytes(hashId), _keyBytes(key)]);
-//
-//  Future<int> hlen(String hashId) => connection.sendExpectInt([RedisCommand.HLEN, _keyBytes(hashId)]);
-//
-//  Future<List<String>> hkeys(String hashId) => connection.sendExpectMultiData([RedisCommand.HKEYS, _keyBytes(hashId)]).then((bytes) => bytes.map((x) => new String.fromCharCodes(x)));
-//
-//  /// Wrapper for [RawRedisCommands.hvals].
-//  Future<List<Object>> hvals(String hashId) => raw.hvals(hashId).then((x) => x.map(serializer.deserialize));
-//
-//  /// Wrapper for [RawRedisCommands.hgetall].
-//  Future<Map<String,Object>> hgetall(String hashId) => raw.hgetall(hashId).then(toMap);
-//
+  /// HASH
+  /// ====
 
+  /**
+   * Returns bool reply.
+   * Sets the specified fields to their respective values in the hash stored 
+   * at [key]. This command overwrites any existing fields in the hash. If key
+   * does not exist, a new key holding a hash is created.
+   */
+  Future<bool> hset(String hashId, String key, Object value) => 
+      connection.sendCommand(RedisCommand.HSET, [ hashId, key, serializer.serializeToString(value) ]).receiveBool();
+  /**
+   * Returns: true if field is a new field in the hash and value was set. 
+   * False if field already exists in the hash and no operation was performed.
+   * 
+   * Sets field in the hash stored at key to value, only if field does not yet 
+   * exist. If key does not exist, a new key holding a hash is created. 
+   * 
+   * If field already exists, this operation has no effect.
+   */
+  Future<bool> hsetnx(String hashId, String key, Object value) => 
+      connection.sendCommandWithVariadicValues(RedisCommand.HSETNX, [ key ], 
+          serializer.serializeToList(value)).receiveBool();
+  
+  /**
+   * Sets the specified fields to their respective values in the hash stored 
+   * at key. This command overwrites any existing fields in the hash. 
+   * If key does not exist, a new key holding a hash is created.
+   * 
+   */
+  Future hmset(String hashId, Map<String,Object> map) => 
+      connection.sendCommandWithVariadicValues(RedisCommand.HMSET, 
+          [ hashId ], serializer.serializeToList(map)).receiveStatus('OK');
+
+  /**
+   * Returns the value at field after the increment operation.
+   * 
+   * Increments the number stored at field in the hash stored at key by 
+   * increment. If key does not exist, a new key holding a hash is created.
+   *  If field does not exist the value is set to 0 before the operation is 
+   *  performed. 
+   *  
+   *  The range of values supported by HINCRBY is limited to 64 bit signed integers.
+   */
+  Future<int> hincrby(String hashId, String key, int incrBy) => 
+      connection.sendCommand(RedisCommand.HINCRBY, 
+          [ hashId, key, incrBy.toString() ])
+            .receiveInteger();
+  
+  /**
+   * Returns the value at field after the increment operation.
+   * 
+   * Increment the specified field of an hash stored at key, and representing a 
+   * floating point number, by the specified increment. If the field does not 
+   * exist, it is set to 0 before performing the operation. An error is 
+   * returned if one of the following conditions occur:
+   * 
+   *     - The field contains a value of the wrong type (not a string).
+   *     - The current field content or the specified increment are not parsable as
+   *     a double precision floating point number.
+   */  
+  Future<double> hincrbyfloat(String hashId, String key, double incrBy) => 
+      connection.sendCommand(RedisCommand.HINCRBYFLOAT, 
+          [ hashId, key, incrBy.toString() ]).receiveDouble();
+
+  /**
+   * Returns the value associated with field in the hash stored at key or nil 
+   * when field is not present in the hash or key does not exist 
+   */
+  Future<Object> hget(String hashId, String key) => 
+      connection.sendCommand(RedisCommand.HGET, [ hashId, key ])
+        .receiveBulkDeserialized(serializer);
+
+  /**
+   * Returnsthe values associated with the specified fields in the hash stored 
+   * at key. For every field that does not exist in the hash, a nil value is 
+   * returned. Because a non-existing keys are treated as empty hashes, 
+   * running HMGET against a non-existing key will return a list of nil values.
+   */
+  Future<List<Object>> hmget(String hashId, List<Object> keys) => 
+      connection.sendCommandWithVariadicValues(RedisCommand.HMGET, 
+          [ hashId ], serializer.serializeToList(keys) )
+            .receiveMultiBulkDeserialized(serializer);
+
+  /**
+   *  the number of fields that were removed from the hash, not including 
+   *  specified but non existing fields.
+   *  
+   *  Removes the specified fields from the hash stored at key. Specified 
+   *  fields that do not exist within this hash are ignored.
+   *  If key does not exist, it is treated as an empty hash and this command 
+   *  returns 0.
+   */
+  Future<int> hdel(String hashId, String key) => 
+      connection.sendCommand(RedisCommand.HDEL, 
+          [ hashId, key ]).receiveInteger();
+
+  /**
+   * Returns if [field] is an existing [field] in the hash stored at key.
+   * 
+   * True if the hash contains [field].
+   * False if the hash does not contain [field], or key does not exist.
+   */
+  Future<bool> hexists(String hashId, String field) => 
+      connection.sendCommand(RedisCommand.HEXISTS, 
+          [ hashId, field ]).receiveBool();
+
+  /**
+   * Returns the number of fields contained in the hash stored at key
+   * or 0 when key does not exist.
+   */
+  Future<int> hlen(String hashId) => 
+      connection.sendCommand(RedisCommand.HLEN, [ hashId ]).receiveInteger();
+
+  /**
+   * Returns list of fields in the hash, or an empty list when key does not exist.
+   */
+  Future<List<String>> hkeys(String hashId) => 
+      connection.sendCommand(RedisCommand.HKEYS, [ hashId ])
+        .receiveMultiBulkDeserialized(serializer);
+
+  /**
+   * Returns list of values in the hash, or an empty list when key does not 
+   * exist.
+   */
+  Future<List<Object>> hvals(String hashId) => 
+      connection.sendCommand(RedisCommand.HVALS, [ hashId ])
+        .receiveMultiBulkDeserialized(serializer);
+
+  /**
+   * Returns map of fields and their values stored in the hash, or an empty 
+   * map when key does not exist.
+   */
+  Future<Map<String, Object>> hgetall(String hashId) => 
+      connection.sendCommand(RedisCommand.HGETALL, [ hashId ])
+        .receiveMultiBulkMapDeserialized(serializer);
 
 }
 

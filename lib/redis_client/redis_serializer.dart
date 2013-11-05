@@ -12,7 +12,7 @@ abstract class RedisSerializer {
   List<String> serializeToList(Object obj);
 
   Object deserialize(List<int> bytes);
-
+  Map<String, Object> deserializeToMap(map);
 }
 
 
@@ -55,6 +55,8 @@ class JsonRedisSerializer implements RedisSerializer {
     List<String> values = new List();
     if(obj is Iterable) {
       values.addAll(obj.map(serializeToString));
+    } else if (obj is Map) {
+      values.addAll(serializeFromMap(obj));
     } else { values.add(serializeToString(obj)); }
     return values;
   }
@@ -70,13 +72,35 @@ class JsonRedisSerializer implements RedisSerializer {
     try { decodedObject = JSON.decode(decodedObject); } 
     on FormatException catch (e) { }
     
-    if(decodedObject is String){ 
+    if(decodedObject is String) { 
       if (_isDate(decodedObject)) {
         int timeSinceEpoch = int.parse(decodedObject.substring(DATE_PREFIX.length, decodedObject.length - DATE_SUFFIX.length));
         return new DateTime.fromMillisecondsSinceEpoch(timeSinceEpoch, isUtc: true);    
       }
     } 
     return decodedObject;
+  }
+
+  
+  List<String> serializeFromMap(Map map) {
+    var variadicValueList = new List<String>(map.length * 2);
+    var i = 0;
+    map.forEach((key, value) {
+      variadicValueList[i++] = serializeToString(key);
+      variadicValueList[i++] = serializeToString(value);
+    });
+
+    return variadicValueList;
+  }
+  
+  Map<String, Object> deserializeToMap(List<RedisReply> replies) {
+    var multiBulkMap = new Map<String, Object>();
+    if(replies.isNotEmpty) {
+      for(int i = 0 ; i < replies.length ; i++) {
+        multiBulkMap[deserialize((replies[i] as BulkReply).bytes)] = deserialize((replies[++i] as BulkReply).bytes);
+      }
+    }
+    return multiBulkMap;
   }
   
   bool _isDate(decodedString) => decodedString.startsWith(DATE_PREFIX);

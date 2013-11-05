@@ -69,7 +69,8 @@ main() {
           A deserializedA = new A.fromJson(serializer.deserialize(serializedA));
           expect(deserializedA.value, equals(a.value));
         });
-        
+
+
       });
       
     });
