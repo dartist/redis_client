@@ -75,7 +75,7 @@ class JsonRedisSerializer implements RedisSerializer {
     try { decodedObject = JSON.decode(decodedObject); } 
     on FormatException catch (e) { }
     
-    if (decodedObject is String) { 
+    if (decodedObject is String) {
       if (_isDate(decodedObject)) {
         int timeSinceEpoch = int.parse(decodedObject.substring(DATE_PREFIX.length, decodedObject.length - DATE_SUFFIX.length));
         return new DateTime.fromMillisecondsSinceEpoch(timeSinceEpoch, isUtc: true);    

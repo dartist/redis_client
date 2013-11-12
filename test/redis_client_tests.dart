@@ -574,7 +574,7 @@ invalid_line
             client.hgetall('hashKey')
             .then((getAllResult) => expect(getAllResult, equals(hashMap)));            
             })
-      );
+          );
     });
     
     test('HINCRBY', () {
@@ -598,8 +598,7 @@ invalid_line
       async(
           client.hset('hashId', 'field', someMap)
           .then((_) => client.hget('hashId', 'field')
-          .then(
-              (hGetResult) => expect(hGetResult, equals(someMap))))
+          .then((hGetResult) => expect(hGetResult, equals(someMap))))
       );
     });
     

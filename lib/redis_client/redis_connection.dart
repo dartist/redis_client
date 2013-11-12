@@ -538,8 +538,9 @@ class Receiver {
    * of String keys and deserialized objects.
    */
   Future<Map<String, Object>> receiveMultiBulkMapDeserialized(RedisSerializer serializer) {
-    return receiveMultiBulk().then(
-        (MultiBulkReply reply) => serializer.deserializeToMap(reply.replies));
+    return receiveMultiBulk().then((MultiBulkReply reply) {
+      return serializer.deserializeToMap(reply.replies);
+    });
   }
 
 

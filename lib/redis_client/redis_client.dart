@@ -573,7 +573,7 @@ class RedisClient {
    * keys being an empty set, the resulting set is also empty (since set 
    * intersection with an empty set always results in an empty set).
    */
-  Future<Set<Object>> sinter(List<String> setIds) => 
+  Future<Set<Object>> sinter(List<String> setIds) =>
       connection.sendCommand(RedisCommand.SINTER, 
           serializer.serializeToList(setIds))
             .receiveMultiBulkSetDeserialized(serializer);
@@ -601,8 +601,9 @@ class RedisClient {
    * Keys that do not exist are considered to be empty sets.
    */
   Future<Set<Object>> sunion(List<String> setIds) => 
-      connection.sendCommand(RedisCommand.SUNION, 
-          serializer.serializeToList(setIds)).receiveMultiBulkSetDeserialized(serializer);
+      connection.sendCommand(RedisCommand.SUNION,
+          serializer.serializeToList(setIds))
+            .receiveMultiBulkSetDeserialized(serializer);
 
 
   /**
@@ -645,7 +646,11 @@ class RedisClient {
 
   /**
    * Returns without the additional count argument the command returns a 
+<<<<<<< HEAD
    * Bulk Reply wit`h the randomly selected element, or nil when key does
+=======
+   * Bulk Reply with the randomly selected element, or nil when key does
+>>>>>>> 9d565a7f1b4258af5d9354a5ce8dda23916f95f8
    * not exist. Multi-bulk reply: when the additional count argument is 
    * passed the command returns an array of elements, or an empty array 
    * when key does not exist.
@@ -786,6 +791,7 @@ class RedisClient {
       connection.sendCommand(RedisCommand.ZADD, 
           [ serializer.serializeToString(setId), serializer.serializeToString(score), 
             serializer.serializeToString(value)] ).receiveInteger();
+
 
   /**
    * Returns the number of members removed from the sorted set, not including 
