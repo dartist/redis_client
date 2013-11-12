@@ -4,7 +4,6 @@ import 'dart:convert';
 import 'package:unittest/unittest.dart';
 import 'package:redis_client/redis_client.dart';
 
-
 class A {
   String value;
   
@@ -50,9 +49,9 @@ main() {
         });
         
         test('sets', () {
-          var serializedSet = serializer.serialize(new Set()..addAll(['some-string', 4]));
+          var serializedSet = serializer.serialize(new Set.from(['some-string', 4]));
           var deserializedSet = serializer.deserialize(serializedSet);
-          expect(deserializedSet, equals(new Set()..addAll(['some-string', 4])));
+          expect(deserializedSet, equals(new Set.from(['some-string', 4])));
         });
        
         test('dates', () {
@@ -69,7 +68,7 @@ main() {
           A deserializedA = new A.fromJson(serializer.deserialize(serializedA));
           expect(deserializedA.value, equals(a.value));
         });
-        
+
       });
       
     });

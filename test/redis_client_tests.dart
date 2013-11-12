@@ -407,18 +407,18 @@ invalid_line
 
   group('Set commands:', () {
     test('SMEMBERS', () {
-      Set<Object> objectSet = new Set()..addAll(['some-string', 'other-string']);
+      Set<Object> objectSet = new Set.from(['some-string', 'other-string']);
       
       async(
           client.sadd("setId", objectSet)
             .then((_) => client.smembers("setId")
-            .then((result) => expect(result, equals(objectSet))))
+            .then((result) => expect(new Set.from(result).containsAll(objectSet), isTrue)))
       );
     });
     
     test('SADD', () {      
       async(
-          client.sadd('setId', new Set()..addAll(['string', 5]))
+          client.sadd('setId', new Set.from(['string', 5]))
             .then((addResult) =>
               expect(addResult, equals(2)))
       );
@@ -516,7 +516,7 @@ invalid_line
           .then((_) => client.sadd('setId2', ['c'])
           .then((_) => client.sadd('setId3', ['a', 'c', 'e'])
           .then((_) => client.sdiff('setId', [ 'setId2', 'setId3' ]))
-          .then((diffResult) => expect(diffResult, equals(['b', 'd'])))))
+          .then((diffResult) => expect(diffResult.containsAll(['b', 'd']), isTrue))))
       );
     });
     
@@ -543,6 +543,384 @@ invalid_line
     });
   });
 
-  });
+  group('Hash commands:', () {
+    test('HSET', () {
+      async(
+          client.hset('hashKey', 'key1', 'value')
+          .then((hSetResult)  => expect(hSetResult, isTrue))
+      );
+    });
 
+    test('HSETNX', () {
+      async(
+          client.hset('hashKey', 'key1', 'value')
+          .then((hSetResult)  {            
+            client.hset('hashKey', 'key1', 'value')
+              .then((hSetResult)  => 
+              expect(hSetResult, isFalse));
+            expect(hSetResult, isTrue);
+          })
+      );
+    });
+    
+    test('HMSET', () {
+      Map hashMap = new Map();
+      hashMap['key1'] = 'value';
+      hashMap['key2'] = 'value2';
+      async(
+          client.hmset('hashKey', hashMap)
+          .then((hSetResult)  { 
+            expect(hSetResult, equals('OK'));
+            client.hgetall('hashKey')
+            .then((getAllResult) => expect(getAllResult, equals(hashMap)));            
+            })
+      );
+    });
+    
+    test('HINCRBY', () {
+      async(
+          client.hset('hashId', 'field', 5)
+          .then((_) => client.hincrby('hashId', 'field', -1)
+          .then((hIncrResult) => expect(hIncrResult, equals(4))))
+      );
+    });
+    
+    test('HINCRBYFLOAT', () {
+      async(
+          client.hset('hashId', 'field', 10.50)
+          .then((_) => client.hincrbyfloat('hashId', 'field', 0.1)
+          .then((incrByFloatResult) => expect(incrByFloatResult, equals(10.6))))
+          );      
+    });
+    
+    test('HGET', () {
+      Map someMap = {'some-key' : 'some-value'};
+      async(
+          client.hset('hashId', 'field', someMap)
+          .then((_) => client.hget('hashId', 'field')
+          .then(
+              (hGetResult) => expect(hGetResult, equals(someMap))))
+      );
+    });
+    
+    test('HMGET', () {
+      int someInt = 4;
+      String someString = 'some-string';
+      async(
+          client.hset('hashId', 'field', someInt)
+          .then((_) => client.hset('hashId', 'field2', someString)
+          .then((_) => client.hmget('hashId', [ 'field', 'field2' ])
+          .then(
+              (hMGetResult) { 
+                expect(hMGetResult.contains(someString), isTrue);
+                expect(hMGetResult.contains(someInt), isTrue);
+              })))
+      );
+    });
+    
+    test('HDEL', () {
+      int someInt = 4;
+      String someString = 'some-string';
+      async(
+            client.hset('hashId', 'field', someInt)
+            .then((_) => client.hdel('hashId', 'field')
+            .then((hDelResult) => expect(hDelResult, equals(1))))
+          );
+      });
+
+    test('HEXISTS', () {      
+      async(
+          client.hset('hashId', 'field', 4)
+          .then((_) => client.hexists('hashId', 'field')
+          .then((hExistsResult) => expect(hExistsResult, isTrue)))
+      );
+    });
+
+    test('HLEN', () {
+      async(
+          client.hset('hashId', 'field', 4)
+          .then((_) => client.hset('hashId', 'field2', 'some-string')
+          .then((_) => client.hlen('hashId')
+          .then((hLenResult) => expect(hLenResult, equals(2)))))
+      );
+    });
+    
+    test('HKEYS', () {
+      async(
+          client.hset('hashId', 'some-key', 'some-value')
+          .then((_) => client.hset('hashId', 'some-other-key', 'other-value')
+          .then((_) => client.hkeys('hashId')
+          .then((hKeysResult) => expect(hKeysResult, equals(['some-key', 'some-other-key'])))))
+      );
+    });
+    
+    test('HVALS', () {
+      async(
+          client.hset('hashId', 'some-key', 'some-value')
+            .then((_) => client.hset('hashId', 'some-other-key', 'other-value')
+            .then((_) => client.hvals('hashId')
+            .then((hValsResult) => expect(hValsResult, equals(['some-value', 'other-value'])))))
+      );
+    });
+    
+    test('HGETALL', () {
+      Map<String, Object> getAllMap = {
+                                       'some-key' : 'some-value',
+                                       'some-other-key' : 'other-value'
+      };
+      async(
+          client.hset('hashId', 'some-key', 'some-value')
+            .then((_) => client.hset('hashId', 'some-other-key', 'other-value')
+            .then((_) => client.hgetall('hashId')
+            .then((hGetAllResult) => expect(hGetAllResult, equals(getAllMap)))))
+      );
+    });
+  });
+  
+  group('Zset commands:', () {
+    test('ZADD', () {
+      async(
+          client.zadd('setId', new List<ZSetEntry>.from(
+              [ new ZSetEntry('value', 100), 
+                new ZSetEntry('value2', 100),
+                new ZSetEntry('value5', 101) ]))
+          .then((zAddResult) => expect(zAddResult, equals(3)))
+        );
+    });
+    
+    test('ZSADD', () {
+      async(
+          client.zsadd({'any-object' : 'can-be-a-key'}, 1, {'some-key' : 'some-value'})
+          .then((zAddResult) => expect(zAddResult, equals(1)))
+         );                                                        
+    });
+    
+    test('ZSREM', () {
+      var someMap = {'hash' : 'value'};
+      async(
+          client.zadd('setId', new List<ZSetEntry>.from(
+              [ new ZSetEntry(someMap, 100), 
+                new ZSetEntry('value2', 100), 
+                new ZSetEntry('value5', 101) ]))
+            .then((_) => client.zsrem('setId', someMap))
+            .then((zRemResult) => expect(zRemResult, equals(1)))
+      );
+    });
+  
+    test('ZMREM', () {
+      var someMap = {'hash' : 'value'};
+      async(
+          client.zadd('setId', new List<ZSetEntry>.from(
+              [ new ZSetEntry(someMap, 100), 
+                new ZSetEntry('value2', 100), 
+                new ZSetEntry('value5', 101) ]))
+            .then((_) => client.zmrem('setId', [someMap, 'value2' ]))
+            .then((zRemResult) => expect(zRemResult, equals(2)))
+      );
+    });
+    
+    test('ZINCRBY', () {
+      async(
+          client.zadd('setId', new List<ZSetEntry>.from(
+              [ new ZSetEntry(4, 100), 
+                new ZSetEntry('value2', 100), 
+                new ZSetEntry('value5', 101) ]))
+          .then((_) => client.zincrby('setId', 13, 4)
+          .then((zIncrResult) => expect(zIncrResult, equals(113))))
+      );
+    });
+    
+    test('ZRANK', () {
+      async(
+          client.zadd('setId', new List<ZSetEntry>.from(
+              [ new ZSetEntry(4, 100), 
+                new ZSetEntry('value2', 100), 
+                new ZSetEntry('value5', 101) ]))
+          .then((_) => client.zrank('setId', 'value2')
+          .then((zRankResult) => expect(zRankResult, equals(1))))
+      );
+    });
+    
+    test('ZREVRANK', () {
+      async(
+          client.zadd('setId', new List<ZSetEntry>.from(
+              [ new ZSetEntry(4, 100), 
+                new ZSetEntry('value2', 100), 
+                new ZSetEntry('value5', 101) ]))
+          .then((_) => client.zrevrank('setId', 4)
+          .then((zRevRankResult) => expect(zRevRankResult, equals(2))))
+      );
+    });
+
+    test('ZRANGE', () {
+      Set<ZSetEntry> zSet = new Set<ZSetEntry>.from([ new ZSetEntry('value', 100), 
+                                                      new ZSetEntry('value2', 103), 
+                                                      new ZSetEntry('value5', 105) ]);
+      async(
+          client.zadd('setId', zSet)
+          .then((_) => client.zrange('setId', 1, 3)
+          .then(
+              (zRangeResult) {            
+                expect(zRangeResult.contains('value'), isFalse);
+                expect(zRangeResult.contains('value5'), isTrue);
+                expect(zRangeResult.contains('value2'), isTrue);
+          }
+          )));
+      });
+
+    test('ZREVRANGE', () {
+      Set<ZSetEntry> zSet = new Set<ZSetEntry>.from([ new ZSetEntry('value', 100), 
+                                                      new ZSetEntry('value2', 103), 
+                                                      new ZSetEntry('value5', 105) ]);
+      async(
+          client.zadd('setId', zSet)
+          .then((_) => client.zrevrange('setId', 1, 3, withScores: true)
+          .then((zRangeResult) {            
+                expect(zRangeResult.length, equals(2));
+                expect(zRangeResult['value2'], equals(103));
+                expect(zRangeResult['value'], equals(100));
+          }
+          )));
+      });    
+    
+    test('ZRANGEBYSCORE', () {
+      Set<ZSetEntry> zSet = new Set<ZSetEntry>.from([ new ZSetEntry('value', 100), 
+                                                      new ZSetEntry('value2', 103), 
+                                                      new ZSetEntry('value5', 105) ]);
+      async(
+          client.zadd('setId', zSet)
+          .then((_) => client.zrangebyscore('setId', min: 103, max: 105, maxExclusive: true, withScores: true)
+          .then((zRangeResult) {
+            expect(zRangeResult.length, equals(1));
+            expect(zRangeResult['value2'], equals(103));
+            }))
+          );
+      
+      async(
+          client.zadd('setId', zSet)
+          .then((_) => client.zrangebyscore('setId', max: 105, skip: 1, take:2)
+          .then((zRangeResult) {
+            expect(zRangeResult.length, equals(2));
+            expect(zRangeResult.contains('value2'), isTrue);
+            expect(zRangeResult.contains('value5'), isTrue);
+            }))
+          );
+      });    
+    
+    test('ZREVRANGEBYSCORE', () {
+      Set<ZSetEntry> zSet = new Set<ZSetEntry>.from([ new ZSetEntry('value', 100), 
+                                                      new ZSetEntry('value2', 103), 
+                                                      new ZSetEntry('value5', 105) ]);
+      async(
+          client.zadd('setId', zSet)
+          .then((_) => client.zrevrangebyscore('setId', min: 105, max: 100, minExclusive: true, withScores: true)
+          .then((zRangeResult) {
+            expect(zRangeResult.length, equals(2));
+            expect(zRangeResult['value'], equals(100));
+            expect(zRangeResult['value2'], equals(103));
+            }))
+          );
+      
+      async(
+          client.zadd('setId', zSet)
+          .then((_) => client.zrangebyscore('setId', max: 105, skip: 1, take:2)
+          .then((zRangeResult) {
+            expect(zRangeResult.length, equals(2));
+            expect(zRangeResult.contains('value2'), isTrue);
+            expect(zRangeResult.contains('value5'), isTrue);
+            }))
+          );
+      }); 
+    
+
+    test('ZREMRANGEBYRANK', () {
+      Set<ZSetEntry> zSet = new Set<ZSetEntry>.from([ new ZSetEntry('one', 1), 
+                                                      new ZSetEntry('two', 2), 
+                                                      new ZSetEntry('three', 3) ]);
+      async(
+          client.zadd('setId', zSet)
+          .then((_) => client.zremrangebyrank('setId',  0, 1)
+          .then((zremRangeResult) => expect(zremRangeResult, equals(2))))
+          );
+      });
+    
+    test('ZREMRANGEBYSCORE', () {
+      Set<ZSetEntry> zSet = new Set<ZSetEntry>.from([ new ZSetEntry('one', 1), 
+                                                      new ZSetEntry('two', 2), 
+                                                      new ZSetEntry('three', 3) ]);
+      async(
+          client.zadd('setId', zSet)
+          .then((_) => client.zremrangebyscore('setId', max: 2, maxExclusive: true)
+          .then((zremRangeResult) => expect(zremRangeResult, equals(1))))
+          );
+      });
+    
+    test('ZCARD', () {
+      Set<ZSetEntry> zSet = new Set<ZSetEntry>.from([ new ZSetEntry('one', 1), 
+                                                      new ZSetEntry('two', 2), 
+                                                      new ZSetEntry('three', 3) ]);
+      async(
+          client.zadd('setId', zSet)
+          .then((_) => client.zcard('setId')
+          .then((zremCardResult) => expect(zremCardResult, equals(3))))
+          );
+      });
+    
+    test('ZSCORE', () {
+      Set<ZSetEntry> zSet = new Set<ZSetEntry>.from([ new ZSetEntry('one', 1), 
+                                                      new ZSetEntry('two', 2), 
+                                                      new ZSetEntry('three', 3) ]);
+      async(
+          client.zadd('setId', zSet)
+          .then((_) => client.zscore('setId', 'one')
+          .then((zScoreResult) => expect(zScoreResult, equals(1))))
+          );
+      });
+    
+    test('ZUNIONSTORE', () {
+      Set<ZSetEntry> zSet = new Set<ZSetEntry>.from([ new ZSetEntry('one', 1), 
+                                                      new ZSetEntry('two', 2)]);
+      Set<ZSetEntry> zSet2 = new Set<ZSetEntry>.from([ new ZSetEntry('one', 1), 
+                                                      new ZSetEntry('two', 2), 
+                                                      new ZSetEntry('three', 3) ]);
+      var weights = [ 2, 3 ];
+      async(
+          client.zadd('setId', zSet)
+          .then((_) => client.zadd('setId2', zSet2)
+          .then((_) => client.zunionstore('unionSetId', ['setId', 'setId2'], aggregate: 'MIN')
+          .then((zUnionStoreResult) => expect(zUnionStoreResult, equals(3)))))
+          );
+      
+      async(
+          client.zadd('setId3', zSet)
+          .then((_) => client.zadd('setId4', zSet2)
+          .then((_) => client.zunionstore('unionSetId', ['setId3', 'setId4'], weights: weights, aggregate: 'MIN')
+          .then((zUnionStoreResult) => expect(zUnionStoreResult, equals(3)))))
+          );
+      });
+    
+    test('ZINTERSTORE', () {
+      Set<ZSetEntry> zSet = new Set<ZSetEntry>.from([ new ZSetEntry('one', 1), 
+                                                      new ZSetEntry('two', 2)]);
+      Set<ZSetEntry> zSet2 = new Set<ZSetEntry>.from([ new ZSetEntry('one', 1), 
+                                                      new ZSetEntry('two', 2), 
+                                                      new ZSetEntry('three', 3) ]);
+      var weights = [ 2, 3 ];
+      
+      async(
+          client.zadd('setId', zSet)
+          .then((_) => client.zadd('setId2', zSet2)
+          .then((_) => client.zinterstore('unionSetId', ['setId', 'setId2'], aggregate: 'MIN')
+          .then((zUnionStoreResult) => expect(zUnionStoreResult, equals(2)))))
+          );
+      
+      async(
+          client.zadd('setId3', zSet)
+          .then((_) => client.zadd('setId4', zSet2)
+          .then((_) => client.zinterstore('unionSetId', ['setId3', 'setId4'], weights: weights, aggregate: 'MIN')
+          .then((zUnionStoreResult) => expect(zUnionStoreResult, equals(2)))))
+          );
+      });
+    });
+  });
 }
