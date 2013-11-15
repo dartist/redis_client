@@ -1,6 +1,6 @@
 part of redis_client;
 
-
+const exclusive = '(';
 
 /**
  * The [RedisClient] is a high level class to access your redis server.
@@ -573,8 +573,8 @@ class RedisClient {
    * keys being an empty set, the resulting set is also empty (since set 
    * intersection with an empty set always results in an empty set).
    */
-  Future<Set<Object>> sinter(List<String> setIds) => 
-      connection.sendCommandWithVariadicArguments(RedisCommand.SINTER, 
+  Future<Set<Object>> sinter(List<String> setIds) =>
+      connection.sendCommand(RedisCommand.SINTER, 
           serializer.serializeToList(setIds))
             .receiveMultiBulkSetDeserialized(serializer);
 
@@ -601,8 +601,9 @@ class RedisClient {
    * Keys that do not exist are considered to be empty sets.
    */
   Future<Set<Object>> sunion(List<String> setIds) => 
-      connection.sendCommandWithVariadicArguments(RedisCommand.SUNION, 
-          serializer.serializeToList(setIds)).receiveMultiBulkSetDeserialized(serializer);
+      connection.sendCommand(RedisCommand.SUNION,
+          serializer.serializeToList(setIds))
+            .receiveMultiBulkSetDeserialized(serializer);
 
 
   /**
@@ -655,12 +656,15 @@ class RedisClient {
    * 
    * More at: http://redis.io/commands/srandmember
    */
-  Future<Object> srandmember(String setId, [int count]) { 
-    if(count == null) return connection.sendCommand(RedisCommand.SRANDMEMBER, 
+  Future<dynamic> srandmember(String setId, [int count]) { 
+    if(count == null) {
+      return connection.sendCommand(RedisCommand.SRANDMEMBER, 
         [ setId ]).receiveBulkDeserialized(serializer);
+    } else{ 
     return connection.sendCommand(RedisCommand.SRANDMEMBER, 
         [ setId, serializer.serializeToString(count)])
           .receiveMultiBulkSetDeserialized(serializer);
+    }
   }
 //
 //
@@ -702,140 +706,563 @@ class RedisClient {
 //    return connection.sendExpectMultiData(cmdWithArgs);
 //  }
 //
-//  //LIST
-//
-//
-//  /// Wrapper for [RawRedisCommands.lrange].
-//  Future<List<Object>> lrange(String listId, [int startingFrom=0, int endingAt=-1]) => raw.lrange(listId, startingFrom, endingAt).then((x) => x.map(serializer.deserialize));
-//
-//  /// Wrapper for [RawRedisCommands.lpush].
-//  Future<int> lpush(String listId, Object value) => raw.lpush(listId, serializer.serialize(value));
-//
-//  /// Wrapper for [RawRedisCommands.mlpush].
-//  Future<int> mlpush(String listId, List<Object> values) => raw.mlpush(listId, values.map((x) => serializer.serialize(x)));
-//
-//  /// Wrapper for [RawRedisCommands.lpushx].
-//  Future<int> lpushx(String listId, Object value) => raw.lpushx(listId, serializer.serialize(value));
-//
-//  /// Wrapper for [RawRedisCommands.mlpushx].
-//  Future<int> mlpushx(String listId, List<Object> values) => raw.mlpushx(listId, values.map((x) => serializer.serialize(x)));
-//
-//  /// Wrapper for [RawRedisCommands.rpush].
-//  Future<int> rpush(String listId, Object value) => raw.rpush(listId, serializer.serialize(value));
-//
-//  /// Wrapper for [RawRedisCommands.mrpush].
-//  Future<int> mrpush(String listId, List<Object> values) => raw.mrpush(listId, values.map((x) => serializer.serialize(x)));
-//
-//  /// Wrapper for [RawRedisCommands.rpushx].
-//  Future<int> rpushx(String listId, Object value) => raw.rpushx(listId, serializer.serialize(value));
-//
-//  /// Wrapper for [RawRedisCommands.mrpushx].
-//  Future<int> mrpushx(String listId, List<Object> values) => raw.mrpushx(listId, values.map((x) => serializer.serialize(x)));
-//
-//  Future ltrim(String listId, int keepStartingFrom, int keepEndingAt) => connection.sendExpectSuccess([RedisCommand.LTRIM, _keyBytes(listId), serializer.serialize(keepStartingFrom), serializer.serialize(keepEndingAt)]);
-//
-//  /// Wrapper for [RawRedisCommands.lrem].
-//  Future<int> lrem(String listId, int removeNoOfMatches, Object value) => raw.lrem(listId, removeNoOfMatches, serializer.serialize(value));
-//
-//  Future<int> llen(String listId) => connection.sendExpectInt([RedisCommand.LLEN, _keyBytes(listId)]);
-//
-//  /// Wrapper for [RawRedisCommands.lindex].
-//  Future<Object> lindex(String listId, int listIndex) => raw.lindex(listId, listIndex).then(serializer.deserialize);
-//
-//  /// Wrapper for [RawRedisCommands.lset].
-//  Future lset(String listId, int listIndex, Object value) => raw.lset(listId, listIndex, serializer.serialize(value));
-//
-//  /// Wrapper for [RawRedisCommands.lpop].
-//  Future<Object> lpop(String listId) => raw.lpop(listId).then(serializer.deserialize);
-//
-//  /// Wrapper for [RawRedisCommands.rpop].
-//  Future<Object> rpop(String listId) => raw.rpop(listId).then(serializer.deserialize);
-//
-//  /// Wrapper for [RawRedisCommands.rpoplpush].
-//  Future<Object> rpoplpush(String fromListId, String toListId) => raw.rpoplpush(fromListId, toListId).then(serializer.deserialize);
-//
-//
-//
-//  /// SORTED SETS
-//  /// ===========
-//
-//
-//  /// Wrapper for [RawRedisCommands.zadd].
-//  Future<int> zadd(String setId, num score, Object value) => raw.zadd(setId, score, serializer.serialize(value));
-//
-//  /// Wrapper for [RawRedisCommands.zmadd].
-//  Future<int> zmadd(String setId, Map<Object,num> scoresMap) {
-//    List<List<int>> args = new List<List<int>>();
-//    scoresMap.forEach((k,v) {
-//      args.add(serializer.serialize(v));
-//      args.add(serializer.serialize(k));
-//    });
-//    return raw.zmadd(setId, args);
-//  }
-//
-//  /// Wrapper for [RawRedisCommands.zrem].
-//  Future<int> zrem(String setId, Object value) => raw.zrem(setId, serializer.serialize(value));
-//
-//  /// Wrapper for [RawRedisCommands.zmrem].
-//  Future<int> zmrem(String setId, List<Object> values) => raw.zmrem(setId, values.map((x) => serializer.serialize(x)));
-//
-//  /// Wrapper for [RawRedisCommands.zincrby].
-//  Future<double> zincrby(String setId, num incrBy, Object value) => raw.zincrby(setId, incrBy, serializer.serialize(value));
-//
-//  /// Wrapper for [RawRedisCommands.zrank].
-//  Future<int> zrank(String setId, Object value) => raw.zrank(setId, serializer.serialize(value));
-//
-//  /// Wrapper for [RawRedisCommands.zrevrank].
-//  Future<int> zrevrank(String setId, Object value) => raw.zrevrank(setId, serializer.serialize(value));
-//
-//  /// Wrapper for [RawRedisCommands.zrange].
-//  Future<List<Object>> zrange(String setId, int min, int max) => raw.zrange(setId, min, max).then((x) => x.map(serializer.deserialize));
-//
-//  /// Wrapper for [RawRedisCommands.zrangeWithScores].
-//  Future<Map<Object,double>> zrangeWithScores(String setId, int min, int max) => raw.zrangeWithScores(setId, min, max).then(toScoreMap);
-//
-//  /// Wrapper for [RawRedisCommands.zrevrange].
-//  Future<List<Object>> zrevrange(String setId, int min, int max) => raw.zrevrange(setId, min, max).then((x) => x.map(serializer.deserialize));
-//
-//  /// Wrapper for [RawRedisCommands.zrevrangeWithScores].
-//  Future<Map<Object,double>> zrevrangeWithScores(String setId, int min, int max) => raw.zrevrangeWithScores(setId, min, max).then(toScoreMap);
-//
-//  /// Wrapper for [RawRedisCommands.zrangebyscore].
-//  Future<List<Object>> zrangebyscore(String setId, num min, num max, [int skip, int take]) => raw.zrangebyscore(setId, min, max, skip, take).then((x) => x.map(serializer.deserialize));
-//
-//  /// Wrapper for [RawRedisCommands.zrangebyscoreWithScores].
-//  Future<Map<Object,double>> zrangebyscoreWithScores(String setId, num min, num max, [int skip, int take]) => raw.zrangebyscoreWithScores(setId, min, max, skip, take).then(toScoreMap);
-//
-//  /// Wrapper for [RawRedisCommands.zrevrangebyscore].
-//  Future<List<List<int>>> zrevrangebyscore(String setId, num min, num max, [int skip, int take]) => raw.zrevrangebyscore(setId, min, max, skip, take);
-//
-//  /// Wrapper for [RawRedisCommands.zrevrangebyscoreWithScores].
-//  Future<List<List<int>>> zrevrangebyscoreWithScores(String setId, num min, num max, [int skip, int take]) => raw.zrevrangebyscoreWithScores(setId, min, max, skip, take);
-//
-//  Future<int> zremrangebyrank(String setId, int min, int max) => connection.sendExpectInt([RedisCommand.ZREMRANGEBYRANK, _keyBytes(setId), serializer.serialize(min), serializer.serialize(max)]);
-//
-//  Future<int> zremrangebyscore(String setId, num min, num max) => connection.sendExpectInt([RedisCommand.ZREMRANGEBYSCORE, _keyBytes(setId), serializer.serialize(min), serializer.serialize(max)]);
-//
-//  Future<int> zcard(String setId) => connection.sendExpectInt([RedisCommand.ZCARD, _keyBytes(setId)]);
-//
-//  /// Wrapper for [RawRedisCommands.zscore].
-//  Future<double> zscore(String setId, Object value) => raw.zscore(setId, serializer.serialize(value));
-//
-//  Future<int> zunionstore(String intoSetId, List<String> setIds) {
-//    setIds.insert(0, setIds.length.toString());
-//    setIds.insert(0, intoSetId);
-//    return connection.sendExpectInt(_CommandUtils.mergeCommandWithStringArgs(RedisCommand.ZUNIONSTORE, setIds));
-//  }
-//
-//  Future<int> zinterstore(String intoSetId, List<String> setIds) {
-//    setIds.insert(0, setIds.length.toString());
-//    setIds.insert(0, intoSetId);
-//    return connection.sendExpectInt(_CommandUtils.mergeCommandWithStringArgs(RedisCommand.ZINTERSTORE, setIds));
-//  }
-//
-//
-//
-//
+  ///LIST
+
+
+  
+  /**
+   * Returns the length of the list after the push operation. 
+   * 
+   * Insert all the specified values at the head of the list stored at key. 
+   * If key does not exist, it is created as empty list before performing the 
+   * push operation. When key holds a value that is not a list, an error is 
+   * returned. 
+   */
+  Future<int> lpush(String key, Object value) => 
+      connection.sendCommandWithVariadicValues(RedisCommand.LPUSH, 
+          [ key ], serializer.serializeToList(value)).receiveInteger();
+  
+  /**
+   * Returns the length of the list after the push operation.
+   * 
+   * Insert all the specified values at the tail of the list stored at key. 
+   * If key does not exist, it is created as empty list before performing the 
+   * push operation. When key holds a value that is not a list, an error is 
+   * returned.
+   */
+  Future<List<Object>> lrange(String key, { int startingFrom: 0, 
+    int endingAt: -1 }) => 
+        connection.sendCommand(RedisCommand.LRANGE, 
+            [ key, startingFrom.toString(), endingAt.toString() ])
+              .receiveMultiBulkDeserialized(serializer);
+
+  /**
+   * Returns the length of the list after the push operation.
+   * 
+   * Inserts value at the head of the list stored at key, only if key already 
+   * exists and holds a list. In contrary to LPUSH, no operation will be 
+   * performed when key does not yet exist.
+   */
+  Future<int> lpushx(String key, Object value) => 
+      connection.sendCommand(RedisCommand.LPUSHX, 
+          [ key, serializer.serializeToString(value)]).receiveInteger();
+  
+  /**
+   * Returns the length of the list after the push operation. 
+   * 
+   * Insert all the specified values at the tail of the list stored at key. 
+   * If key does not exist, it is created as empty list before performing the 
+   * push operation. When key holds a value that is not a list, an error is 
+   * returned. 
+   */
+  Future<int> rpush(String key, Object value) => 
+      connection.sendCommandWithVariadicValues(RedisCommand.RPUSH, [ key ], 
+          serializer.serializeToList(value)).receiveInteger();
+
+  /**
+   * Returns the length of the list after the push operation.
+   * 
+   * Inserts value at the tail of the list stored at key, only if key already 
+   * exists and holds a list. In contrary to RPUSH, no operation will be 
+   * performed when key does not yet exist.
+   */
+  Future<int> rpushx(String key, Object value) => 
+      connection.sendCommand(RedisCommand.RPUSHX, 
+          [ key, serializer.serializeToString(value)]).receiveInteger();
+  
+  /**
+   * Returns status code. 
+   * 
+   * Trim an existing list so that it will contain only the specified range of 
+   * elements specified. Both start and stop are zero-based indexes, where 0 is
+   * the first element of the list (the head), 1 the next element and so on.
+   * 
+   * More at: http://redis.io/commands/ltrim
+   */
+  Future<String> ltrim(String key, int start, int end) => 
+      connection.sendCommand(RedisCommand.LTRIM, 
+          [ key, start.toString(), end.toString() ])
+            .receiveStatus('OK');
+
+  /**
+   * Returns the number of removed elements.
+   * 
+   * Removes the first count occurrences of elements equal to value from the 
+   * list stored at key. The count argument influences the operation in the 
+   * following ways:
+   *       count > 0: Remove elements equal to value moving from head to tail.
+   *       count < 0: Remove elements equal to value moving from tail to head.
+   *       count = 0: Remove all elements equal to value.
+   *
+   * For example, LREM list -2 "hello" will remove the last two occurrences 
+   * of "hello" in the list stored at list.
+   */
+  Future<int> lrem(String key, int count, Object value) => 
+      connection.sendCommand(RedisCommand.LREM, 
+          [ key, count.toString(), serializer.serializeToString(value) ])
+            .receiveInteger();
+
+  /**
+   * Returns the length of the list stored at key. If key does not exist, it is
+   * interpreted as an empty list and 0 is returned. An error is returned when 
+   * the value stored at key is not a list.
+   */
+  Future<int> llen(String key) => 
+      connection.sendCommand(RedisCommand.LLEN, [ key ]).receiveInteger();
+
+  /**
+   * Returns the element at index index in the list stored at key. 
+   * 
+   * The index is zero-based so 0 means the first element, 1 the second element 
+   * and so on. Negative indices can be used to designate elements starting at 
+   * the tail of the list. Here, -1 means the last element, -2 means the 
+   * penultimate and so forth. When the value at key is not a list, an error is
+   * returned.
+   */
+  Future<Object> lindex(String key, int index) => 
+      connection.sendCommand(RedisCommand.LINDEX, [ key, index.toString() ])
+        .receiveBulkDeserialized(serializer);
+
+  /**
+   *  Returns the length of the list after the insert operation, or -1 when 
+   *  the value pivot was not found.
+   *  
+   *  Inserts [value] in the list stored at [position] either 'before' or 
+   *  'after' the reference value [pivot]. When key does not exist, it is 
+   *  considered an empty list and no operation is performed.
+   *  
+   *  An error is returned when [key] exists but does not hold a list value.
+   */
+  Future<int> linsert(String key, String position, Object pivot, Object value) 
+  => connection.sendCommand(RedisCommand.LINSERT, [key, position, 
+     serializer.serializeToString(pivot), serializer.serializeToString(value)])
+        .receiveInteger();
+  
+  /**
+   * Sets the list element at index to value. For more information on the index 
+   * argument, see LINDEX. 
+   * An error is returned for out of range indexes.
+   */
+  Future<String> lset(String key, int index, Object value) => 
+      connection.sendCommand(RedisCommand.LSET, 
+          [ key, index.toString(), serializer.serializeToString(value) ])
+            .receiveStatus('OK');
+
+  /**
+   * Returns the value of the first element, or nil when key does not exist.
+   */
+  Future<Object> lpop(String key) => 
+      connection.sendCommand(RedisCommand.LPOP, [ key ])
+        .receiveBulkDeserialized(serializer);
+  
+  /**
+   * Returns the value of the last element, or nil when key does not exist.
+   */
+  Future<Object> rpop(String key) => 
+      connection.sendCommand(RedisCommand.RPOP, [ key ])
+        .receiveBulkDeserialized(serializer);
+
+  /**
+   * Atomically returns and removes the last element (tail) of the list stored
+   * at source, and pushes the element at the first element (head) of the list 
+   * stored at destination.
+   */
+  Future<Object> rpoplpush(String source, String destination) => 
+      connection.sendCommand(RedisCommand.RPOPLPUSH, [ source, destination ])
+        .receiveBulkDeserialized(serializer);
+  
+  /**
+   * BLPOP is a blocking list pop primitive. It is the blocking version of LPOP
+   *  because it blocks the connection when there are no elements to pop from 
+   *  any of the given lists. An element is popped from the head of the first 
+   *  list that is non-empty, with the given keys being checked in the order 
+   *  that they are given.
+   *  
+   *  More at: http://redis.io/commands/blpop
+   */
+  Future blpop(Object key, { timeout: 0 }) {
+      var values = serializer.serializeToList(key);
+      values.add(timeout.toString());      
+      return connection.sendCommand(RedisCommand.BLPOP, values)
+        .receiveMultiBulkMapDeserialized(serializer);  
+  }
+   
+  /**
+   * BRPOP is a blocking list pop primitive. It is the blocking version of RPOP
+   *  because it blocks the connection when there are no elements to pop from 
+   *  any of the given lists. An element is popped from the tail of the first 
+   *  list that is non-empty, with the given keys being checked in the order 
+   *  that they are given.
+   *  
+   *  More at: http://redis.io/commands/brpop
+   */
+  Future brpop(Object key, { timeout: 0 }) {
+      var values = serializer.serializeToList(key);
+      values.add(timeout.toString());      
+      return connection.sendCommand(RedisCommand.BRPOP, values)
+        .receiveMultiBulkMapDeserialized(serializer);  
+  }
+  
+  /**
+   * Returns the element being popped from [source] and pushed to [destination]. 
+   * 
+   * BRPOPLPUSH is the blocking variant of RPOPLPUSH. When source contains 
+   * elements, this command behaves exactly like RPOPLPUSH. When source is 
+   * empty, Redis will block the connection until another client pushes to it 
+   * or until timeout is reached. A timeout of zero can be used to block 
+   * indefinitely.
+   */
+  Future<Object> brpoplpush(String source, String destination, { timeout: 0 }) 
+    => connection.sendCommand(RedisCommand.BRPOPLPUSH, 
+        [serializer.serializeToString(source), 
+         serializer.serializeToString(destination), timeout.toString() ])
+           .receiveBulkDeserialized(serializer);
+  
+  /// SORTED SETS
+  /// ===========
+
+  /**
+   * Returns the number of elements added to the sorted sets, not including 
+   * elements already existing for which the score was updated.
+   * 
+   * Adds all the specified members with the specified scores to the sorted 
+   * set stored at key. It is possible to specify multiple score/member pairs. 
+   * If a specified member is already a member of the sorted set, the score is 
+   * updated and the element reinserted at the right position to ensure the 
+   * correct ordering. If key does not exist, a new sorted set with the 
+   * specified members as sole members is created, like if the sorted set was 
+   * empty. If the key exists but does not hold a sorted set, an error is 
+   * returned.
+   */
+  Future<int> zadd(Object setId, Iterable<ZSetEntry> zset) => 
+      connection.sendCommandWithVariadicValues(RedisCommand.ZADD, 
+          [ serializer.serializeToString(setId) ], 
+          serializer.serializeFromZSet(zset)).receiveInteger();
+  
+  /**
+   * Returns the number of elements added to the sorted sets, not including 
+   * elements already existing for which the score was updated.
+   * 
+   * Single add variant of zadd.
+   */
+  Future<int> zsadd(Object setId, num score, Object value) => 
+      connection.sendCommand(RedisCommand.ZADD, 
+          [ serializer.serializeToString(setId), serializer.serializeToString(score), 
+            serializer.serializeToString(value)] ).receiveInteger();
+
+  /**
+   * Returns the number of members removed from the sorted set, not including 
+   * non existing members. 
+   */
+  Future<int> zsrem(Object setId, Object value) => 
+      connection.sendCommand(RedisCommand.ZREM, 
+          [ serializer.serializeToString(setId), serializer.serializeToString(value) ])
+            .receiveInteger();
+  
+  /**
+   * Returns the number of members removed from the sorted set, not including 
+   * non existing members. 
+   */
+  Future<int> zmrem(Object setId, Iterable value) => 
+      connection.sendCommandWithVariadicValues(RedisCommand.ZREM, 
+          [ serializer.serializeToString(setId)], serializer.serializeToList(value) )
+            .receiveInteger();
+  
+    
+  /**
+   *  Returns the new score of member (a double precision floating point number).
+   *  
+   *  Increments the score of member in the sorted set stored at key by 
+   *  [increment]. If member does not exist in the sorted set, it is added 
+   *  with increment as its score (as if its previous score was 0.0). If key 
+   *  does not exist, a new sorted set with the specified member as its sole 
+   *  member is created.
+   *  
+   *  An error is returned when key exists but does not hold a sorted set. 
+   *  The score value should be the string representation of a numeric value, 
+   *  and accepts double precision floating point numbers. It is possible to 
+   *  provide a negative value to decrement the score.
+   */  
+  Future<double> zincrby(String setId, num increment, Object value) => 
+      connection.sendCommand(RedisCommand.ZINCRBY, 
+          [ setId, increment.toString(), serializer.serializeToString(value) ])
+            .receiveDouble();
+
+  /**
+   * Returns the rank of member in the sorted set stored at key, with the 
+   * scores ordered from low to high. The rank (or index) is 0-based, which 
+   * means that the member with the lowest score has rank 0. 
+   * 
+   * Use ZREVRANK to get the rank of an element with the scores ordered from 
+   * high to low.
+   */  
+  Future<int> zrank(String setId, Object value) => 
+      connection.sendCommand(RedisCommand.ZRANK, 
+          [ setId, serializer.serializeToString(value) ]).receiveInteger();
+  
+  /**
+   * Returns the rank of member in the sorted set stored at key, with the 
+   * scores ordered from high to low. The rank (or index) is 0-based, which 
+   * means that the member with the highest score has rank 0. 
+   * 
+   * Use ZREVRANK to get the rank of an element with the scores ordered from 
+   * high to low.
+   */  
+  Future<int> zrevrank(String setId, Object value) => 
+      connection.sendCommand(RedisCommand.ZREVRANK, 
+          [ setId, serializer.serializeToString(value) ]).receiveInteger();
+  
+  /**
+   * Returns either a list of elements in the specified range or a map of 
+   * elements with their scores. Depending on whether the [withScores] flag was
+   * set to true.
+   * 
+   * The elements are considered to be ordered from the lowest to the highest 
+   * score. Lexicographical order is used for elements with equal score. 
+   * 
+   * Read more at: http://redis.io/commands/zrange
+   */
+  Future<dynamic> zrange(Object setId, int min, int max, 
+      { bool withScores: false }) { 
+      return withScores
+          ? connection.sendCommand(RedisCommand.ZRANGE, 
+              [ serializer.serializeToString(setId), min.toString(), 
+                max.toString(), 'WITHSCORES' ])
+                .receiveMultiBulkMapDeserialized(serializer)
+          : connection.sendCommand(RedisCommand.ZRANGE, 
+              [ serializer.serializeToString(setId), min.toString(), 
+                max.toString() ])
+                .receiveMultiBulkSetDeserialized(serializer);
+  }
+  
+  /**
+   * Returns either a list of elements in the specified range or a map of 
+   * elements with their scores. Depending on whether the [withScores] flag 
+   * was set to true.
+   * 
+   * The elements are considered to be ordered from the lowest to the highest 
+   * score. Lexicographical order is used for elements with equal score. 
+   * 
+   * Read more at: http://redis.io/commands/zrange
+   */
+  Future<dynamic> zrevrange(String setId, int min, int max, 
+      { bool withScores: false }) { 
+    return withScores 
+        ? connection.sendCommand(RedisCommand.ZREVRANGE, 
+            [ setId, min.toString(), max.toString(), 'WITHSCORES' ])
+              .receiveMultiBulkMapDeserialized(serializer)
+        : connection.sendCommand(RedisCommand.ZREVRANGE, 
+            [ setId, min.toString(), max.toString() ])
+              .receiveMultiBulkSetDeserialized(serializer);
+  }
+  
+  /**
+   * Returns all the elements in the sorted set at key with a score between min
+   * and max (including elements with score equal to min or max). The elements 
+   * are considered to be ordered from low to high scores.
+   * 
+   * More at: http://redis.io/commands/zrangebyscore
+   */
+  Future<dynamic> zrangebyscore(String setId, { num min, num max, 
+    bool minExclusive: false, bool maxExclusive: false, 
+    bool withScores: false, int skip, int take}) {
+    var hasLimit = false, offsetString, countString;
+
+    if (take != null) hasLimit = true;
+    
+    if (hasLimit) {
+      skip == null ? offsetString == 0.toString() : offsetString = skip.toString();
+      countString = take.toString(); 
+    }
+    
+    if (withScores && hasLimit) {      
+      return connection.sendCommand(RedisCommand.ZRANGEBYSCORE, 
+          [ setId, _setMin(min, minExclusive), _setMax(max, maxExclusive),
+            'WITHSCORES', 'LIMIT', offsetString, countString ])
+            .receiveMultiBulkMapDeserialized(serializer);
+    }
+    if (hasLimit) {
+      return connection.sendCommand(RedisCommand.ZRANGEBYSCORE, 
+          [ setId, _setMin(min, minExclusive), _setMax(max, maxExclusive),
+            'LIMIT', offsetString, countString ])
+            .receiveMultiBulkSetDeserialized(serializer);
+    }
+    if (withScores) {
+      return connection.sendCommand(RedisCommand.ZRANGEBYSCORE, 
+        [ setId, _setMin(min, minExclusive), _setMax(max, maxExclusive), 
+          'WITHSCORES' ])
+          .receiveMultiBulkMapDeserialized(serializer);
+    }
+    return connection.sendCommand(RedisCommand.ZRANGEBYSCORE, 
+        [ setId, _setMin(min, minExclusive), _setMax(max, maxExclusive) ])
+          .receiveMultiBulkSetDeserialized(serializer);
+  }
+
+  /**
+   * Returns all the elements in the sorted set at key with a score between 
+   * max and min (including elements with score equal to max or min). 
+   * In contrary to the default ordering of sorted sets, for this command the 
+   * elements are considered to be ordered from high to low scores.
+   * 
+   * The elements having the same score are returned in reverse lexicographical order.
+   * 
+   * Apart from the reversed ordering, ZREVRANGEBYSCORE is similar to ZRANGEBYSCORE.
+   */
+  Future<dynamic> zrevrangebyscore(String setId, { num min, num max, 
+    bool minExclusive: false, bool maxExclusive: false, 
+    bool withScores: false, int skip, int take}) {
+    var hasLimit = false, offsetString, countString;
+
+    if (take != null) hasLimit = true;
+    
+    if (hasLimit) {
+      skip == null ? offsetString == 0.toString() : offsetString = skip.toString();
+      countString = take.toString(); 
+    }
+    
+    if (withScores && hasLimit) {      
+      return connection.sendCommand(RedisCommand.ZREVRANGEBYSCORE, 
+          [ setId, _setMin(min, minExclusive), _setMax(max, maxExclusive),
+            'WITHSCORES', 'LIMIT', offsetString, countString ])
+            .receiveMultiBulkMapDeserialized(serializer);
+    }
+    if (hasLimit) {
+      return connection.sendCommand(RedisCommand.ZREVRANGEBYSCORE, 
+          [ setId, _setMin(min, minExclusive), _setMax(max, maxExclusive),
+            'LIMIT', offsetString, countString ])
+            .receiveMultiBulkSetDeserialized(serializer);
+    }
+    if (withScores) {
+      return connection.sendCommand(RedisCommand.ZREVRANGEBYSCORE, 
+        [ setId, _setMin(min, minExclusive), _setMax(max, maxExclusive), 'WITHSCORES' ])
+          .receiveMultiBulkMapDeserialized(serializer);
+    }
+    return connection.sendCommand(RedisCommand.ZREVRANGEBYSCORE, 
+        [ setId, _setMin(min, minExclusive), _setMax(max, maxExclusive) ])
+          .receiveMultiBulkSetDeserialized(serializer);
+    }
+
+  /**
+   * Returns the number of elements removed.
+   * 
+   * Removes all elements in the sorted set stored at key with rank between 
+   * start and stop. Both start and stop are 0 -based indexes with 0 being 
+   * the element with the lowest score. These indexes can be negative numbers,
+   * where they indicate offsets starting at the element with the highest 
+   * score. 
+   * 
+   * For example: -1 is the element with the highest score, -2 the 
+   * element with the second highest score and so forth.
+   */
+  Future<int> zremrangebyrank(String setId, int min, int max) =>
+      connection.sendCommand(RedisCommand.ZREMRANGEBYRANK, 
+          [ setId, min.toString(), max.toString()])
+            .receiveInteger();
+  
+  
+  /**
+   * Returns the number of elements removed
+   * 
+   * Removes all elements in the sorted set stored at key with a score between 
+   * min and max (inclusive). Since version 2.1.6, min and max can be 
+   * exclusive, following the syntax of ZRANGEBYSCORE.
+   */
+  Future<int> zremrangebyscore(String setId, { num min, num max, 
+    bool minExclusive: false, bool maxExclusive: false}) {    
+    return connection.sendCommand(RedisCommand.ZREMRANGEBYSCORE, [ setId, 
+      _setMin(min, minExclusive), _setMax(max, maxExclusive)]).receiveInteger();
+  }
+  
+ /**
+  * Returns the cardinality (number of elements) of the sorted set, or 0 if key
+  * does not exist. 
+  */
+  Future<int> zcard(String setId) => 
+      connection.sendCommand(RedisCommand.ZCARD, [ setId ] )
+        .receiveInteger();
+  
+  /**
+   * Returns the score of member in the sorted set at key. If member does not 
+   * exist in the sorted set, or key does not exist, nil is returned.
+   */
+  Future<double> zscore(String setId, Object value) => 
+      connection.sendCommand(RedisCommand.ZSCORE, 
+          [ setId, serializer.serializeToString(value) ]).receiveDouble();
+
+  /**
+   * Returns the number of elements in the resulting sorted set at destination.
+   * 
+   * Computes the union of the sets given in [setIds], optionally takes a list 
+   * of sequentially added [weights] for each set in the [aggregate] 
+   * calculation (default SUM, options SUM|MIN|MAX)
+   * 
+   * More at: http://redis.io/commands/zunionstore
+   */  
+  Future<int> zunionstore(String destination, List<String> setIds, { List<int> weights, String aggregate}) {
+    var numkeys = setIds.length.toString();
+    var values = serializer.serializeToList(setIds);
+    
+    if(weights != null) {
+      values.add('WEIGHTS');
+      values.addAll(serializer.serializeToList(weights));
+    }
+    
+    if(aggregate != null) {
+      values.add('AGGREGATE');
+      values.add('$aggregate');
+    }
+    
+    return connection.sendCommandWithVariadicValues(RedisCommand.ZUNIONSTORE, 
+        [ destination, numkeys ],  values).receiveInteger();
+  }
+  
+  /**
+   * Returns the number of elements in the resulting sorted set at destination.
+   * 
+   * Computes the intersection of the sets given in [setIds], optionally takes a list 
+   * of sequentially added [weights] for each set in the [aggregate] 
+   * calculation (default SUM, options SUM|MIN|MAX)
+   * 
+   * More at: http://redis.io/commands/zunionstore
+   */  
+  Future<int> zinterstore(String destination, List<String> setIds, { List<String> weights, String aggregate}) {
+    var numkeys = setIds.length.toString();
+    var values = serializer.serializeToList(setIds);
+    
+    if(weights != null) {
+      values.add('WEIGHTS');
+      values.addAll(serializer.serializeToList(weights));
+    }
+    
+    if(aggregate != null) {
+      values.add('AGGREGATE');
+      values.add('$aggregate');
+    }
+    
+    return connection.sendCommandWithVariadicValues(RedisCommand.ZINTERSTORE, 
+        [ destination, numkeys ],  values).receiveInteger();
+  }
+  
+  String _setMin(num min, bool minExclusive) {
+    var minString;
+    if (minExclusive) {
+      min == null ? minString = '-inf' : minString = exclusive + min.toString();
+    } else { 
+      min == null ? minString = '-inf' : minString = min.toString(); 
+    }
+    return minString;
+  }
+  
+  String _setMax(num max, bool maxExclusive) {
+    var maxString;
+    if(maxExclusive) {
+      max == null ? maxString = '+inf' : maxString = exclusive + max.toString();
+    } else { 
+      max == null ? maxString = '+inf' : maxString = max.toString(); 
+    }
+    return maxString;
+  }
+  
   /// HASH
   /// ====
 
@@ -846,7 +1273,9 @@ class RedisClient {
    * does not exist, a new key holding a hash is created.
    */
   Future<bool> hset(String hashId, String key, Object value) => 
-      connection.sendCommand(RedisCommand.HSET, [ hashId, key, serializer.serializeToString(value) ]).receiveBool();
+      connection.sendCommand(RedisCommand.HSET, 
+          [ hashId, key, serializer.serializeToString(value) ]).receiveBool();
+  
   /**
    * Returns: true if field is a new field in the hash and value was set. 
    * False if field already exists in the hash and no operation was performed.
@@ -864,7 +1293,6 @@ class RedisClient {
    * Sets the specified fields to their respective values in the hash stored 
    * at key. This command overwrites any existing fields in the hash. 
    * If key does not exist, a new key holding a hash is created.
-   * 
    */
   Future hmset(String hashId, Map<String,Object> map) => 
       connection.sendCommandWithVariadicValues(RedisCommand.HMSET, 
@@ -878,7 +1306,8 @@ class RedisClient {
    *  If field does not exist the value is set to 0 before the operation is 
    *  performed. 
    *  
-   *  The range of values supported by HINCRBY is limited to 64 bit signed integers.
+   *  The range of values supported by HINCRBY is limited to 64 bit signed 
+   *  integers.
    */
   Future<int> hincrby(String hashId, String key, int incrBy) => 
       connection.sendCommand(RedisCommand.HINCRBY, 
@@ -986,17 +1415,4 @@ class RedisClientException implements Exception {
 
 }
 
-
-class _Tuple<E> {
-
-  E item1;
-
-  E item2;
-
-  E item3;
-
-  E item4;
-
-  _Tuple(this.item1, this.item2, [this.item3, this.item4]);
-}
 

@@ -48,7 +48,6 @@ main() {
       });
     });
 
-//    group("Basic commands: GET, SET, GETSET RANDOMKEY RENAME RENAMENX TTL PTTL:", () {
 
     group("parseInfoString()", () {
       test("should properly parse info strings", () {
@@ -138,7 +137,8 @@ invalid_line
           client.save()
               .then((_) => client.lastsave)
               .then((DateTime saveTime) {
-                expect(saveTime.difference(new DateTime.now()).inMilliseconds, lessThan(10));
+                expect(saveTime.difference(new DateTime.now()).inMilliseconds,
+                    lessThan(10));
               })
         );
       });
@@ -147,7 +147,8 @@ invalid_line
           client.bgsave()
               .then((_) => client.lastsave)
               .then((DateTime saveTime) {
-                expect(saveTime.difference(new DateTime.now()).inMilliseconds, lessThan(10));
+                expect(saveTime.difference(new DateTime.now()).inMilliseconds,
+                    lessThan(10));
               })
         );
       });
@@ -155,8 +156,10 @@ invalid_line
         async(
           client.info
               .then((infoMap) {
-                expect(infoMap["Server"]["redis_version"] is String, equals(true));
-                expect(infoMap["Clients"]["connected_clients"] is String, equals(true));
+                expect(infoMap["Server"]["redis_version"] is String, 
+                    equals(true));
+                expect(infoMap["Clients"]["connected_clients"] is String, 
+                    equals(true));
               })
         );
       });
@@ -202,7 +205,8 @@ invalid_line
               .then((_) => client.set("twokey", "a"))
               .then((_) => client.set("threekey", "a"))
               .then((_) => client.keys("*o*"))
-              .then((List<String> keys) => expect(keys..sort((String a, b) => a. compareTo(b)), equals([ "onekey", "twokey" ])))
+              .then((List<String> keys) => expect(keys..sort((String a, b) 
+                  => a.compareTo(b)), equals([ "onekey", "twokey" ])))
         );
       });
 
@@ -283,7 +287,8 @@ invalid_line
         async(
             client.msetnx({ "key1": "test1", "key2": "true", "key3": "123" })
             .then((bool value) => expect(value, equals(true)))
-            .then((_) => client.msetnx({ "key2": "test1", "randomkey": "true", "randomkey2": "123" }))
+            .then((_) => client.msetnx({ "key2": "test1", "randomkey": 
+              "true", "randomkey2": "123" }))
             // Should return false if **one** key already existed.
             .then((bool value) => expect(value, equals(false)))
         );
@@ -349,7 +354,6 @@ invalid_line
         );
       });
 
-
       test("DECR", () {
         async(
           client.set("some-field", "12")
@@ -407,18 +411,19 @@ invalid_line
 
   group('Set commands:', () {
     test('SMEMBERS', () {
-      Set<Object> objectSet = new Set()..addAll(['some-string', 'other-string']);
+      Set<Object> objectSet = new Set.from(['some-string', 'other-string']);
       
       async(
           client.sadd("setId", objectSet)
             .then((_) => client.smembers("setId")
-            .then((result) => expect(result, equals(objectSet))))
+            .then((result) => 
+                expect(new Set.from(result).containsAll(objectSet), isTrue)))
       );
     });
     
     test('SADD', () {      
       async(
-          client.sadd('setId', new Set()..addAll(['string', 5]))
+          client.sadd('setId', new Set.from(['string', 5]))
             .then((addResult) =>
               expect(addResult, equals(2)))
       );
@@ -487,8 +492,7 @@ invalid_line
           .then((_) => client.sinterstore('newSet', [ 'setId', 'setId2']))
           .then((interStoreResult) => expect(interStoreResult, equals(2))))
       );
-    });
-    
+    });    
     
     test('SUNION', () {
       Set<String> unionSet = new Set()..addAll(['a', 'b', 'c', 'd', 'e']);
@@ -497,7 +501,8 @@ invalid_line
           .then((_) => client.sadd('setId2', ['c'])
           .then((_) => client.sadd('setId3', ['a', 'c', 'e'])
           .then((_) => client.sunion(['setId', 'setId2', 'setId3']))
-          .then((isInterResult) => expect(isInterResult.containsAll(unionSet), isTrue))))
+          .then((isInterResult) => 
+              expect(isInterResult.containsAll(unionSet), isTrue))))
       );
     });
     
@@ -516,7 +521,8 @@ invalid_line
           .then((_) => client.sadd('setId2', ['c'])
           .then((_) => client.sadd('setId3', ['a', 'c', 'e'])
           .then((_) => client.sdiff('setId', [ 'setId2', 'setId3' ]))
-          .then((diffResult) => expect(diffResult, equals(['b', 'd'])))))
+          .then((diffResult) => 
+              expect(diffResult.containsAll(['b', 'd']), isTrue))))
       );
     });
     
@@ -537,7 +543,8 @@ invalid_line
             .then((srandmemberResult) {
               expect(list.contains(srandmemberResult), isTrue);
               client.srandmember('setId', 2)
-              .then((srandmemberResult2) => expect(srandmemberResult2.length, equals(2)));
+              .then((srandmemberResult2) => 
+                  expect(srandmemberResult2.length, equals(2)));
               })
             ));
     });
@@ -569,8 +576,12 @@ invalid_line
       hashMap['key2'] = 'value2';
       async(
           client.hmset('hashKey', hashMap)
-          .then((hSetResult)  => expect(hSetResult, equals('OK')))
-      );
+          .then((hSetResult)  { 
+            expect(hSetResult, equals('OK'));
+            client.hgetall('hashKey')
+            .then((getAllResult) => expect(getAllResult, equals(hashMap)));            
+            })
+          );
     });
     
     test('HINCRBY', () {
@@ -645,7 +656,8 @@ invalid_line
           client.hset('hashId', 'some-key', 'some-value')
           .then((_) => client.hset('hashId', 'some-other-key', 'other-value')
           .then((_) => client.hkeys('hashId')
-          .then((hKeysResult) => expect(hKeysResult, equals(['some-key', 'some-other-key'])))))
+          .then((hKeysResult) => 
+              expect(hKeysResult, equals(['some-key', 'some-other-key'])))))
       );
     });
     
@@ -654,7 +666,8 @@ invalid_line
           client.hset('hashId', 'some-key', 'some-value')
             .then((_) => client.hset('hashId', 'some-other-key', 'other-value')
             .then((_) => client.hvals('hashId')
-            .then((hValsResult) => expect(hValsResult, equals(['some-value', 'other-value'])))))
+            .then((hValsResult) => 
+                expect(hValsResult, equals(['some-value', 'other-value'])))))
       );
     });
     
@@ -671,6 +684,410 @@ invalid_line
       );
     });
   });
-  });
+  
+  group('List commands:', () {
+    
+    test('RPUSH', () { 
+      async(
+          client.rpush('listId', ['some-string', 'other-string'])
+          .then((rpushResult) => expect(rpushResult, equals(2)))
+      );
+    });
+    
+    test('LPUSH', () { 
+      async(
+          client.lpush('listId', 'some-string')
+          .then((lpushResult) => expect(lpushResult, equals(1)))
+      );
+    });
+    
+    test('LRANGE', () { 
+      async(
+          client.rpush('listId', ['some-string', 'other-string'])
+          .then((_) => client.lrange('listId'))
+          .then((lrangeResult) => 
+              expect(lrangeResult, equals(['some-string', 'other-string'])))
+      );
+      async(
+          client.lpush('otherListId', ['some-string', 'other-string'])
+          .then((_) => client.lrange('otherListId'))
+          .then((lrangeResult) => 
+              expect(lrangeResult, equals(['other-string', 'some-string'])))
+      );
+    });
 
+    test('LPUSHX', () { 
+      async(
+          client.lpushx('listId', 'some-string')
+          .then((lpushxResult) => expect(lpushxResult, equals(0)))
+      );
+    });
+    
+    test('RPUSHX', () { 
+      async(
+          client.rpushx('listId', 'some-string')
+          .then((rpushxResult) => expect(rpushxResult, equals(0)))
+      );
+    });    
+    
+    test('LTRIM', () { 
+      async(
+          client.rpush('listId', ['one', 'two', 'three'])
+          .then((_) => client.ltrim('listId', 1, -1))
+          .then((ltrimResult) => expect(ltrimResult, equals('OK')))
+          .then((_) => client.lrange('listId'))
+          .then((lrangeResult) => expect(lrangeResult, equals(['two', 'three'])))
+      );
+    });
+    
+    test('LREM', () { 
+      async(
+          client.rpush('listId', ['hello', 'hello', 'foo', 'hello'])
+          .then((_) => client.lrem('listId', -2, 'hello'))
+          .then((_) => client.lrange('listId'))
+          .then((lrangeResult) => expect(lrangeResult, equals(['hello', 'foo'])))
+      );
+    });
+    
+    test('LLEN', () { 
+      async(
+          client.rpush('listId', ['hello', 'hello', 'foo', 'hello'])
+          .then((_) => client.llen('listId'))
+          .then((llenResult) => expect(llenResult, equals(4)))
+      );
+    });
+    
+    test('LINDEX', () { 
+      async(
+          client.lpush('listId', ['world', 'hello'])
+          .then((_) => client.lindex('listId', 0))
+          .then((lindexResult) => expect(lindexResult, equals('hello')))
+          .then((_) => client.lindex('listId', -1))
+          .then((lindexResult2) => expect(lindexResult2, equals('world')))
+      );
+    });
+    
+    test('LINSERT', () {
+      async(
+          client.rpush('listId', ['Hello', 'World'])
+          .then((_) => client.linsert('listId', 'BEFORE', 'World', 'There')
+          .then((linsertValue) => expect(linsertValue, equals(3)))
+          .then((_) => client.lrange('listId'))
+          .then((lrangeResult) => expect(lrangeResult, equals(['Hello', 
+            'There', 'World']))))
+      );
+    });
+    
+    test('LSET', () { 
+      async(
+          client.rpush('listId', ['one', 'two', 'three'])
+          .then((_) => client.lset('listId', 0, 'four'))
+          .then((_) => client.lset('listId', -2, 'five'))
+          .then((_) => client.lrange('listId'))
+          .then((lsetResult) => expect(lsetResult, equals([ 'four', 'five', 
+                                                            'three'])))
+      );
+    });
+    
+    test('LPOP', () { 
+      async(
+          client.rpush('listId', ['one', 'two', 'three'])
+          .then((_) => client.lpop('listId'))
+          .then((lpopResult) => expect(lpopResult, equals('one')))
+          .then((_) => client.lrange('listId'))
+          .then((lrangeResult) => expect(lrangeResult, equals([ 'two', 'three'])))
+      );
+    });
+    
+    test('RPOP', () { 
+      async(
+          client.rpush('listId', ['one', 'two', 'three'])
+          .then((_) => client.rpop('listId'))
+          .then((lpopResult) => expect(lpopResult, equals('three')))
+          .then((_) => client.lrange('listId'))
+          .then((lrangeResult) => expect(lrangeResult, equals([ 'one', 'two'])))
+      );
+    });
+    
+    test('RPOPLPUSH', () { 
+      async(
+          client.rpush('listId', ['one', 'two', 'three'])
+          .then((_) => client.rpoplpush('listId', 'otherListId'))
+          .then((lpopResult) => expect(lpopResult, equals('three')))
+          .then((_) => client.lrange('otherListId'))
+          .then((lrangeResult) => expect(lrangeResult, equals(['three'])))
+      );
+    });
+    
+    test('BLPOP', () { 
+      async(
+          client.rpush('list1', ['a', 'b', 'c'])
+          .then((_) => client.blpop(['list1', 'list2'], timeout: 0))
+          .then((blpopResult) => expect(blpopResult, equals({'list1':'a'})))
+      );
+    });
+    
+    test('BRPOP', () { 
+      async(
+          client.rpush('list1', ['a', 'b', 'c'])
+          .then((_) => client.brpop(['list1', 'list2'], timeout: 0))
+          .then((blpopResult) => expect(blpopResult, equals({'list1':'c'})))
+      );
+    });
+    test('BRPOPLPUSH', () {
+      async(
+          client.rpush('listId', "some-string")
+          .then((_) => client.brpoplpush("listId", "toOtherList")
+          .then((brpoplpushResult) => 
+              expect(brpoplpushResult, equals("some-string"))))              
+      );
+    });
+  });  
+  
+  group('Zset commands:', () {
+    test('ZADD', () {
+      async(
+          client.zadd('setId', new List<ZSetEntry>.from(
+              [ new ZSetEntry('value', 100), 
+                new ZSetEntry('value2', 100),
+                new ZSetEntry('value5', 101) ]))
+          .then((zAddResult) => expect(zAddResult, equals(3)))
+        );
+    });
+    
+    test('ZSADD', () {
+      async(
+          client.zsadd({'any-object' : 'can-be-a-key'}, 1, {'some-key' : 'some-value'})
+          .then((zAddResult) => expect(zAddResult, equals(1)))
+         );                                                        
+    });
+    
+    test('ZSREM', () {
+      var someMap = {'hash' : 'value'};
+      async(
+          client.zadd('setId', new List<ZSetEntry>.from(
+              [ new ZSetEntry(someMap, 100), 
+                new ZSetEntry('value2', 100), 
+                new ZSetEntry('value5', 101) ]))
+            .then((_) => client.zsrem('setId', someMap))
+            .then((zRemResult) => expect(zRemResult, equals(1)))
+      );
+    });
+  
+    test('ZMREM', () {
+      var someMap = {'hash' : 'value'};
+      async(
+          client.zadd('setId', new List<ZSetEntry>.from(
+              [ new ZSetEntry(someMap, 100), 
+                new ZSetEntry('value2', 100), 
+                new ZSetEntry('value5', 101) ]))
+            .then((_) => client.zmrem('setId', [someMap, 'value2' ]))
+            .then((zRemResult) => expect(zRemResult, equals(2)))
+      );
+    });
+    
+    test('ZINCRBY', () {
+      async(
+          client.zadd('setId', new List<ZSetEntry>.from(
+              [ new ZSetEntry(4, 100), 
+                new ZSetEntry('value2', 100), 
+                new ZSetEntry('value5', 101) ]))
+          .then((_) => client.zincrby('setId', 13, 4)
+          .then((zIncrResult) => expect(zIncrResult, equals(113))))
+      );
+    });
+    
+    test('ZRANK', () {
+      async(
+          client.zadd('setId', new List<ZSetEntry>.from(
+              [ new ZSetEntry(4, 100), 
+                new ZSetEntry('value2', 100), 
+                new ZSetEntry('value5', 101) ]))
+          .then((_) => client.zrank('setId', 'value2')
+          .then((zRankResult) => expect(zRankResult, equals(1))))
+      );
+    });
+    
+    test('ZREVRANK', () {
+      async(
+          client.zadd('setId', new List<ZSetEntry>.from(
+              [ new ZSetEntry(4, 100), 
+                new ZSetEntry('value2', 100), 
+                new ZSetEntry('value5', 101) ]))
+          .then((_) => client.zrevrank('setId', 4)
+          .then((zRevRankResult) => expect(zRevRankResult, equals(2))))
+      );
+    });
+
+    test('ZRANGE', () {
+      Set<ZSetEntry> zSet = new Set<ZSetEntry>.from([ new ZSetEntry('value', 100), 
+                                                      new ZSetEntry('value2', 103), 
+                                                      new ZSetEntry('value5', 105) ]);
+      async(
+          client.zadd('setId', zSet)
+          .then((_) => client.zrange('setId', 1, 3)
+          .then(
+              (zRangeResult) {            
+                expect(zRangeResult.contains('value'), isFalse);
+                expect(zRangeResult.contains('value5'), isTrue);
+                expect(zRangeResult.contains('value2'), isTrue);
+          }
+          )));
+      });
+
+    test('ZREVRANGE', () {
+      Set<ZSetEntry> zSet = new Set<ZSetEntry>.from([ new ZSetEntry('value', 100), 
+                                                      new ZSetEntry('value2', 103), 
+                                                      new ZSetEntry('value5', 105) ]);
+      async(
+          client.zadd('setId', zSet)
+          .then((_) => client.zrevrange('setId', 1, 3, withScores: true)
+          .then((zRangeResult) {            
+                expect(zRangeResult.length, equals(2));
+                expect(zRangeResult['value2'], equals(103));
+                expect(zRangeResult['value'], equals(100));
+          }
+          )));
+      });    
+    
+    test('ZRANGEBYSCORE', () {
+      Set<ZSetEntry> zSet = new Set<ZSetEntry>.from([ new ZSetEntry('value', 100), 
+                                                      new ZSetEntry('value2', 103), 
+                                                      new ZSetEntry('value5', 105) ]);
+      async(
+          client.zadd('setId', zSet)
+          .then((_) => client.zrangebyscore('setId', min: 103, max: 105, maxExclusive: true, withScores: true)
+          .then((zRangeResult) {
+            expect(zRangeResult.length, equals(1));
+            expect(zRangeResult['value2'], equals(103));
+            }))
+          );
+      
+      async(
+          client.zadd('setId', zSet)
+          .then((_) => client.zrangebyscore('setId', max: 105, skip: 1, take:2)
+          .then((zRangeResult) {
+            expect(zRangeResult.length, equals(2));
+            expect(zRangeResult.contains('value2'), isTrue);
+            expect(zRangeResult.contains('value5'), isTrue);
+            }))
+          );
+      });    
+    
+    test('ZREVRANGEBYSCORE', () {
+      Set<ZSetEntry> zSet = new Set<ZSetEntry>.from([ new ZSetEntry('value', 100), 
+                                                      new ZSetEntry('value2', 103), 
+                                                      new ZSetEntry('value5', 105) ]);
+      async(
+          client.zadd('setId', zSet)
+          .then((_) => client.zrevrangebyscore('setId', min: 105, max: 100, minExclusive: true, withScores: true)
+          .then((zRangeResult) {
+            expect(zRangeResult.length, equals(2));
+            expect(zRangeResult['value'], equals(100));
+            expect(zRangeResult['value2'], equals(103));
+            }))
+          );
+      
+      async(
+          client.zadd('setId', zSet)
+          .then((_) => client.zrangebyscore('setId', max: 105, skip: 1, take:2)
+          .then((zRangeResult) {
+            expect(zRangeResult.length, equals(2));
+            expect(zRangeResult.contains('value2'), isTrue);
+            expect(zRangeResult.contains('value5'), isTrue);
+            }))
+          );
+      }); 
+    
+
+    test('ZREMRANGEBYRANK', () {
+      Set<ZSetEntry> zSet = new Set<ZSetEntry>.from([ new ZSetEntry('one', 1), 
+                                                      new ZSetEntry('two', 2), 
+                                                      new ZSetEntry('three', 3) ]);
+      async(
+          client.zadd('setId', zSet)
+          .then((_) => client.zremrangebyrank('setId',  0, 1)
+          .then((zremRangeResult) => expect(zremRangeResult, equals(2))))
+          );
+      });
+    
+    test('ZREMRANGEBYSCORE', () {
+      Set<ZSetEntry> zSet = new Set<ZSetEntry>.from([ new ZSetEntry('one', 1), 
+                                                      new ZSetEntry('two', 2), 
+                                                      new ZSetEntry('three', 3) ]);
+      async(
+          client.zadd('setId', zSet)
+          .then((_) => client.zremrangebyscore('setId', max: 2, maxExclusive: true)
+          .then((zremRangeResult) => expect(zremRangeResult, equals(1))))
+          );
+      });
+    
+    test('ZCARD', () {
+      Set<ZSetEntry> zSet = new Set<ZSetEntry>.from([ new ZSetEntry('one', 1), 
+                                                      new ZSetEntry('two', 2), 
+                                                      new ZSetEntry('three', 3) ]);
+      async(
+          client.zadd('setId', zSet)
+          .then((_) => client.zcard('setId')
+          .then((zremCardResult) => expect(zremCardResult, equals(3))))
+          );
+      });
+    
+    test('ZSCORE', () {
+      Set<ZSetEntry> zSet = new Set<ZSetEntry>.from([ new ZSetEntry('one', 1), 
+                                                      new ZSetEntry('two', 2), 
+                                                      new ZSetEntry('three', 3) ]);
+      async(
+          client.zadd('setId', zSet)
+          .then((_) => client.zscore('setId', 'one')
+          .then((zScoreResult) => expect(zScoreResult, equals(1))))
+          );
+      });
+    
+    test('ZUNIONSTORE', () {
+      Set<ZSetEntry> zSet = new Set<ZSetEntry>.from([ new ZSetEntry('one', 1), 
+                                                      new ZSetEntry('two', 2)]);
+      Set<ZSetEntry> zSet2 = new Set<ZSetEntry>.from([ new ZSetEntry('one', 1), 
+                                                      new ZSetEntry('two', 2), 
+                                                      new ZSetEntry('three', 3) ]);
+      var weights = [ 2, 3 ];
+      async(
+          client.zadd('setId', zSet)
+          .then((_) => client.zadd('setId2', zSet2)
+          .then((_) => client.zunionstore('unionSetId', ['setId', 'setId2'], aggregate: 'MIN')
+          .then((zUnionStoreResult) => expect(zUnionStoreResult, equals(3)))))
+          );
+      
+      async(
+          client.zadd('setId3', zSet)
+          .then((_) => client.zadd('setId4', zSet2)
+          .then((_) => client.zunionstore('unionSetId', ['setId3', 'setId4'], weights: weights, aggregate: 'MIN')
+          .then((zUnionStoreResult) => expect(zUnionStoreResult, equals(3)))))
+          );
+      });
+    
+    test('ZINTERSTORE', () {
+      Set<ZSetEntry> zSet = new Set<ZSetEntry>.from([ new ZSetEntry('one', 1), 
+                                                      new ZSetEntry('two', 2)]);
+      Set<ZSetEntry> zSet2 = new Set<ZSetEntry>.from([ new ZSetEntry('one', 1), 
+                                                      new ZSetEntry('two', 2), 
+                                                      new ZSetEntry('three', 3) ]);
+      var weights = [ 2, 3 ];
+      
+      async(
+          client.zadd('setId', zSet)
+          .then((_) => client.zadd('setId2', zSet2)
+          .then((_) => client.zinterstore('unionSetId', ['setId', 'setId2'], aggregate: 'MIN')
+          .then((zUnionStoreResult) => expect(zUnionStoreResult, equals(2)))))
+          );
+      
+      async(
+          client.zadd('setId3', zSet)
+          .then((_) => client.zadd('setId4', zSet2)
+          .then((_) => client.zinterstore('unionSetId', ['setId3', 'setId4'], weights: weights, aggregate: 'MIN')
+          .then((zUnionStoreResult) => expect(zUnionStoreResult, equals(2)))))
+          );
+      });
+    });
+  });
 }

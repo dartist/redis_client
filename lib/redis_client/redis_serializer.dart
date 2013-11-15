@@ -9,6 +9,8 @@ abstract class RedisSerializer {
 
   String serializeToString(Object obj);
   
+  List<String> serializeFromZSet(Set<ZSetEntry> zSet);
+  
   List<String> serializeToList(Object obj);
 
   Object deserialize(List<int> bytes);
@@ -50,10 +52,14 @@ class JsonRedisSerializer implements RedisSerializer {
     else return JSON.encode(obj);
   }
   
+  /**
+   * Serializes objects into lists of strings.
+   */   
   List<String> serializeToList(Object obj) {
-    if(obj == null) return obj;
+    if (obj == null) return obj;
+    
     List<String> values = new List();
-    if(obj is Iterable) {
+    if (obj is Iterable) {
       values.addAll(obj.map(serializeToString));
     } else if (obj is Map) {
       values.addAll(serializeFromMap(obj));
@@ -72,7 +78,7 @@ class JsonRedisSerializer implements RedisSerializer {
     try { decodedObject = JSON.decode(decodedObject); } 
     on FormatException catch (e) { }
     
-    if(decodedObject is String) { 
+    if (decodedObject is String) {
       if (_isDate(decodedObject)) {
         int timeSinceEpoch = int.parse(decodedObject.substring(DATE_PREFIX.length, decodedObject.length - DATE_SUFFIX.length));
         return new DateTime.fromMillisecondsSinceEpoch(timeSinceEpoch, isUtc: true);    
@@ -93,10 +99,22 @@ class JsonRedisSerializer implements RedisSerializer {
     return variadicValueList;
   }
   
+  List<String> serializeFromZSet(Iterable<ZSetEntry> zSet) {
+    var variadicValueList = new List<String>(zSet.length * 2);
+    var i = 0;
+    
+    zSet.forEach((ZSetEntry zSetEntry) {
+      variadicValueList[i++] = serializeToString(zSetEntry.score);
+      variadicValueList[i++] = serializeToString(zSetEntry.entry);
+    });
+    
+    return variadicValueList;
+  }
+
   Map<String, Object> deserializeToMap(List<RedisReply> replies) {
     var multiBulkMap = new Map<String, Object>();
-    if(replies.isNotEmpty) {
-      for(int i = 0 ; i < replies.length ; i++) {
+    if (replies.isNotEmpty) {
+      for (int i = 0 ; i < replies.length ; i++) {
         multiBulkMap[deserialize((replies[i] as BulkReply).bytes)] = deserialize((replies[++i] as BulkReply).bytes);
       }
     }
@@ -104,4 +122,11 @@ class JsonRedisSerializer implements RedisSerializer {
   }
   
   bool _isDate(decodedString) => decodedString.startsWith(DATE_PREFIX);
+}
+
+class ZSetEntry<Object, num> {
+  Object entry;
+  num score;
+  
+  ZSetEntry(this.entry, this.score);
 }

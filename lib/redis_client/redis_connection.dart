@@ -74,10 +74,6 @@ abstract class RedisConnection {
   Receiver sendCommandWithVariadicValues(List<int> command, List<String> args, List<String> values);
   
   
-  /// Convenient method to send a command with a list of [String] arguments 
-  /// and a list of [String] values.
-  Receiver sendCommandWithVariadicArguments(List<int> command, List<String> args);
-  
   /// Sends the commands already in binary.
   Receiver rawSend(List<List<int>> cmdWithArgs);
 
@@ -329,13 +325,6 @@ class _RedisConnection extends RedisConnection {
     commands.setAll(args.length + 1, values.map((String line) => UTF8.encode(line)).toList(growable: false));
     return rawSend(commands);
   }
-  
-  Receiver sendCommandWithVariadicArguments(List<int> command, List<String> args) {
-    var commands = new List<List<int>>(args.length + 1);
-    commands[0] = command;
-    commands.setAll(1, args.map((String line) => UTF8.encode(line)).toList(growable: false));    
-    return rawSend(commands);
-  }
 
   /**
    * This is the same as [send] except that it takes a list of binary data.
@@ -490,7 +479,7 @@ class Receiver {
         throw new RedisClientException("The returned reply was not of type BulkReply but ${reply.runtimeType}.");
       }
       return reply.string;
-    });
+    }); 
   }
 
   /**
@@ -528,7 +517,8 @@ class Receiver {
    */
   Future<List<Object>> receiveMultiBulkDeserialized(RedisSerializer serializer) {
     return receiveMultiBulk().then((MultiBulkReply reply) {
-      return reply.replies.map((BulkReply reply) => serializer.deserialize(reply.bytes)).toList(growable: false);
+      return reply.replies.map(
+          (BulkReply reply) => serializer.deserialize(reply.bytes)).toList(growable: false);
     });
   }
   
@@ -538,7 +528,8 @@ class Receiver {
    */
   Future<Set<Object>> receiveMultiBulkSetDeserialized(RedisSerializer serializer) {
     return receiveMultiBulk().then((MultiBulkReply reply) {
-      return reply.replies.map((BulkReply reply) => serializer.deserialize(reply.bytes)).toSet();
+      return reply.replies.map(
+          (BulkReply reply) => serializer.deserialize(reply.bytes)).toSet();
     });
   }
 
