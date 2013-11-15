@@ -48,7 +48,6 @@ main() {
       });
     });
 
-//    group("Basic commands: GET, SET, GETSET RANDOMKEY RENAME RENAMENX TTL PTTL:", () {
 
     group("parseInfoString()", () {
       test("should properly parse info strings", () {
@@ -138,7 +137,8 @@ invalid_line
           client.save()
               .then((_) => client.lastsave)
               .then((DateTime saveTime) {
-                expect(saveTime.difference(new DateTime.now()).inMilliseconds, lessThan(10));
+                expect(saveTime.difference(new DateTime.now()).inMilliseconds,
+                    lessThan(10));
               })
         );
       });
@@ -147,7 +147,8 @@ invalid_line
           client.bgsave()
               .then((_) => client.lastsave)
               .then((DateTime saveTime) {
-                expect(saveTime.difference(new DateTime.now()).inMilliseconds, lessThan(10));
+                expect(saveTime.difference(new DateTime.now()).inMilliseconds,
+                    lessThan(10));
               })
         );
       });
@@ -155,8 +156,10 @@ invalid_line
         async(
           client.info
               .then((infoMap) {
-                expect(infoMap["Server"]["redis_version"] is String, equals(true));
-                expect(infoMap["Clients"]["connected_clients"] is String, equals(true));
+                expect(infoMap["Server"]["redis_version"] is String, 
+                    equals(true));
+                expect(infoMap["Clients"]["connected_clients"] is String, 
+                    equals(true));
               })
         );
       });
@@ -202,7 +205,8 @@ invalid_line
               .then((_) => client.set("twokey", "a"))
               .then((_) => client.set("threekey", "a"))
               .then((_) => client.keys("*o*"))
-              .then((List<String> keys) => expect(keys..sort((String a, b) => a. compareTo(b)), equals([ "onekey", "twokey" ])))
+              .then((List<String> keys) => expect(keys..sort((String a, b) 
+                  => a.compareTo(b)), equals([ "onekey", "twokey" ])))
         );
       });
 
@@ -283,7 +287,8 @@ invalid_line
         async(
             client.msetnx({ "key1": "test1", "key2": "true", "key3": "123" })
             .then((bool value) => expect(value, equals(true)))
-            .then((_) => client.msetnx({ "key2": "test1", "randomkey": "true", "randomkey2": "123" }))
+            .then((_) => client.msetnx({ "key2": "test1", "randomkey": 
+              "true", "randomkey2": "123" }))
             // Should return false if **one** key already existed.
             .then((bool value) => expect(value, equals(false)))
         );
@@ -349,7 +354,6 @@ invalid_line
         );
       });
 
-
       test("DECR", () {
         async(
           client.set("some-field", "12")
@@ -412,7 +416,8 @@ invalid_line
       async(
           client.sadd("setId", objectSet)
             .then((_) => client.smembers("setId")
-            .then((result) => expect(new Set.from(result).containsAll(objectSet), isTrue)))
+            .then((result) => 
+                expect(new Set.from(result).containsAll(objectSet), isTrue)))
       );
     });
     
@@ -487,8 +492,7 @@ invalid_line
           .then((_) => client.sinterstore('newSet', [ 'setId', 'setId2']))
           .then((interStoreResult) => expect(interStoreResult, equals(2))))
       );
-    });
-    
+    });    
     
     test('SUNION', () {
       Set<String> unionSet = new Set()..addAll(['a', 'b', 'c', 'd', 'e']);
@@ -497,7 +501,8 @@ invalid_line
           .then((_) => client.sadd('setId2', ['c'])
           .then((_) => client.sadd('setId3', ['a', 'c', 'e'])
           .then((_) => client.sunion(['setId', 'setId2', 'setId3']))
-          .then((isInterResult) => expect(isInterResult.containsAll(unionSet), isTrue))))
+          .then((isInterResult) => 
+              expect(isInterResult.containsAll(unionSet), isTrue))))
       );
     });
     
@@ -516,7 +521,8 @@ invalid_line
           .then((_) => client.sadd('setId2', ['c'])
           .then((_) => client.sadd('setId3', ['a', 'c', 'e'])
           .then((_) => client.sdiff('setId', [ 'setId2', 'setId3' ]))
-          .then((diffResult) => expect(diffResult.containsAll(['b', 'd']), isTrue))))
+          .then((diffResult) => 
+              expect(diffResult.containsAll(['b', 'd']), isTrue))))
       );
     });
     
@@ -537,7 +543,8 @@ invalid_line
             .then((srandmemberResult) {
               expect(list.contains(srandmemberResult), isTrue);
               client.srandmember('setId', 2)
-              .then((srandmemberResult2) => expect(srandmemberResult2.length, equals(2)));
+              .then((srandmemberResult2) => 
+                  expect(srandmemberResult2.length, equals(2)));
               })
             ));
     });
@@ -649,7 +656,8 @@ invalid_line
           client.hset('hashId', 'some-key', 'some-value')
           .then((_) => client.hset('hashId', 'some-other-key', 'other-value')
           .then((_) => client.hkeys('hashId')
-          .then((hKeysResult) => expect(hKeysResult, equals(['some-key', 'some-other-key'])))))
+          .then((hKeysResult) => 
+              expect(hKeysResult, equals(['some-key', 'some-other-key'])))))
       );
     });
     
@@ -658,7 +666,8 @@ invalid_line
           client.hset('hashId', 'some-key', 'some-value')
             .then((_) => client.hset('hashId', 'some-other-key', 'other-value')
             .then((_) => client.hvals('hashId')
-            .then((hValsResult) => expect(hValsResult, equals(['some-value', 'other-value'])))))
+            .then((hValsResult) => 
+                expect(hValsResult, equals(['some-value', 'other-value'])))))
       );
     });
     
@@ -675,6 +684,165 @@ invalid_line
       );
     });
   });
+  
+  group('List commands:', () {
+    
+    test('RPUSH', () { 
+      async(
+          client.rpush('listId', ['some-string', 'other-string'])
+          .then((rpushResult) => expect(rpushResult, equals(2)))
+      );
+    });
+    
+    test('LPUSH', () { 
+      async(
+          client.lpush('listId', 'some-string')
+          .then((lpushResult) => expect(lpushResult, equals(1)))
+      );
+    });
+    
+    test('LRANGE', () { 
+      async(
+          client.rpush('listId', ['some-string', 'other-string'])
+          .then((_) => client.lrange('listId'))
+          .then((lrangeResult) => 
+              expect(lrangeResult, equals(['some-string', 'other-string'])))
+      );
+      async(
+          client.lpush('otherListId', ['some-string', 'other-string'])
+          .then((_) => client.lrange('otherListId'))
+          .then((lrangeResult) => 
+              expect(lrangeResult, equals(['other-string', 'some-string'])))
+      );
+    });
+
+    test('LPUSHX', () { 
+      async(
+          client.lpushx('listId', 'some-string')
+          .then((lpushxResult) => expect(lpushxResult, equals(0)))
+      );
+    });
+    
+    test('RPUSHX', () { 
+      async(
+          client.rpushx('listId', 'some-string')
+          .then((rpushxResult) => expect(rpushxResult, equals(0)))
+      );
+    });    
+    
+    test('LTRIM', () { 
+      async(
+          client.rpush('listId', ['one', 'two', 'three'])
+          .then((_) => client.ltrim('listId', 1, -1))
+          .then((ltrimResult) => expect(ltrimResult, equals('OK')))
+          .then((_) => client.lrange('listId'))
+          .then((lrangeResult) => expect(lrangeResult, equals(['two', 'three'])))
+      );
+    });
+    
+    test('LREM', () { 
+      async(
+          client.rpush('listId', ['hello', 'hello', 'foo', 'hello'])
+          .then((_) => client.lrem('listId', -2, 'hello'))
+          .then((_) => client.lrange('listId'))
+          .then((lrangeResult) => expect(lrangeResult, equals(['hello', 'foo'])))
+      );
+    });
+    
+    test('LLEN', () { 
+      async(
+          client.rpush('listId', ['hello', 'hello', 'foo', 'hello'])
+          .then((_) => client.llen('listId'))
+          .then((llenResult) => expect(llenResult, equals(4)))
+      );
+    });
+    
+    test('LINDEX', () { 
+      async(
+          client.lpush('listId', ['world', 'hello'])
+          .then((_) => client.lindex('listId', 0))
+          .then((lindexResult) => expect(lindexResult, equals('hello')))
+          .then((_) => client.lindex('listId', -1))
+          .then((lindexResult2) => expect(lindexResult2, equals('world')))
+      );
+    });
+    
+    test('LINSERT', () {
+      async(
+          client.rpush('listId', ['Hello', 'World'])
+          .then((_) => client.linsert('listId', 'BEFORE', 'World', 'There')
+          .then((linsertValue) => expect(linsertValue, equals(3)))
+          .then((_) => client.lrange('listId'))
+          .then((lrangeResult) => expect(lrangeResult, equals(['Hello', 
+            'There', 'World']))))
+      );
+    });
+    
+    test('LSET', () { 
+      async(
+          client.rpush('listId', ['one', 'two', 'three'])
+          .then((_) => client.lset('listId', 0, 'four'))
+          .then((_) => client.lset('listId', -2, 'five'))
+          .then((_) => client.lrange('listId'))
+          .then((lsetResult) => expect(lsetResult, equals([ 'four', 'five', 
+                                                            'three'])))
+      );
+    });
+    
+    test('LPOP', () { 
+      async(
+          client.rpush('listId', ['one', 'two', 'three'])
+          .then((_) => client.lpop('listId'))
+          .then((lpopResult) => expect(lpopResult, equals('one')))
+          .then((_) => client.lrange('listId'))
+          .then((lrangeResult) => expect(lrangeResult, equals([ 'two', 'three'])))
+      );
+    });
+    
+    test('RPOP', () { 
+      async(
+          client.rpush('listId', ['one', 'two', 'three'])
+          .then((_) => client.rpop('listId'))
+          .then((lpopResult) => expect(lpopResult, equals('three')))
+          .then((_) => client.lrange('listId'))
+          .then((lrangeResult) => expect(lrangeResult, equals([ 'one', 'two'])))
+      );
+    });
+    
+    test('RPOPLPUSH', () { 
+      async(
+          client.rpush('listId', ['one', 'two', 'three'])
+          .then((_) => client.rpoplpush('listId', 'otherListId'))
+          .then((lpopResult) => expect(lpopResult, equals('three')))
+          .then((_) => client.lrange('otherListId'))
+          .then((lrangeResult) => expect(lrangeResult, equals(['three'])))
+      );
+    });
+    
+    test('BLPOP', () { 
+      async(
+          client.rpush('list1', ['a', 'b', 'c'])
+          .then((_) => client.blpop(['list1', 'list2'], timeout: 0))
+          .then((blpopResult) => expect(blpopResult, equals({'list1':'a'})))
+      );
+    });
+    
+    test('BRPOP', () { 
+      async(
+          client.rpush('list1', ['a', 'b', 'c'])
+          .then((_) => client.brpop(['list1', 'list2'], timeout: 0))
+          .then((blpopResult) => expect(blpopResult, equals({'list1':'c'})))
+      );
+    });
+    test('BRPOPLPUSH', () {
+      async(
+          client.rpush('listId', "some-string")
+          .then((_) => client.brpoplpush("listId", "toOtherList")
+          .then((brpoplpushResult) => 
+              expect(brpoplpushResult, equals("some-string"))))              
+      );
+    });
+  });  
   
   group('Zset commands:', () {
     test('ZADD', () {

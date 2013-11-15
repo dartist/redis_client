@@ -52,6 +52,9 @@ class JsonRedisSerializer implements RedisSerializer {
     else return JSON.encode(obj);
   }
   
+  /**
+   * Serializes objects into lists of strings.
+   */   
   List<String> serializeToList(Object obj) {
     if (obj == null) return obj;
     

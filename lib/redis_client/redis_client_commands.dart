@@ -123,6 +123,7 @@ class RedisCommand {
   static List<int> get BLPOP => _chars("BLPOP");
   static List<int> get BRPOP => _chars("BRPOP");
   static List<int> get RPOPLPUSH => _chars("RPOPLPUSH");
+  static List<int> get BRPOPLPUSH => _chars("BRPOPLPUSH");
 
   // Sorted Sets
   static List<int> get ZADD => _chars("ZADD");
