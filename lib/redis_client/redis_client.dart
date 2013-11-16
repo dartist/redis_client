@@ -666,46 +666,58 @@ class RedisClient {
           .receiveMultiBulkSetDeserialized(serializer);
     }
   }
-//
-//
-//
-//
-//  /// SORT SET/LIST
-//  /// =============
-//
-//  Future<List<List<int>>> sort(String listOrSetId,
-//    [String sortPattern, int skip, int take, String getPattern, bool sortAlpha=false, bool sortDesc=false, String storeAtKey]) {
-//
-//    List<List<int>> cmdWithArgs = [RedisCommand.SORT, _keyBytes(listOrSetId)];
-//
-//    if (sortPattern != null) {
-//      cmdWithArgs.add(RedisCommand.BY);
-//      cmdWithArgs.add(serializer.serialize(sortPattern));
-//    }
-//
-//    if (skip != null || take != null) {
-//      cmdWithArgs.add(RedisCommand.LIMIT);
-//      cmdWithArgs.add(serializer.serialize(skip == null ? 0 : skip));
-//      cmdWithArgs.add(serializer.serialize(take == null ? 0 : take));
-//    }
-//
-//    if (getPattern != null) {
-//      cmdWithArgs.add(RedisCommand.GET);
-//      cmdWithArgs.add(serializer.serialize(getPattern));
-//    }
-//
-//    if (sortDesc) cmdWithArgs.add(RedisCommand.DESC);
-//
-//    if (sortAlpha) cmdWithArgs.add(RedisCommand.ALPHA);
-//
-//    if (storeAtKey != null) {
-//      cmdWithArgs.add(RedisCommand.STORE);
-//      cmdWithArgs.add(serializer.serialize(storeAtKey));
-//    }
-//
-//    return connection.sendExpectMultiData(cmdWithArgs);
-//  }
-//
+
+  /// SORT (Z-)SET/LIST
+  /**
+   * Returns a list of sorted elements matching the given arguments.
+   * 
+   * Sort [by] pattern, can be used in combination with multiple [get] patterns
+   * 
+   * Is sorted in ascending numeric order, can be made descending and 
+   * alphabetical by setting the [desc] and [alpha] flags to true.
+   *  
+   * Result can be stored in a different collection when the [destination] 
+   * string is set in which case only the length of the resulting collection is
+   * returned.
+   * 
+   * More about sort and patterns: http://redis.io/commands/sort
+   */
+  Future<dynamic> sort(String key, {String by,  int skip, int take, 
+    List<String> get, bool desc: false, bool alpha: false, String destination}) {    
+    var hasLimit = false, offsetString, countString, values = []..add(key);
+    
+    if (by != null) values.addAll(['BY', by]);
+    
+    if (take != null) hasLimit = true;
+    
+    if (hasLimit) {
+      skip == null ? offsetString = 0.toString() : offsetString = skip.toString();
+      countString = take.toString(); 
+      values.addAll(['LIMIT', offsetString, countString]);
+    }
+    
+    if (get != null) {
+      var getArgs = [];
+      for (int i = 0 ; i < get.length ; i++) {
+        getArgs.add('GET');
+        getArgs.add(get[i]);
+      }
+      values.addAll(getArgs);
+    }
+    
+    if (alpha) values.add('ALPHA');
+    
+    if (desc) values.add('DESC');
+    
+    if (destination != null) {
+      values.addAll(['STORE', destination]);
+      return connection.sendCommand(RedisCommand.SORT, values).receiveInteger();
+    }
+    
+    return connection.sendCommand(RedisCommand.SORT, values)
+        .receiveMultiBulkDeserialized(serializer);
+  }
+
   ///LIST
 
 
@@ -1071,7 +1083,7 @@ class RedisClient {
     if (take != null) hasLimit = true;
     
     if (hasLimit) {
-      skip == null ? offsetString == 0.toString() : offsetString = skip.toString();
+      skip == null ? offsetString = 0.toString() : offsetString = skip.toString();
       countString = take.toString(); 
     }
     
@@ -1116,7 +1128,7 @@ class RedisClient {
     if (take != null) hasLimit = true;
     
     if (hasLimit) {
-      skip == null ? offsetString == 0.toString() : offsetString = skip.toString();
+      skip == null ? offsetString = 0.toString() : offsetString = skip.toString();
       countString = take.toString(); 
     }
     

@@ -1089,5 +1089,31 @@ invalid_line
           );
       });
     });
+  test('SORT', () {
+    var alphabeticalList = [ 'some-string', 'other-string'],
+        numericalList = [4, 5, 2, 5, 1];
+    
+    async(
+        client.rpush('alphaListId', alphabeticalList)
+        .then((_) => client.sort('alphaListId', alpha: true)
+        .then((sortAlphaResult) => expect(sortAlphaResult, equals(['other-string', 'some-string']))))
+        );
+    
+    async(
+        client.rpush('alphaTakeListId', alphabeticalList)
+        .then((_) => client.sort('alphaTakeListId', skip: 1, take: 1,alpha: true)
+        .then((sortAlphaResult) => expect(sortAlphaResult, equals(['some-string']))))
+        );
+    
+    async(
+        client.rpush('numListId', numericalList)
+        .then((_) => client.sort('numListId')
+        .then((sortResult) => expect(sortResult, equals([1, 2, 4, 5, 5]))))
+        .then((_) => client.rpush('sortListId', numericalList)
+        .then((_) => client.sort('sortListId', destination: 'storeDestination')
+        .then((sortStoreResult) => expect(sortStoreResult, equals(5)))))
+        );
+    //TODO (Baruch) test get patterns
+    });
   });
 }
