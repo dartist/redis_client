@@ -405,7 +405,22 @@ invalid_line
               .then((String sub) => expect(sub, equals("string")))
         );
       });
+      test('EXPIRE', () {
+        async(
+            client.set('some-expirable-key', 'some-value')
+            .then((_) => client.expire('some-expirable-key', 10)
+            .then((expireResult) => expect(expireResult, isTrue)))
+          );
+      });
       
+      test('EXPIREAT', () {
+        DateTime tomorrow = new DateTime.now().add(new Duration(days: 1));
+        async(
+            client.set('some-expirable-key', 'i will be gone tomorrow')
+            .then((_) => client.expireat('some-expirable-key', tomorrow)
+            .then((expireResult) => expect(expireResult, isTrue)))
+          );
+      });
 
   });
 

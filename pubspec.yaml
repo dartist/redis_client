@@ -1,5 +1,5 @@
 name: redis_client
-version: 0.1.9
+version: 0.1.10
 authors:
 - Demis Bellot <demis.bellot@gmail.com>
 - Adam Singer <financeCoding@gmail.com>
@@ -11,5 +11,5 @@ homepage: https://github.com/dartist/redis_client
 environment:
   sdk: '>=0.8.10+6 <2.0.0'
 dependencies:
-  logging: any
+  logging: '>=0.9.0 <0.9.1'
   unittest: '>=0.9.0 < 0.10.0'

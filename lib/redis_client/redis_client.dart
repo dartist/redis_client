@@ -435,11 +435,6 @@ class RedisClient {
      */
     Future<String> getrange(String key, int fromIndex, int toIndex) => connection.sendCommand(RedisCommand.GETRANGE, [ key, fromIndex.toString(), toIndex.toString() ]).receiveBulkString();
 
-
-//  /// Wrapper for [RawRedisCommands.getrange].
-//  Future<String> getrange(String key, int fromIndex, int toIndex) => raw.getrange(key, fromIndex, toIndex).then(_toStr);
-//
-//  /// Wrapper for [RawRedisCommands.setrange].
 //  Future<String> setrange(String key, int offset, String value) => raw.setrange(key, offset, serializer.serialize(value)).then(_toStr);
 //
 //  Future<int> getbit(String key, int offset) => connection.sendExpectInt([RedisCommand.GETBIT, _keyBytes(key), serializer.serialize(offset)]);
@@ -453,12 +448,37 @@ class RedisClient {
 //
 //  Future<bool> renamenx(String oldKey, String newKey) => connection.sendExpectIntSuccess([RedisCommand.RENAMENX, _keyBytes(oldKey), _keyBytes(newKey)]);
 //
-//  Future<bool> expire(String key, int expireInSecs) => connection.sendExpectIntSuccess([RedisCommand.EXPIRE, _keyBytes(key), serializer.serialize(expireInSecs)]);
-//
+
+    /**
+     * Returns true if the timeout was set. And false if key does not exist or
+     * the timeout could not be set.
+     * 
+     * Sets a timeout on a key. After the timeout has expired, the key will 
+     * automatically be deleted. A key with an associated timeout is often 
+     * said to be volatile in Redis terminology.
+     * 
+     * More at: http://redis.io/commands/expire
+     */
+    Future<bool> expire(String key, int expireInSecs) => 
+        connection.sendCommand(RedisCommand.EXPIRE, [ key, expireInSecs.toString() ]).receiveBool();
+    
+    /**
+     * Returns true if the timeout was set. And false if key does not exist or
+     * the timeout could not be set.
+     * 
+     * Sets a timeout on a key. After the timeout has expired, the key will 
+     * automatically be deleted. A key with an associated timeout is often 
+     * said to be volatile in Redis terminology.
+     * 
+     * More at: http://redis.io/commands/expireat
+     */
+    Future<bool> expireat(String key, DateTime unixDate) => 
+        connection.sendCommand(RedisCommand.EXPIREAT, 
+            [ key, (unixDate.toUtc().millisecondsSinceEpoch ~/ 1000).toString() ])
+              .receiveBool(); 
+    
 //  Future<bool> pexpire(String key, int expireInMs) => connection.sendExpectIntSuccess([RedisCommand.PEXPIRE, _keyBytes(key), serializer.serialize(expireInMs)]);
 //
-//  /// Wrapper for [RawRedisCommands.expireat].
-//  Future<bool> expireat(String key, DateTime date) => raw.expireat(key, date.toUtc().millisecondsSinceEpoch ~/ 1000);
 //
 //  /// Wrapper for [RawRedisCommands.pexpireat].
 //  Future<bool> pexpireat(String key, DateTime date) => raw.pexpireat(key, date.toUtc().millisecondsSinceEpoch);
