@@ -401,7 +401,11 @@ class Receiver {
   Future<int> receiveInteger() {
     return _received.then((reply) {
       if (reply is! IntegerReply) {
-        throw new RedisClientException("The returned reply was not of type IntegerReply.");
+        var error = "";
+        if (reply is ErrorReply) {
+          error = " Error: ${reply.error}";
+        }
+        throw new RedisClientException("The returned reply was not of type IntegerReply but ${reply.runtimeType}.${error}");
       }
       return reply.integer;
     });
@@ -422,7 +426,8 @@ class Receiver {
   Future<String> receiveError() {
     return _received.then((reply) {
       if (reply is! ErrorReply) {
-        throw new RedisClientException("The returned reply was not of type ErrorReply.");
+
+        throw new RedisClientException("The returned reply was not of type ErrorReply but ${reply.runtimeType}");
       }
       return reply.error;
     });
@@ -464,7 +469,11 @@ class Receiver {
   Future<List<int>> receiveBulkData() {
     return _received.then((reply) {
       if (reply is! BulkReply) {
-        throw new RedisClientException("The returned reply was not of type BulkReply but ${reply.runtimeType}.");
+        var error = "";
+        if (reply is ErrorReply) {
+          error = " Error: ${reply.error}";
+        }
+        throw new RedisClientException("The returned reply was not of type BulkReply but ${reply.runtimeType}.${error}");
       }
       return reply.bytes;
     });
@@ -476,7 +485,11 @@ class Receiver {
   Future<String> receiveBulkString() {
     return _received.then((reply) {
       if (reply is! BulkReply) {
-        throw new RedisClientException("The returned reply was not of type BulkReply but ${reply.runtimeType}.");
+        var error = "";
+        if (reply is ErrorReply) {
+          error = " Error: ${reply.error}";
+        }
+        throw new RedisClientException("The returned reply was not of type BulkReply but ${reply.runtimeType}.${error}");
       }
       return reply.string;
     }); 
@@ -495,7 +508,11 @@ class Receiver {
   Future<MultiBulkReply> receiveMultiBulk() {
     return _received.then((reply) {
       if (reply is! MultiBulkReply) {
-        throw new RedisClientException("The returned reply was not of type MultiBulkReply but ${reply.runtimeType}.");
+        var error = "";
+        if (reply is ErrorReply) {
+          error = " Error: ${reply.error}";
+        }
+        throw new RedisClientException("The returned reply was not of type MultiBulkReply but ${reply.runtimeType}.${error}");
       }
       return reply;
     });
