@@ -338,15 +338,13 @@ class _RedisConnection extends RedisConnection {
 
     logger.finest("Sending message ${UTF8.decode(cmdWithArgs[0])}");
 
-    connected.then((_) {
-      _socket.add("*${cmdWithArgs.length}\r\n".codeUnits);
-      cmdWithArgs.forEach((line) {
-        _socket.add("\$${line.length}\r\n".codeUnits);
+    _socket.add("*${cmdWithArgs.length}\r\n".codeUnits);
+    cmdWithArgs.forEach((line) {
+      _socket.add("\$${line.length}\r\n".codeUnits);
 
-        // Write the line, and the line end
-        _socket.add(line);
-        _socket.add(_lineEnd);
-      });
+      // Write the line, and the line end
+      _socket.add(line);
+      _socket.add(_lineEnd);
     });
 
     _pendingResponses.add(response);
