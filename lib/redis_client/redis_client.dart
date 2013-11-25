@@ -55,23 +55,6 @@ class RedisClient {
   }
 
 
-  //TODO: (Baruch) refactor to serializer
-  /// Takes a command and a map and returns a list of all binary values.
-  List<List<int>> _keyValueMapToList(List<int> command, Map<String, String> map) {
-
-    List<List<int>> completeList = new List<List<int>>(map.length * 2 + 1);
-    completeList[0] = command;
-
-    var i = 1;
-    map.forEach((key, value) {
-      completeList[i++] = UTF8.encode(key);
-      completeList[i++] = UTF8.encode(value);
-    });
-
-    return completeList;
-  }
-
-
 
   /// Wrapper for [RedisConnection.db]
   int get db => connection.db;
@@ -85,24 +68,37 @@ class RedisClient {
   /// Admin
   /// =====
 
-
+  /**
+   * Request for authentication in a password-protected Redis server. Redis 
+   * can be instructed to require a password before allowing clients to 
+   * execute commands. This is done using the requirepass directive in the 
+   * configuration file.
+   */
+  Future auth(String password) =>
+      connection.auth(password);
   /// Select a database.
   ///
   /// Wrapper for [RedisConnection.select]
   Future select(int db) => connection.select(db);
 
   /// Return the number of keys in the currently-selected database.
-  Future<int> get dbsize => connection.rawSend([ RedisCommand.DBSIZE ]).receiveInteger();
+  Future<int> get dbsize => connection.rawSend([ RedisCommand.DBSIZE ])
+      .receiveInteger();
 
   /// Delete all the keys of the currently selected DB. This command never fails
-  Future flushdb() => connection.rawSend([ RedisCommand.FLUSHDB ]).receiveStatus("OK");
+  Future flushdb() => connection.rawSend([ RedisCommand.FLUSHDB ])
+      .receiveStatus("OK");
 
-  /// Delete all the keys of all the existing databases, not just the currently selected one. This command never fails.
-  Future flushall() => connection.rawSend([ RedisCommand.FLUSHALL ]).receiveStatus("OK");
+  /// Delete all the keys of all the existing databases, not just the currently 
+  /// selected one. This command never fails.
+  Future flushall() => connection.rawSend([ RedisCommand.FLUSHALL ])
+      .receiveStatus("OK");
 
 
   /// Returns the DateTime of the last DB [save] executed with success.
-  Future<DateTime> get lastsave => connection.rawSend([ RedisCommand.LASTSAVE ]).receiveInteger().then((int unixTs) => new DateTime.fromMillisecondsSinceEpoch(unixTs * 1000, isUtc: true));
+  Future<DateTime> get lastsave => connection.rawSend([ RedisCommand.LASTSAVE ])
+      .receiveInteger().then((int unixTs) => 
+          new DateTime.fromMillisecondsSinceEpoch(unixTs * 1000, isUtc: true));
 
   /**
    * The [save] command performs a synchronous save of the dataset producing a point
@@ -119,11 +115,14 @@ class RedisClient {
   /**
    * Save the DB in background. The OK code is immediately returned.
    *
-   * Redis forks, the parent continues to serve the clients, the child saves the DB on disk then exits.
+   * Redis forks, the parent continues to serve the clients, the child saves 
+   * the DB on disk then exits.
    *
-   * A client my be able to check if the operation succeeded using the [lastsave] command.
+   * A client my be able to check if the operation succeeded using the 
+   * [lastsave] command.
    */
-  Future bgsave() => connection.rawSend([ RedisCommand.BGSAVE ]).receiveStatus("Background saving started");
+  Future bgsave() => connection.rawSend([ RedisCommand.BGSAVE ])
+      .receiveStatus("Background saving started");
 
   /**
    * The command behavior is the following:
@@ -219,14 +218,17 @@ class RedisClient {
   }
 
   /**
-   * This command is often used to test if a connection is still alive, or to measure latency.
+   * This command is often used to test if a connection is still alive, or to 
+   * measure latency.
    *
    * Fails if the result is not PONG.
    */
-  Future<String> ping() => connection.rawSend([ RedisCommand.PING ]).receiveStatus("PONG");
+  Future<String> ping() => 
+      connection.rawSend([ RedisCommand.PING ]).receiveStatus("PONG");
 
   /// Returns message.
-  Future<Object> echo(String value) => connection.sendCommand(RedisCommand.ECHO, [ value ]).receiveBulkString();
+  Future<Object> echo(String value) => 
+      connection.sendCommand(RedisCommand.ECHO, [ value ]).receiveBulkString();
 
   /**
    * Returns the string representation of the type of the value stored at key.
@@ -240,7 +242,8 @@ class RedisClient {
    * - hash
    * - none if string didn't exist
    */
-  Future<String> type(String key) => connection.sendCommand(RedisCommand.TYPE, [ key ]).receiveStatus();
+  Future<String> type(String key) => 
+      connection.sendCommand(RedisCommand.TYPE, [ key ]).receiveStatus();
 
 
   /// Keys
@@ -260,9 +263,16 @@ class RedisClient {
    *
    * Use `\` to escape special characters if you want to match them verbatim.
    *
-   * **Warning**: consider [keys] as a command that should only be used in production environments with extreme care. It may ruin performance when it is executed against large databases. This command is intended for debugging and special operations, such as changing your keyspace layout. Don't use [keys] in your regular application code. If you're looking for a way to find keys in a subset of your keyspace, consider using sets.
+   * **Warning**: consider [keys] as a command that should only be used in 
+   * production environments with extreme care. It may ruin performance when it 
+   * is executed against large databases. This command is intended for debugging 
+   * and special operations, such as changing your keyspace layout. Don't use 
+   * [keys] in your regular application code. If you're looking for a way to find 
+   * keys in a subset of your keyspace, consider using sets.
    */
-  Future<List<String>> keys(String pattern) => connection.sendCommand(RedisCommand.KEYS, [ pattern ]).receiveMultiBulkStrings();
+  Future<List<String>> keys(String pattern) => 
+      connection.sendCommand(RedisCommand.KEYS, [ pattern ])
+        .receiveMultiBulkStrings();
 
   /// Returns the stored value of given key.
   Future<String> get(String key) => connection.sendCommand(RedisCommand.GET, [ key ]).receiveBulkString();
@@ -285,19 +295,27 @@ class RedisClient {
    *         ..set(mykey, value)
    *         ..expire(mykey, seconds);
    */
-  Future setex(String key, int expireInSecs, String value) => connection.sendCommand(RedisCommand.SETEX, [ key, expireInSecs.toString(), value ]).receiveStatus("OK");
+  Future setex(String key, int expireInSecs, String value) => 
+      connection.sendCommand(RedisCommand.SETEX, 
+          [ key, expireInSecs.toString(), value ]).receiveStatus("OK");
 
-  /// [psetex] works exactly like [setex] with the sole difference that the expire time is specified in milliseconds instead of seconds.
-  Future psetex(String key, int expireInMs, String value) => connection.sendCommand(RedisCommand.PSETEX, [ key, expireInMs.toString(), value ]).receiveStatus("OK");
+  /// [psetex] works exactly like [setex] with the sole difference that the 
+  /// expire time is specified in milliseconds instead of seconds.
+  Future psetex(String key, int expireInMs, String value) => 
+      connection.sendCommand(RedisCommand.PSETEX, 
+          [ key, expireInMs.toString(), value ]).receiveStatus("OK");
 
   /**
    * Remove the existing timeout on key.
    *
-   * Turns the key from volatile (a key with an expire set) to persistent (a key that will never expire as no timeout is associated).
+   * Turns the key from volatile (a key with an expire set) to persistent 
+   * (a key that will never expire as no timeout is associated).
    *
-   * Returns `true` if the timeout was removed, `false` if key does not exist or does not have an associated timeout.
+   * Returns `true` if the timeout was removed, `false` if key does not exist
+   * or does not have an associated timeout.
    */
-  Future<bool> persist(String key) => connection.sendCommand(RedisCommand.PERSIST,  [ key ]).receiveBool();
+  Future<bool> persist(String key) => 
+      connection.sendCommand(RedisCommand.PERSIST,  [ key ]).receiveBool();
 
   /**
    * Sets all values in the given map.
@@ -306,21 +324,31 @@ class RedisClient {
    *
    * See [msetnx] if you don't want to overwrite existing values.
    */
-  Future mset(Map<String, String> map) => connection.rawSend(_keyValueMapToList(RedisCommand.MSET, map)).receiveStatus("OK");
+  Future mset(Map<String, String> map) => 
+     connection.sendCommand(RedisCommand.MSET, serializer.serializeToList(map))
+       .receiveStatus("OK");
 
   /**
-   * Sets the given keys to their respective values. **[msetnx] will not perform any operation at all even if just a single key already exists.**
+   * Sets the given keys to their respective values. **[msetnx] will not 
+   * perform any operation at all even if just a single key already exists.
    *
-   * Because of this semantic [msetnx] can be used in order to set different keys representing different fields of an unique logic object in a way that ensures that either all the fields or none at all are set.
+   * Because of this semantic [msetnx] can be used in order to set different 
+   * keys representing different fields of an unique logic object in a way 
+   * that ensures that either all the fields or none at all are set.
    *
-   * [msetnx] is atomic, so all given keys are set at once. It is not possible for clients to see that some of the keys were updated while others are unchanged.
+   * [msetnx] is atomic, so all given keys are set at once. It is not possible 
+   * for clients to see that some of the keys were updated while others are 
+   * unchanged.
    */
-  Future<bool> msetnx(Map<String, String> map) => connection.rawSend(_keyValueMapToList(RedisCommand.MSETNX, map)).receiveBool();
+  Future<bool> msetnx(Map<String, String> map) => 
+   connection.sendCommand(RedisCommand.MSETNX, serializer.serializeToList(map))
+      .receiveBool();
 
   /**
    * Returns `true` if key exists, `false` otherwise.
    */
-  Future<bool> exists(String key) => connection.sendCommand(RedisCommand.EXISTS, [ key ]).receiveBool();
+  Future<bool> exists(String key) => 
+      connection.sendCommand(RedisCommand.EXISTS, [ key ]).receiveBool();
 
   /**
    * Deletes a single key.
@@ -330,14 +358,16 @@ class RedisClient {
    * Contrary to redis `DEL` command this method takes only one key for
    * convenience. Use [mdel] if you want to delete multiple keys.
    */
-  Future<bool> del(String key) => mdel([ key ]).then((deleteCount) => deleteCount == 1);
+  Future<bool> del(String key) => mdel([ key ]).then((deleteCount) => 
+      deleteCount == 1);
 
   /**
    * Deletes multiple keys and returns the number of deleted keys.
    *
    * This command is called `DEL` in redis.
    */
-  Future<int> mdel(List<String> keys) => keys.isEmpty ? new Future.value(0) : connection.sendCommand(RedisCommand.DEL, keys).receiveInteger();
+  Future<int> mdel(List<String> keys) => keys.isEmpty ? new Future.value(0) : 
+    connection.sendCommand(RedisCommand.DEL, keys).receiveInteger();
 
   /**
    * Increments the number stored at key by one returning the value of key after
@@ -350,7 +380,8 @@ class RedisClient {
    *
    * This operation is limited to 64 bit signed integers.
    */
-  Future<int> incr(String key) => connection.sendCommand(RedisCommand.INCR, [ key ]).receiveInteger();
+  Future<int> incr(String key) => connection.sendCommand(RedisCommand.INCR, 
+      [ key ]).receiveInteger();
 
   /**
    * Increments the number stored at key by increment and returns the value after
@@ -363,7 +394,9 @@ class RedisClient {
    *
    * This operation is limited to 64 bit signed integers.
    */
-   Future<int> incrby(String key, int count) => connection.sendCommand(RedisCommand.INCRBY, [ key, count.toString() ]).receiveInteger();
+   Future<int> incrby(String key, int count) => 
+       connection.sendCommand(RedisCommand.INCRBY, [ key, count.toString() ])
+         .receiveInteger();
 
    /**
     * Increment the string representing a floating point number stored at key
@@ -373,36 +406,44 @@ class RedisClient {
     * An error is returned if one of the following conditions occur:
     *
     * - The key contains a value of the wrong type (not a string).
-    * - The current key content or the specified increment are not parsable as a double precision floating point number.
+    * - The current key content or the specified increment are not parsable as 
+    * a double precision floating point number.
     *
     * See the [official documentation](http://redis.io/commands/incrbyfloat) for
     * more information.
     */
-    Future<double> incrbyfloat(String key, double count) => connection.sendCommand(RedisCommand.INCRBYFLOAT, [ key, count.toString() ]).receiveDouble();
+    Future<double> incrbyfloat(String key, double count) => 
+      connection.sendCommand(RedisCommand.INCRBYFLOAT, [ key, count.toString() ])
+        .receiveDouble();
 
     /**
      * Decrements the number stored at key by one and returns the value of the
      * key after the decrement.
      *
-     * If the key does not exist, it is set to 0 before performing the operation.
+     * If the key does not exist, it is set to 0 before performing the 
+     * operation.
      * An error is returned if the key contains a value of the wrong type or
      * contains a string that can not be represented as integer.
      *
      * This operation is limited to 64 bit signed integers.
      */
-    Future<int> decr(String key) => connection.sendCommand(RedisCommand.DECR, [ key ]).receiveInteger();
+    Future<int> decr(String key) => 
+        connection.sendCommand(RedisCommand.DECR, [ key ])
+          .receiveInteger();
 
     /**
-     * Decrements the number stored at key by decrement and returns the value of
-     * the key after the decrement.
+     * Decrements the number stored at key by decrement and returns the value 
+     * of the key after the decrement.
      *
-     * If the key does not exist, it is set to 0 before performing the operation.
-     * An error is returned if the key contains a value of the wrong type or
-     * contains a string that can not be represented as integer.
+     * If the key does not exist, it is set to 0 before performing the 
+     * operation. An error is returned if the key contains a value of the 
+     * wrong type or contains a string that can not be represented as integer.
      *
      * This operation is limited to 64 bit signed integers.
      */
-    Future<int> decrby(String key, int count) => connection.sendCommand(RedisCommand.DECRBY, [ key, count.toString() ]).receiveInteger();
+    Future<int> decrby(String key, int count) => 
+        connection.sendCommand(RedisCommand.DECRBY, [ key, count.toString() ])
+          .receiveInteger();
 
 
     /**
@@ -410,16 +451,20 @@ class RedisClient {
      *
      * An error is returned when key holds a non-string value.
      */
-    Future<int> strlen(String key) => connection.sendCommand(RedisCommand.STRLEN, [ key ]).receiveInteger();
+    Future<int> strlen(String key) => 
+        connection.sendCommand(RedisCommand.STRLEN, [ key ]).receiveInteger();
 
 
     /**
-     * If key already exists and is a string, this command appends the value at the end of the string.
-     * If key does not exist it is created and set as an empty string, so APPEND will be similar to SET in this special case.
+     * If key already exists and is a string, this command appends the value 
+     * at the end of the string. If key does not exist it is created and set as
+     * an empty string, so APPEND will be similar to SET in this special case.
      *
      * Returns the length of the string after the append operation.
      */
-    Future<int> append(String key, String value) => connection.sendCommand(RedisCommand.APPEND, [ key, value ]).receiveInteger();
+    Future<int> append(String key, String value) => 
+        connection.sendCommand(RedisCommand.APPEND, [ key, value ])
+          .receiveInteger();
 
 
     /**
@@ -433,21 +478,76 @@ class RedisClient {
      * The function handles out of range requests by limiting the resulting range
      * to the actual length of the string.
      */
-    Future<String> getrange(String key, int fromIndex, int toIndex) => connection.sendCommand(RedisCommand.GETRANGE, [ key, fromIndex.toString(), toIndex.toString() ]).receiveBulkString();
+    Future<String> getrange(String key, int fromIndex, int toIndex) => 
+        connection.sendCommand(RedisCommand.GETRANGE, 
+            [ key, fromIndex.toString(), toIndex.toString() ]).receiveBulkString();
 
-//  Future<String> setrange(String key, int offset, String value) => raw.setrange(key, offset, serializer.serialize(value)).then(_toStr);
-//
-//  Future<int> getbit(String key, int offset) => connection.sendExpectInt([RedisCommand.GETBIT, _keyBytes(key), serializer.serialize(offset)]);
-//
-//  Future<int> setbit(String key, int offset, int value) => connection.sendExpectInt([RedisCommand.SETBIT, _keyBytes(key), serializer.serialize(offset), serializer.serialize(value)]);
-//
-//  /// Wrapper for [RawRedisCommands.randomkey].
-//  Future<String> randomkey() => raw.randomkey().then(_toStr);
-//
-//  Future rename(String oldKey, String newKey) => connection.sendExpectSuccess([RedisCommand.RENAME, _keyBytes(oldKey), _keyBytes(newKey)]);
-//
-//  Future<bool> renamenx(String oldKey, String newKey) => connection.sendExpectIntSuccess([RedisCommand.RENAMENX, _keyBytes(oldKey), _keyBytes(newKey)]);
-//
+
+    /**
+     * Returns the length of the string after it was modified by the command.
+     * 
+     * Overwrites part of the string stored at key, starting at the specified
+     *  offset, for the entire length of value. If the offset is larger than 
+     *  the current length of the string at key, the string is padded with 
+     *  zero-bytes to make offset fit. Non-existing keys are considered as 
+     *  empty strings, so this command will make sure it holds a string large 
+     *  enough to be able to set value at offset.
+     *  
+     *  More at: http://redis.io/commands/setrange
+     */
+    Future<int> setrange(String key, int offset, String value) => 
+        connection.sendCommand(RedisCommand.SETRANGE, 
+            [ key, offset.toString(), value ]).receiveInteger();
+
+    /**
+     * Returns the bit value at offset in the string value stored at key. When 
+     * offset is beyond the string length, the string is assumed to be a 
+     * contiguous space with 0 bits. When key does not exist it is assumed to be 
+     * an empty string, so offset is always out of range and the value is also 
+     * assumed to be a contiguous space with 0 bits.
+     * 
+     * More at: http://redis.io/commands/getbit
+     */
+    Future<int> getbit(String key, int offset) => 
+        connection.sendCommand(RedisCommand.GETBIT, 
+            [ key, offset.toString() ]).receiveInteger();
+
+    /**
+     * Returns the original bit value stored at offset. Sets or clears the bit 
+     * at offset in the string value stored at key.
+     * 
+     * More at: http://redis.io/commands/setbit
+     */
+    Future<int> setbit(String key, int offset, int value) => 
+        connection.sendCommand(RedisCommand.SETBIT, 
+            [ key, offset.toString(), value.toString() ]).receiveInteger();
+
+    /**
+     *  Returns a random key from the currently selected database. Or nil when 
+     *  the database is empty.
+     */
+    Future<String> randomkey() => 
+        connection.sendCommand(RedisCommand.RANDOMKEY, []).receiveBulkString();
+
+    /**
+     * Renames key to newkey. It returns an error when the source and 
+     * destination names are the same, or when key does not exist. If newkey
+     * already exists it is overwritten, when this happens RENAME executes an
+     * implicit DEL operation, so if the deleted key contains a very big value
+     * it may cause high latency even if RENAME itself is usually a constant-
+     * time operation.
+     */
+  Future<String> rename(String oldKey, String newKey) => 
+      connection.sendCommand(RedisCommand.RENAME, [ oldKey, newKey ])
+        .receiveStatus('OK');
+
+    /**
+     * Returns true if key was renamed to newkey and false if newkey already 
+     * exists.
+     */
+  Future<bool> renamenx(String oldKey, String newKey) => 
+      connection.sendCommand(RedisCommand.RENAMENX, [ oldKey, newKey ])
+        .receiveBool();
 
     /**
      * Returns true if the timeout was set. And false if key does not exist or
@@ -460,7 +560,8 @@ class RedisClient {
      * More at: http://redis.io/commands/expire
      */
     Future<bool> expire(String key, int expireInSecs) => 
-        connection.sendCommand(RedisCommand.EXPIRE, [ key, expireInSecs.toString() ]).receiveBool();
+        connection.sendCommand(RedisCommand.EXPIRE, 
+            [ key, expireInSecs.toString() ]).receiveBool();
     
     /**
      * Returns true if the timeout was set. And false if key does not exist or
@@ -472,28 +573,51 @@ class RedisClient {
      * 
      * More at: http://redis.io/commands/expireat
      */
-    Future<bool> expireat(String key, DateTime unixDate) => 
+    Future<bool> expireat(String key, DateTime date) => 
         connection.sendCommand(RedisCommand.EXPIREAT, 
-            [ key, (unixDate.toUtc().millisecondsSinceEpoch ~/ 1000).toString() ])
+            [ key, (date.toUtc().millisecondsSinceEpoch ~/ 1000).toString() ])
               .receiveBool(); 
     
-//  Future<bool> pexpire(String key, int expireInMs) => connection.sendExpectIntSuccess([RedisCommand.PEXPIRE, _keyBytes(key), serializer.serialize(expireInMs)]);
-//
-//
-//  /// Wrapper for [RawRedisCommands.pexpireat].
-//  Future<bool> pexpireat(String key, DateTime date) => raw.pexpireat(key, date.toUtc().millisecondsSinceEpoch);
+    /**
+     * Returns true if the timeout was set. And false if key does not exist or
+     * the timeout could not be set.13
+     * 
+     * This command works exactly like EXPIRE but the time to live of the key 
+     * is specified in milliseconds instead of seconds.
+     */
+  Future<bool> pexpire(String key, int expireInMs) => 
+      connection.sendCommand(RedisCommand.PEXPIRE, 
+          [ key, serializer.serializeToString(expireInMs) ]).receiveBool();
+
+  /**
+   * Returns true if the timeout was set. And false if key does not exist or
+   * the timeout could not be set.
+   * 
+   * PEXPIREAT has the same effect and semantic as EXPIREAT, but the Unix time 
+   * at which the key will expire is specified in milliseconds instead of seconds.
+   */
+  Future<bool> pexpireat(String key, DateTime date) => 
+      connection.sendCommand(RedisCommand.PEXPIREAT, 
+          [ key, (date.toUtc().millisecondsSinceEpoch ~/ 1000).toString() ])
+            .receiveBool();
 
   /**
    * Returns the remaining time to live of a key that has a timeout.
    *
-   * This introspection capability allows a Redis client to check how many seconds a given key will continue to be part of the dataset.
+   * This introspection capability allows a Redis client to check how many 
+   * seconds a given key will continue to be part of the dataset.
    */
-  Future<int> ttl(String key) => connection.sendCommand(RedisCommand.TTL, [ key ]).receiveInteger();
+  Future<int> ttl(String key) => 
+      connection.sendCommand(RedisCommand.TTL, [ key ]).receiveInteger();
 
-//  Future<int> pttl(String key) => connection.sendExpectInt([RedisCommand.PTTL, _keyBytes(key)]);
-//
-//
-//
+  /**
+   * Like TTL this command returns the remaining time to live of a key that 
+   * has an expire set, with the sole difference that TTL returns the amount 
+   * of remaining time in seconds while PTTL returns it in milliseconds.
+   */
+  Future<int> pttl(String key) => 
+      connection.sendCommand(RedisCommand.PTTL, [ key ]).receiveInteger();
+
   /// SET
   /// ===
 
@@ -562,7 +686,8 @@ class RedisClient {
    */  
   Future<bool> smove(String fromSetId, String toSetId, Object value) => 
       connection.sendCommand(RedisCommand.SMOVE, 
-          [ fromSetId, toSetId, serializer.serializeToString(value)]).receiveBool();
+          [ fromSetId, toSetId, serializer.serializeToString(value)])
+            .receiveBool();
 
   /**
    * Returns the cardinality (number of elements) of the set, or 0 if key 
@@ -629,7 +754,8 @@ class RedisClient {
   /**
    * Returns the number of elements in the resulting set.
    * 
-   * This command is equal to SUNION, but instead of returning the resulting set, it is stored in [destination].
+   * This command is equal to SUNION, but instead of returning the resulting 
+   * set, it is stored in [destination].
    * If destination already exists, it is overwritten.
    */  
   Future<int> sunionstore(String destination, List<String> setIds) =>
@@ -649,7 +775,8 @@ class RedisClient {
    */
   Future<Set<Object>> sdiff(String fromSetId, List<String> withSetIds) => 
       connection.sendCommandWithVariadicValues(RedisCommand.SDIFF, 
-          [ fromSetId ], serializer.serializeToList(withSetIds)).receiveMultiBulkSetDeserialized(serializer);
+          [ fromSetId ], serializer.serializeToList(withSetIds))
+            .receiveMultiBulkSetDeserialized(serializer);
 
   /**
    * Returns the number of elements in the resulting set.
@@ -1230,7 +1357,8 @@ class RedisClient {
    * 
    * More at: http://redis.io/commands/zunionstore
    */  
-  Future<int> zunionstore(String destination, List<String> setIds, { List<int> weights, String aggregate}) {
+  Future<int> zunionstore(String destination, List<String> setIds, 
+      { List<int> weights, String aggregate}) {
     var numkeys = setIds.length.toString();
     var values = serializer.serializeToList(setIds);
     
@@ -1257,7 +1385,8 @@ class RedisClient {
    * 
    * More at: http://redis.io/commands/zunionstore
    */  
-  Future<int> zinterstore(String destination, List<String> setIds, { List<String> weights, String aggregate}) {
+  Future<int> zinterstore(String destination, List<String> setIds, 
+      { List<String> weights, String aggregate}) {
     var numkeys = setIds.length.toString();
     var values = serializer.serializeToList(setIds);
     
