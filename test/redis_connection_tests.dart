@@ -55,4 +55,38 @@ main() {
     });
   });
 
+  group('Connection', () {
+      
+
+    test('should connect to a different db', () {
+      var connectionString = "127.0.0.1:6379/1";
+      async(
+          RedisConnection.connect(connectionString)
+          .then((connectionResult) => expect(connectionResult.db, equals(1)))
+      );
+    });
+
+  }); 
+  
+  group('Connection', () {
+      var connectionString = "127.0.0.1:6379/1";
+      RedisConnection connection;
+      setUp(() {
+        return RedisConnection.connect(connectionString)
+          .then((RedisConnection c) {
+            connection = c;
+        });
+      });
+
+      /* change connection ip in setUp() and requirepass in redis config file (redis.conf)
+    test('should connect to a database with authentication', () {
+      async(
+          connection.auth('foobared')
+          .then((_) => connection.sendCommand(RedisCommand.SET, [ 'key', 'value' ]).receiveStatus('OK')
+          .then((sendResult) => expect(sendResult, equals('OK'))))
+          );
+    });
+    */
+
+  });
 }

@@ -47,6 +47,21 @@ main() {
         );
       });
     });
+    /* change connection ip in setUp() and requirepass in redis config file 
+     * (redis.conf)
+    solo_group('auth', () {
+      test('should commands to password protected server', () {
+        async(
+            client.auth('foobared')
+            .then((authStatus) { 
+              expect(authStatus.status, equals('OK'));
+              client.set('test', 'value')
+              .then((setResult) => expect(setResult, 'OK'));
+            })
+        );
+      });
+    });
+    */
 
 
     group("parseInfoString()", () {
@@ -196,7 +211,25 @@ invalid_line
               .then((res) => expect(res, equals(null)))
         );
       });
+      
+      test('SETBIT & GETBIT', () {
+        async(
+          client.setbit('my-key',7 , 1)
+              .then((_) => client.getbit('my-key', 0))
+              .then((getbitResult) => expect(getbitResult, equals(0)))
+              .then((_) => client.getbit('my-key', 7))
+              .then((getbit2Result) => expect(getbit2Result, equals(1)))
+        );
+      });
 
+      test('RANDOMKEY', () {
+        async(
+          client.setbit('my-key',7 , 1)
+          .then((_) => client.randomkey())
+          .then((randomKeyResult) => expect(randomKeyResult, equals('my-key')))
+        );
+      });
+      
       test("KEYS", () {
         async(
           client.keys("*o*")
@@ -248,6 +281,14 @@ invalid_line
          );
       });
 
+      test('PTTL', () {
+        async(
+            client.setex('testkey', 1, 'value')
+            .then((_) => client.pttl('testkey'))
+            .then((pttlResult) => expect(pttlResult > 900 && pttlResult <= 1000, isTrue))
+            );
+      });
+      
       test("PSETEX", () {
         async(
             client.psetex("testkey", 10000, "value")
@@ -392,6 +433,14 @@ invalid_line
         );
       });
 
+
+      test('SETRANGE', () {
+        async(
+            client.set("hellokey", "hello value")
+            .then((_) => client.setrange("hellokey", 6, "replaced"))
+        );
+      });
+      
       test("GETRANGE", () {
         async(
             client.set("some-field", "This is a string")
@@ -405,6 +454,23 @@ invalid_line
               .then((String sub) => expect(sub, equals("string")))
         );
       });
+
+      test('RENAME', () {
+        async(
+            client.set('key', 'value')
+            .then((_) => client.rename('key', 'new-key'))
+            .then((renamenxResult) => expect(renamenxResult, 'OK'))
+        );
+      });
+      
+      test('RENAMENX', () {
+        async(
+            client.set('key', 'value')
+            .then((_) => client.renamenx('key', 'new-key'))
+            .then((renamenxResult) => expect(renamenxResult, isTrue))
+        );
+      });
+      
       test('EXPIRE', () {
         async(
             client.set('some-expirable-key', 'some-value')
@@ -422,6 +488,14 @@ invalid_line
           );
       });
 
+      test('PEXPIRE', () {
+        async(
+            client.set('some-expirable-key', 'some-value')
+            .then((_) => client.expire('some-expirable-key', 1000)
+            .then((expireResult) => expect(expireResult, isTrue)))
+          );
+      });
+      
   });
 
   group('Set commands:', () {
@@ -840,6 +914,20 @@ invalid_line
           .then((_) => client.blpop(['list1', 'list2'], timeout: 0))
           .then((blpopResult) => expect(blpopResult, equals({'list1':'a'})))
       );
+    });
+    
+    test('BLPOP2', () { 
+      var client2;
+      RedisClient.connect("127.0.0.1:6379").then((c2) => client2 = c2);
+      new Timer(new Duration(milliseconds: 10), () {
+        client2.rpush('list2' , 'value-client-waits-on');
+      });
+      async(
+          client.brpop(['list1', 'list2'], timeout: 0)
+          .then((brpopResult) =>
+              expect(brpopResult, equals({'list2':'value-client-waits-on'})))
+          );
+      
     });
     
     test('BRPOP', () { 

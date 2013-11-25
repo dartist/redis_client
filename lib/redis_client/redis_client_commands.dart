@@ -9,6 +9,8 @@ class RedisCommand {
   static List<int> _chars(String command) => command.codeUnits;
 
   // ADMIN
+
+  static List<int> get AUTH => _chars("AUTH");
   static List<int> get DBSIZE => _chars("DBSIZE");
   static List<int> get INFO => _chars("INFO");
   static List<int> get LASTSAVE => _chars("LASTSAVE");

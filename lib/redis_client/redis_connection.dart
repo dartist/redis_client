@@ -53,6 +53,8 @@ abstract class RedisConnection {
   
   void handleData(List<int> data, EventSink<RedisReply> output);
 
+  Future auth(String password);
+  
   /// Closes the connection.
   Future close();
 
@@ -231,6 +233,11 @@ class _RedisConnection extends RedisConnection {
 
         .catchError(_onSocketError);
 
+  }
+  
+  Future auth(String _password) {
+    this.password = _password;
+    return sendCommand(RedisCommand.AUTH, [ _password ]).receive();
   }
 
 

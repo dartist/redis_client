@@ -45,6 +45,7 @@ class MockRedisConnection extends Mock implements RedisConnection {
 
   Map get stats {}
 
+  Future auth(String _password) { this.password = _password; }
 
   Future select([ int db ]) {}
 
