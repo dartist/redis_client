@@ -1562,7 +1562,26 @@ class RedisClient {
   Future<Map<String, Object>> hgetall(String hashId) => 
       connection.sendCommand(RedisCommand.HGETALL, [ hashId ])
         .receiveMultiBulkMapDeserialized(serializer);
-
+  
+  /**
+   * Subscribes to [List<String> ] channels 
+   * with [Function] onMessage handler
+   */
+  Future subscribe(List<String> channels, Function onMessage) => connection.subscribe(channels, onMessage);      
+  
+  /**
+   * Unubscribes from [List<String>] channels 
+   */
+  Future unsubscribe(List<String> channels, Function onMessage) => connection.unsubscribe(channels);
+  
+  /**
+   * Publishes [String] message to [String] channel 
+   * map when key does not exist.
+   */
+  Future publish(String channel, String message) => 
+      connection.sendCommand(RedisCommand.PUBLISH, [channel,message])
+        .receiveInteger();
+  
 }
 
 
