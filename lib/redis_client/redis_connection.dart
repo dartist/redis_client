@@ -78,8 +78,14 @@ abstract class RedisConnection {
   
   /// Sends the commands already in binary.
   Receiver rawSend(List<List<int>> cmdWithArgs);
+  
 
-
+  /// Subscribes to [List<String>] channels with [Function] onMessage handler
+  Future subscribe(List<String> channels, Function onMessage);
+  
+    
+  /// Unubscribes from [List<String>] channels
+  Future unsubscribe(List<String> channels);
 }
 
 
@@ -267,9 +273,44 @@ class _RedisConnection extends RedisConnection {
     throw new RedisClientException("Socket error $err.");
   }
 
+  Function _subscriptionHandler = null;
+  
+  Future subscribe(List<String> channels, Function onMessage){
+    
+    Completer subscribeCompleter = new Completer();
+    List<String> args = new List <String>()
+        ..add("SUBSCRIBE")
+        ..addAll(channels);
+    
+    send(args).receive().then((val){
+      _subscriptionHandler = onMessage; 
+      subscribeCompleter.complete();
+    });
+    return subscribeCompleter.future;
+  }
+  
+  Future unsubscribe(List<String> channels){
+    Completer unsubscribeCompleter = new Completer();
+    List<String> args = new List <String>()
+        ..add("UNSUBSCRIBE")
+        ..addAll(channels);
+    send(args).receive().then((val){
+      _subscriptionHandler = null; 
+      unsubscribeCompleter.complete();
+    });
+    return unsubscribeCompleter.future;
+  }
+   
   /// Handles new data received from stream.
   void _onRedisReply(RedisReply redisReply) {
     logger.fine("Received reply: $redisReply");
+    
+    if(_subscriptionHandler != null){
+      Receiver rec = new Receiver()
+      ..reply = redisReply;      
+      _subscriptionHandler(rec);
+      return;
+    }
     if (_pendingResponses.length == 0 || _pendingResponses.last.reply != null) {
       if (redisReply is ErrorReply) {
         logger.warning("Received error from redis: ${redisReply.error}");
