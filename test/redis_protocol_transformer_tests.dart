@@ -103,6 +103,10 @@ class MockRedisConnection extends Mock implements RedisConnection {
       }
     }
   }
+
+  Future subscribe(List<String> channels, Function onMessage) { }
+  
+  Future unsubscribe(List<String> channels) { }
 }
 
 

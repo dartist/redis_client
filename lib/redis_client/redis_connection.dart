@@ -294,8 +294,9 @@ class _RedisConnection extends RedisConnection {
     List<String> args = new List <String>()
         ..add("UNSUBSCRIBE")
         ..addAll(channels);
-    send(args).receive().then((val){
-      _subscriptionHandler = null; 
+    
+    _subscriptionHandler = null;
+    send(args).receive().then((val){      
       unsubscribeCompleter.complete();
     });
     return unsubscribeCompleter.future;
