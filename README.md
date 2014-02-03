@@ -98,6 +98,7 @@ Adding automatic failover support in v3.0, sharding, fast RPC direct-pipeline us
   - [enyo](https://github.com/enyo) (Matias Meno)
   - [bbss](https://github.com/bbss) (Baruch Berger)
   - [MaxHorstmann](https://github.com/MaxHorstmann) (Max Horstmann)
+  - [tomaszkubacki](https://github.com/tomaszkubacki) (Tomasz Kubacki)
 
 ### Feedback 
 
