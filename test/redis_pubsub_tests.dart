@@ -54,6 +54,28 @@ main() {
           client1.publish("chan0","You okay?");
         }));
       });
-    });  
- 
+    
+    test("Can work after unsubscribe", () {
+      
+      bool gotMessage = false;
+      async(
+          client.subscribe(["chan0"],(Receiver message){
+            return message.receiveMultiBulkStrings().then((List<String> message){
+              gotMessage = true;              
+            }).then((bb)=>  client.unsubscribe(["chan0"]))
+             .then((v) => client.set("key", "val"))
+             .then((c1) => client.get("key"))
+                 .then((ttt){
+                   print(ttt);
+                   expect(ttt, equals("val"));
+             });
+                        
+          }).then((a) => client1.publish("chan0","You okay?"))            
+      );
+      
+    });
+    
+    
+  });  
+  
 }

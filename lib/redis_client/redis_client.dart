@@ -1572,7 +1572,7 @@ class RedisClient {
   /**
    * Unubscribes from [List<String>] channels 
    */
-  Future unsubscribe(List<String> channels, Function onMessage) => connection.unsubscribe(channels);
+  Future unsubscribe(List<String> channels) => connection.unsubscribe(channels);
   
   /**
    * Publishes [String] message to [String] channel 
