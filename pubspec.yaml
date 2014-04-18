@@ -1,5 +1,5 @@
 name: redis_client
-version: 0.1.12
+version: 0.1.13
 authors:
 - Demis Bellot <demis.bellot@gmail.com>
 - Adam Singer <financeCoding@gmail.com>
