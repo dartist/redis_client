@@ -7,6 +7,9 @@ import 'helper.dart';
 
 
 
+Future<RedisClient> _getConnectedRedisClient() => RedisClient.connect("127.0.0.1:6379");
+
+
 main() {
 
   group("RedisClient", () {
@@ -14,7 +17,7 @@ main() {
     RedisClient client;
 
     setUp(() {
-      return RedisClient.connect("127.0.0.1:6379")
+      return _getConnectedRedisClient()
           .then((c) {
             client = c;
             client.flushall();
@@ -914,20 +917,6 @@ invalid_line
       );
     });
     
-    test('BLPOP2', () { 
-      var client2;
-      RedisClient.connect("127.0.0.1:6379").then((c2) => client2 = c2);
-      new Timer(new Duration(milliseconds: 10), () {
-        client2.rpush('list2' , 'value-client-waits-on');
-      });
-      async(
-          client.brpop(['list1', 'list2'], timeout: 0)
-          .then((brpopResult) =>
-              expect(brpopResult, equals({'list2':'value-client-waits-on'})))
-          );
-      
-    });
-    
     test('BRPOP', () { 
       async(
           client.rpush('list1', ['a', 'b', 'c'])
@@ -935,6 +924,26 @@ invalid_line
           .then((blpopResult) => expect(blpopResult, equals({'list1':'c'})))
       );
     });
+
+    test('BRPOP properly waits until the value is inserted', () {
+      // Need to create a second client since the first client (calling brpop)
+      // blocks until the result is returned.
+      var client2;
+
+      _getConnectedRedisClient().then((c2) => client2 = c2);
+      new Timer(new Duration(milliseconds: 10), () {
+        client2.rpush('list2' , 'value-client-waits-on');
+      });
+
+      async(
+          client.brpop(['list1', 'list2'], timeout: 0)
+          .then((brpopResult) =>
+              expect(brpopResult, equals({'list2':'value-client-waits-on'}))
+          )
+          .then((_) => client2.close())
+      );
+    });
+    
     test('BRPOPLPUSH', () {
       async(
           client.rpush('listId', "some-string")
