@@ -19,7 +19,7 @@ main() {
             client = c;
             client.flushall();
           }).then((a){
-             RedisClient.connect("127.0.0.1:6379").then((c1){
+             return RedisClient.connect("127.0.0.1:6379").then((c1){
                client1 = c1;
              });
           });
@@ -28,6 +28,7 @@ main() {
     tearDown(() {
      try {
         client.close();
+        client1.close();
        }
       finally {
 
