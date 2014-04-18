@@ -391,7 +391,7 @@ invalid_line
             .then((_) => client.incrbyfloat("some-field", 4.3))
             .then((double inc) => expect(inc, equals(16.8)))
             .then((_) => client.get("some-field"))
-            .then((String value) => expect(value, equals("16.800000000000001")))
+            .then((String value) => expect(value, equals("16.8")))
         );
       });
 
