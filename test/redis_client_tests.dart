@@ -796,9 +796,7 @@ invalid_line
           .then((_) => client.lrange('listId'))
           .then((lrangeResult) => 
               expect(lrangeResult, equals(['some-string', 'other-string'])))
-      );
-      async(
-          client.lpush('otherListId', ['some-string', 'other-string'])
+          .then((_) => client.lpush('otherListId', ['some-string', 'other-string']))
           .then((_) => client.lrange('otherListId'))
           .then((lrangeResult) => 
               expect(lrangeResult, equals(['other-string', 'some-string'])))
@@ -1064,17 +1062,16 @@ invalid_line
             expect(zRangeResult.length, equals(1));
             expect(zRangeResult['value2'], equals(103));
             }))
-          );
-      
-      async(
-          client.zadd('setId', zSet)
+
+          .then((_) => client.zadd('setId', zSet))
           .then((_) => client.zrangebyscore('setId', max: 105, skip: 1, take:2)
           .then((zRangeResult) {
             expect(zRangeResult.length, equals(2));
             expect(zRangeResult.contains('value2'), isTrue);
             expect(zRangeResult.contains('value5'), isTrue);
-            }))
-          );
+          }))
+        );
+      
       });    
     
     test('ZREVRANGEBYSCORE', () {
@@ -1088,19 +1085,19 @@ invalid_line
             expect(zRangeResult.length, equals(2));
             expect(zRangeResult['value'], equals(100));
             expect(zRangeResult['value2'], equals(103));
-            }))
-          );
-      
-      async(
-          client.zadd('setId', zSet)
+          }))
+          
+            
+          .then((_) => client.zadd('setId', zSet))
           .then((_) => client.zrangebyscore('setId', max: 105, skip: 1, take:2)
           .then((zRangeResult) {
             expect(zRangeResult.length, equals(2));
             expect(zRangeResult.contains('value2'), isTrue);
             expect(zRangeResult.contains('value5'), isTrue);
-            }))
-          );
-      }); 
+          }))
+      );
+
+    }); 
     
 
     test('ZREMRANGEBYRANK', () {
@@ -1159,15 +1156,13 @@ invalid_line
           .then((_) => client.zadd('setId2', zSet2)
           .then((_) => client.zunionstore('unionSetId', ['setId', 'setId2'], aggregate: 'MIN')
           .then((zUnionStoreResult) => expect(zUnionStoreResult, equals(3)))))
-          );
       
-      async(
-          client.zadd('setId3', zSet)
+          .then((_) => client.zadd('setId3', zSet))
           .then((_) => client.zadd('setId4', zSet2)
           .then((_) => client.zunionstore('unionSetId', ['setId3', 'setId4'], weights: weights, aggregate: 'MIN')
           .then((zUnionStoreResult) => expect(zUnionStoreResult, equals(3)))))
-          );
-      });
+      );
+    });
     
     test('ZINTERSTORE', () {
       Set<ZSetEntry> zSet = new Set<ZSetEntry>.from([ new ZSetEntry('one', 1), 
@@ -1177,21 +1172,18 @@ invalid_line
                                                       new ZSetEntry('three', 3) ]);
       var weights = [ 2, 3 ];
       
-      async(
-          client.zadd('setId', zSet)
+      async(client.zadd('setId', zSet)
           .then((_) => client.zadd('setId2', zSet2)
           .then((_) => client.zinterstore('unionSetId', ['setId', 'setId2'], aggregate: 'MIN')
           .then((zUnionStoreResult) => expect(zUnionStoreResult, equals(2)))))
-          );
       
-      async(
-          client.zadd('setId3', zSet)
+          .then((_) => client.zadd('setId3', zSet))
           .then((_) => client.zadd('setId4', zSet2)
           .then((_) => client.zinterstore('unionSetId', ['setId3', 'setId4'], weights: weights, aggregate: 'MIN')
           .then((zUnionStoreResult) => expect(zUnionStoreResult, equals(2)))))
-          );
-      });
+      );
     });
+  });
   test('SORT', () {
     var alphabeticalList = [ 'some-string', 'other-string'],
         numericalList = [4, 5, 2, 5, 1];
@@ -1200,22 +1192,20 @@ invalid_line
         client.rpush('alphaListId', alphabeticalList)
         .then((_) => client.sort('alphaListId', alpha: true)
         .then((sortAlphaResult) => expect(sortAlphaResult, equals(['other-string', 'some-string']))))
-        );
-    
-    async(
-        client.rpush('alphaTakeListId', alphabeticalList)
-        .then((_) => client.sort('alphaTakeListId', skip: 1, take: 1,alpha: true)
-        .then((sortAlphaResult) => expect(sortAlphaResult, equals(['some-string']))))
-        );
-    
-    async(
-        client.rpush('numListId', numericalList)
-        .then((_) => client.sort('numListId')
-        .then((sortResult) => expect(sortResult, equals([1, 2, 4, 5, 5]))))
-        .then((_) => client.rpush('sortListId', numericalList)
-        .then((_) => client.sort('sortListId', destination: 'storeDestination')
-        .then((sortStoreResult) => expect(sortStoreResult, equals(5)))))
-        );
+   
+        .then((_) => client.rpush('alphaTakeListId', alphabeticalList))
+        .then((_) => client.sort('alphaTakeListId', skip: 1, take: 1,alpha: true))
+        .then((sortAlphaResult) => expect(sortAlphaResult, equals(['some-string'])))
+
+        .then((_) => client.rpush('numListId', numericalList))
+        .then((_) => client.sort('numListId'))
+        .then((sortResult) => expect(sortResult, equals([1, 2, 4, 5, 5])))
+
+        .then((_) => client.rpush('sortListId', numericalList))
+        .then((_) => client.sort('sortListId', destination: 'storeDestination'))
+        .then((sortStoreResult) => expect(sortStoreResult, equals(5)))
+    );
+
     //TODO (Baruch) test get patterns
     });
   });
