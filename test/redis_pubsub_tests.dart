@@ -66,7 +66,6 @@ main() {
              .then((v) => client.set("key", "val"))
              .then((c1) => client.get("key"))
                  .then((ttt){
-                   print(ttt);
                    expect(ttt, equals("val"));
              });
                         
