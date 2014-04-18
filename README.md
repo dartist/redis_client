@@ -1,6 +1,8 @@
 Dart Redis Client
 =================
 
+[![Build Status](https://drone.io/github.com/dartist/redis_client/status.png)](https://drone.io/github.com/dartist/redis_client/latest)
+
 A high-performance async/non-blocking Redis client for Dart.
 
 The client is well tested including UTF-8 support.
