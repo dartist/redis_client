@@ -62,7 +62,10 @@ main() {
       var connectionString = "127.0.0.1:6379/1";
       async(
           RedisConnection.connect(connectionString)
-          .then((connectionResult) => expect(connectionResult.db, equals(1)))
+          .then((connectionResult) {
+            expect(connectionResult.db, equals(1));
+            connectionResult.close();
+          })
       );
     });
 
@@ -76,6 +79,9 @@ main() {
           .then((RedisConnection c) {
             connection = c;
         });
+      });
+      tearDown(() {
+        connection.close();
       });
 
       /* change connection ip in setUp() and requirepass in redis config file (redis.conf)
