@@ -17,8 +17,6 @@ main() {
 
   redisSerializerTests.main();
 
-  ///this seems to not work on Linux/64 Redis 2.6.13 
-  ///error msg: https://gist.github.com/tomaszkubacki/8783531
   redisClientTests.main();
 
   redisConnectionTests.main();
