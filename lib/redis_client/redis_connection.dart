@@ -224,6 +224,8 @@ class _RedisConnection extends RedisConnection {
           logger.info("Connected socket");
 
           _socket = socket;
+          //disable Nagle's algorithm
+          socket.setOption(SocketOption.TCP_NODELAY,true);
           
           // Setting up all the listeners so Redis responses can be interpreted.
           socket
