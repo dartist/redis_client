@@ -380,6 +380,25 @@ main() {
         expect(test.replies.length, equals(0));
 
       });
+      test("should properly handle consecutive MultiBulkReplys in single packet", () {
+        var sink = new MockSink();
+
+        var redisConnection = new MockRedisConnection();
+
+        redisConnection.handleData(UTF8.encode("\*2\r\n:5\r\n:6\r\n\*2\r\n:8\r\n:9\r\n"), sink);
+
+        expect(sink.replies, hasLength(2));
+
+        MultiBulkReply mbr1 = sink.replies[0];
+        expect(mbr1.replies, hasLength(2));
+        expect(mbr1.replies[0], new isInstanceOf<IntegerReply>(IntegerReply));
+        expect((mbr1.replies[0] as IntegerReply).integer, equals(5));
+
+        MultiBulkReply mbr2 = sink.replies[1];
+        expect(mbr2.replies, hasLength(2));
+        expect(mbr2.replies[0], new isInstanceOf<IntegerReply>(IntegerReply));
+        expect((mbr2.replies[0] as IntegerReply).integer, equals(8));
+      });
     });
 
     group("UTF8", () {

@@ -303,7 +303,7 @@ class MultiBulkReply extends RedisReply {
         return unconsumedData;
       }
       else {
-        consumeData(unconsumedData);
+        return consumeData(unconsumedData);
       }
     }
 
