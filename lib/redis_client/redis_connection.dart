@@ -45,16 +45,16 @@ abstract class RedisConnection {
   /// Redis database
   int db;
 
-  
+
 
   void handleDone(EventSink<RedisReply> output);
-  
+
   void handleError(Object error, StackTrace stackTrace, EventSink<RedisReply> sink);
-  
+
   void handleData(List<int> data, EventSink<RedisReply> output);
 
   Future auth(String password);
-  
+
   /// Closes the connection.
   Future close();
 
@@ -71,19 +71,19 @@ abstract class RedisConnection {
   Receiver sendCommand(List<int> command, List<String> args);
 
 
-  /// Convenient method to send a command with a list of [String] arguments 
+  /// Convenient method to send a command with a list of [String] arguments
   /// and a list of [String] values.
   Receiver sendCommandWithVariadicValues(List<int> command, List<String> args, List<String> values);
-  
-  
+
+
   /// Sends the commands already in binary.
   Receiver rawSend(List<List<int>> cmdWithArgs);
-  
+
 
   /// Subscribes to [List<String>] channels with [Function] onMessage handler
   Future subscribe(List<String> channels, Function onMessage);
-  
-    
+
+
   /// Unubscribes from [List<String>] channels
   Future unsubscribe(List<String> channels);
 }
@@ -104,12 +104,13 @@ class _RedisConnection extends RedisConnection {
   final int port;
 
   int db;
-  
+
 
   RedisReply _currentReply;
 
   void handleDone(EventSink<RedisReply> output) {
 
+    print('Handling done');
     if (_currentReply != null) {
       var error = new UnexpectedRedisClosureError("Some data has already been sent but was not complete.");
       // Apparently some data has already been sent, but the stream is done.
@@ -118,41 +119,36 @@ class _RedisConnection extends RedisConnection {
 
     output.close();
   }
-  
+
   void handleError(Object error, StackTrace stackTrace, EventSink<RedisReply> sink) {
     sink.addError(error, stackTrace);
   }
-  
+
   void handleData(List<int> data, EventSink<RedisReply> output) {
     // I'm not entirely sure this is necessary, but better be safe.
     if (data.length == 0) return;
-  
-    if (_currentReply == null) {
-      // This is a fresh RedisReply. How exciting!
-  
-      try {
-        _currentReply = new RedisReply.fromType(data.first);
-      }
-      on RedisProtocolTransformerException catch (e) {
-        handleError(e, e.stackTrace, output);
-      }
-    }
-  
-    List<int> unconsumedData = _currentReply.consumeData(data);
-  
-    // Make sure that unconsumedData can't be returned unless the reply is actually done.
-    assert(unconsumedData == null || _currentReply.done);
-  
-    if (_currentReply.done) {
-      // Reply is done!
-      output.add(_currentReply);
-      _currentReply = null;
-      if (unconsumedData != null && !unconsumedData.isEmpty) {
-        handleData(unconsumedData, output);
+    print("Got ${data.length} => $data");
+
+    final int end = data.length;
+    var i = 0;
+    while(i < end) {
+      if(_ender == null) {
+        try {
+          _ender = _makeRedisConsumer(data[i++]);
+        }
+        on RedisProtocolTransformerException catch (e) {
+          handleError(e, e.stackTrace, output);
+        }
+      } else {
+        i = _ender.consume(data, i, end);
+        if(_ender.done) {
+          output.add(_ender.makeReply());
+          _ender = null;
+        }
       }
     }
   }
-  
+
   /// The [Socket] used in this connection.
   Socket _socket;
 
@@ -226,7 +222,7 @@ class _RedisConnection extends RedisConnection {
           _socket = socket;
           //disable Nagle's algorithm
           socket.setOption(SocketOption.TCP_NODELAY,true);
-          
+
           // Setting up all the listeners so Redis responses can be interpreted.
           socket
               .transform(new StreamTransformer.fromHandlers(handleData: handleData, handleError: handleError, handleDone: handleDone))
@@ -242,7 +238,7 @@ class _RedisConnection extends RedisConnection {
         .catchError(_onSocketError);
 
   }
-  
+
   Future auth(String _password) {
     this.password = _password;
     return sendCommand(RedisCommand.AUTH, [ _password ]).receive();
@@ -276,41 +272,41 @@ class _RedisConnection extends RedisConnection {
   }
 
   Function _subscriptionHandler = null;
-  
+
   Future subscribe(List<String> channels, Function onMessage){
-    
+
     Completer subscribeCompleter = new Completer();
     List<String> args = new List <String>()
         ..add("SUBSCRIBE")
         ..addAll(channels);
-    
+
     send(args).receive().then((val){
-      _subscriptionHandler = onMessage; 
+      _subscriptionHandler = onMessage;
       subscribeCompleter.complete();
     });
     return subscribeCompleter.future;
   }
-  
+
   Future unsubscribe(List<String> channels){
     Completer unsubscribeCompleter = new Completer();
     List<String> args = new List <String>()
         ..add("UNSUBSCRIBE")
         ..addAll(channels);
-    
+
     _subscriptionHandler = null;
-    send(args).receive().then((val){      
+    send(args).receive().then((val){
       unsubscribeCompleter.complete();
     });
     return unsubscribeCompleter.future;
   }
-   
+
   /// Handles new data received from stream.
   void _onRedisReply(RedisReply redisReply) {
     logger.fine("Received reply: $redisReply");
-    
+
     if(_subscriptionHandler != null){
       Receiver rec = new Receiver()
-      ..reply = redisReply;      
+      ..reply = redisReply;
       _subscriptionHandler(rec);
       return;
     }
@@ -368,9 +364,9 @@ class _RedisConnection extends RedisConnection {
     commands.setAll(1, args.map((String line) => UTF8.encode(line)).toList(growable: false));
     return rawSend(commands);
   }
-  
+
   Receiver sendCommandWithVariadicValues(List<int> command, List<String> args, List<String> values) {
-    var commands = new List<List<int>>(args.length + values.length + 1);    
+    var commands = new List<List<int>>(args.length + values.length + 1);
     commands[0] = command;
     commands.setAll(1, args.map((String line) => UTF8.encode(line)).toList(growable: false));
     commands.setAll(args.length + 1, values.map((String line) => UTF8.encode(line)).toList(growable: false));
@@ -541,7 +537,7 @@ class Receiver {
         throw new RedisClientException("The returned reply was not of type BulkReply but ${reply.runtimeType}.${error}");
       }
       return reply.string;
-    }); 
+    });
   }
 
   /**
@@ -587,7 +583,7 @@ class Receiver {
           (BulkReply reply) => serializer.deserialize(reply.bytes)).toList(growable: false);
     });
   }
-  
+
   /**
    * Checks that the received reply is of type [MultiBulkReply] and returns a set
    * of deserialized objects.
@@ -635,4 +631,219 @@ class Receiver {
 
 }
 
+final int _CR = 13;
+final int _LF = 10;
 
+final int _STATUS = 43;
+final int _ERROR = 45;
+final int _INTEGER = 58;
+final int _BULK = 36;
+final int _MULTI_BULK = 42;
+
+abstract class _RedisConsumer {
+  int consume(List<int> data, int start, int end);
+  RedisReply makeReply();
+  final List<List<int>> _dataBlocks = [];
+  bool _done = false;
+}
+
+class _LineConsumer extends _RedisConsumer {
+  int consume(List<int> data, int start, int end) {
+    assert(start < end);
+    bool haveSome = !_dataBlocks.isEmpty;
+    var prev = haveSome? _dataBlocks.last.last : data[start];
+    var i = haveSome? start : start + 1;
+
+    for(; i < end; i++) {
+      final next = data[i];
+      if(prev == _CR && next == _LF) {
+        _done = true;
+        break;
+      }
+      prev = next;
+    }
+
+    assert(i > start && i <= end);
+    _dataBlocks.add(new UnmodifiableListView(data.getRange(start, i)));
+    return i;
+  }
+
+  List<int> get data {
+    assert(_done);
+
+    if(_data == null) {
+      final dataSize = _dataBlocks.fold(0, (int prevValue, List dataBlock) =>
+          prevValue + dataBlock.length);
+      _data = new List<int>(dataSize - 2);
+      var blocksNeeded = _dataBlocks.size;
+      var ignoredCharacters = 2;
+      if(_dataBlocks.last.length == 1) {
+        assert(_dataBlocks.last.last == _LF);
+        ignoredCharacters--;
+        blocksNeeded--;
+        assert(_dataBlocks[blocksNeeded-1].last = _CR);
+      }
+
+      var stringIndex = 0;
+      for(var blockIndex=0; blockIndex < blocksNeeded; blockIndex++) {
+        final currentBlock = _dataBlocks[0];
+
+        _asString.setAll(stringIndex,
+            blockIndex == blocksNeeded - 1?
+            currentBlock.take(currentBlock.length - ignoredCharacters) :
+            currentBlock);
+      }
+    }
+    return _data;
+  }
+
+  String get line => {
+    if(_line == null) {
+      _line = UTF8.decode(data);
+    }
+    return _line;
+  }
+
+  /// The joined _dataBlocks
+  List<int> _data;
+  /// The line data as String
+  String _line;
+}
+
+class _BlockConsumer extends _RedisConsumer {
+  int consume(List<int> data, int start, int end) {
+    int result;
+    assert(start < end);
+    if(_lengthRequired == null) {
+      final newEnd = _lineConsumer.consume(data, start, end);
+      assert(newEnd > start && newEnd <= end);
+      if(_lineConsumer.done) {
+        _lengthRequired = int.parse(new String.fromCharCode(_lineConsumer.data));
+        result = newEnd < end? consume(data, newEnd, end) : newEnd;
+      } else {
+        result = newEnd;
+      }
+    } else {
+      final needed = _lengthRequired - _length;
+      final desiredEnd = start + needed;
+      final takeTo = min(desiredEnd, end);
+      _dataBlocks.add(new UnmodifiableListView(data.getRange(start, takeTo)));
+      _addToLength(takeTo - start);
+      result = takeTo;
+    }
+    assert(result > start && result <= end);
+    return result;
+  }
+
+  _addToLength(int additional) {
+    _length += additional;
+    assert(_length <= _lengthRequired);
+    if(_length == _lengthRequired) _done = true;
+  }
+
+  LineConsumer _lineConsumer = new LineConsumer();
+  int _length = 0;
+  int _lengthRequired;
+}
+
+
+class _StatusConsumer extends _LineConsumer {
+  RedisReply makeReply() => new StatusReply(line);
+}
+
+class _ErrorConsumer extends _LineConsumer {
+  RedisReply makeReply() => new ErrorReply(line);
+}
+
+class _IntegerConsumer extends _LineConsumer {
+  RedisReply makeReply() => new IntegerReply(int.parse(line));
+}
+
+class _BulkConsumer extends _BlockConsumer {
+  RedisReply makeReply() => new BulkReply(data);
+}
+
+class _MultiBulkConsumer extends _RedisConsumer {
+
+  int consume(List<int> data, final int start, final int end) {
+    int current = start;
+    assert(current < end);
+    if(_numReplies == null) {
+      current = _lineConsumer.consume(data, current, end);
+      assert(newEnd <= end);
+
+      if(_lineConsumer.done) {
+        _numReplies = int.parse(new String.fromCharCode(_lineConsumer.data));
+        result = current < end? consume(data, current, end) : end;
+      }
+    } else {
+      if(_activeConsumer == null) {
+        _activeConsumer = _makeRedisConsumer(current++);
+      }
+      if(current < end) {
+        current = _activeConsumer.consume(data, current, end);
+        if(_activeConsumer.done) {
+
+        }
+      }
+    }
+
+    assert(current > start && current <= end);
+    return current;
+  }
+
+  RedisReply makeReply() => new MultiBulkReply();
+  LineConsumer _lineConsumer = new LineConsumer();
+  RedisConsumer _activeConsumer;
+  int _numReplies;
+  int _repliesReceived = 0;
+}
+
+class StatusReply extends RedisReply {
+  ErrorReply(this.status);
+  String toString() => "StatusReply: $status";
+  final String status;
+}
+
+class ErrorReply extends RedisReply {
+  ErrorReply(this.error);
+  String toString() => "ErrorReply: $error";
+  final String error;
+}
+
+class IntegerReply extends RedisReply {
+  RedisReply(this.integer);
+  String toString() => "IntegerReply: $integer";
+  final int integer;
+}
+
+class BulkReply extends RedisReply {
+  BulkReply(this.bytes);
+
+  String get string {
+    if(_dataAsString == null) {
+      _dataAsString = UTF8.decode(bytes);
+    }
+    return _dataAsString;
+  }
+
+  String _dataAsString;
+  final List<int> bytes;
+}
+
+class MultiBulkReply extends RedisReply {
+  MutliBulkReply(this.replies);
+  final List<RedisReply> replies;
+}
+
+RedisConsumer _makeRedisConsumer(final int replyType) {
+  switch(replyType) {
+    case _STATUS: return new StatusConsumer();
+    case _ERROR: return new ErrorConsumer();
+    case _INTEGER: return new LineConsumer();
+    case _BULK: return new BulkConsumer();
+    case _MULTI_BULK: return new MultiBulkConsumer();
+    default: throw new InvalidRedisResponseError(
+      "The type character was incorrect (${new String.fromCharCode(replyTypeChar)}).");
+  }
+}
