@@ -16,24 +16,33 @@ class PublishBenchmark extends BenchmarkBase {
     "tags": ["home", "green"]
 }''';
 
-    final count = 100;
-    List<Future> futures = [];
+    final count = 5000;
+    int matched = count;
+    final watch = new Stopwatch()..start();
+
+    bool allAccountedFor() => matched == 0;
 
     final f = RedisClient
       .connect('localhost:6379')
       .then((RedisClient redisClient) {
-        for(int i=0; i<10000; i++) {
-          redisClient
-          .publish('CHAN', '$i=>$datum')
-          .then((_) => null);
+        List<Future> futures = [];
+
+        for(int i=0; i<count; i++) {
+          futures.add(redisClient
+              .publish('CHAN', '$i=>$datum')
+              .then((_) => matched--));
         }
+
+        Future
+          .wait(futures)
+          .then((_) => print('''
+Time: ${watch.elapsed}
+Total published: $count
+All Accounted For: ${allAccountedFor()}
+'''));
+
         redisClient.close();
       });
-
-    Future
-      .wait([f])
-      .then((_) => null);
-
   }
 }
 
