@@ -110,7 +110,6 @@ class _RedisConnection extends RedisConnection {
 
   void handleDone(EventSink<RedisReply> output) {
 
-    print('Handling done');
     if (_currentReply != null) {
       var error = new UnexpectedRedisClosureError("Some data has already been sent but was not complete.");
       // Apparently some data has already been sent, but the stream is done.
@@ -127,7 +126,6 @@ class _RedisConnection extends RedisConnection {
   void handleData(List<int> data, EventSink<RedisReply> output) {
     // I'm not entirely sure this is necessary, but better be safe.
     if (data.length == 0) return;
-    //print("Got ${data.length} => $data");
 
     final int end = data.length;
     var i = 0;
@@ -745,7 +743,7 @@ class _BulkConsumer extends _RedisConsumer {
     assert(start < end);
 
     int current = start;
-    if(_lengthRequired == null && current < end) {
+    if(_lengthRequired == null) {
       current = _lineConsumer.consume(data, current, end);
       if(_lineConsumer.done) {
         final specifiedLength =
@@ -765,7 +763,7 @@ class _BulkConsumer extends _RedisConsumer {
       current = takeTo;
     }
 
-    if(current < end) {
+    if(current < end && !done) {
       current = consume(data, current, end);
     }
 
@@ -829,7 +827,7 @@ class _MultiBulkConsumer extends _RedisConsumer {
       }
     } else {
       if(_activeConsumer == null) {
-        _activeConsumer = _makeRedisConsumer(current++);
+        _activeConsumer = _makeRedisConsumer(data[current++]);
       }
       if(current < end) {
         current = _activeConsumer.consume(data, current, end);
