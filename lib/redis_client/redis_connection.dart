@@ -127,23 +127,23 @@ class _RedisConnection extends RedisConnection {
   void handleData(List<int> data, EventSink<RedisReply> output) {
     // I'm not entirely sure this is necessary, but better be safe.
     if (data.length == 0) return;
-    print("Got ${data.length} => $data");
+    //print("Got ${data.length} => $data");
 
     final int end = data.length;
     var i = 0;
     while(i < end) {
-      if(_ender == null) {
+      if(_consumer == null) {
         try {
-          _ender = _makeRedisConsumer(data[i++]);
+          _consumer = _makeRedisConsumer(data[i++]);
         }
         on RedisProtocolTransformerException catch (e) {
           handleError(e, e.stackTrace, output);
         }
       } else {
-        i = _ender.consume(data, i, end);
-        if(_ender.done) {
-          output.add(_ender.makeReply());
-          _ender = null;
+        i = _consumer.consume(data, i, end);
+        if(_consumer.done) {
+          output.add(_consumer.makeReply());
+          _consumer = null;
         }
       }
     }
@@ -151,6 +151,9 @@ class _RedisConnection extends RedisConnection {
 
   /// The [Socket] used in this connection.
   Socket _socket;
+
+  /// The current consumer
+  _RedisConsumer _consumer;
 
 
   /// The completer that resolves the future as soon as the RedisConnection
@@ -631,118 +634,170 @@ class Receiver {
 
 }
 
+
 final int _CR = 13;
 final int _LF = 10;
 
-final int _STATUS = 43;
-final int _ERROR = 45;
-final int _INTEGER = 58;
-final int _BULK = 36;
-final int _MULTI_BULK = 42;
+const int _STATUS = 43;
+const int _ERROR = 45;
+const int _INTEGER = 58;
+const int _BULK = 36;
+const int _MULTI_BULK = 42;
 
 abstract class _RedisConsumer {
+
+  /// consume data from start index up to end (exclusive) index returning the
+  /// next index to be consumed if done
   int consume(List<int> data, int start, int end);
+
+  // Create RedisReply from consumed data (requires done == true)
   RedisReply makeReply();
-  final List<List<int>> _dataBlocks = [];
-  bool _done = false;
-}
 
-class _LineConsumer extends _RedisConsumer {
-  int consume(List<int> data, int start, int end) {
-    assert(start < end);
-    bool haveSome = !_dataBlocks.isEmpty;
-    var prev = haveSome? _dataBlocks.last.last : data[start];
-    var i = haveSome? start : start + 1;
-
-    for(; i < end; i++) {
-      final next = data[i];
-      if(prev == _CR && next == _LF) {
-        _done = true;
-        break;
-      }
-      prev = next;
-    }
-
-    assert(i > start && i <= end);
-    _dataBlocks.add(new UnmodifiableListView(data.getRange(start, i)));
-    return i;
-  }
+  bool get done;
 
   List<int> get data {
-    assert(_done);
+    assert(done);
 
     if(_data == null) {
       final dataSize = _dataBlocks.fold(0, (int prevValue, List dataBlock) =>
           prevValue + dataBlock.length);
-      _data = new List<int>(dataSize - 2);
-      var blocksNeeded = _dataBlocks.size;
-      var ignoredCharacters = 2;
-      if(_dataBlocks.last.length == 1) {
-        assert(_dataBlocks.last.last == _LF);
-        ignoredCharacters--;
-        blocksNeeded--;
-        assert(_dataBlocks[blocksNeeded-1].last = _CR);
-      }
+      if(dataSize == 0) {
+        return _data;
+      } else {
+        _data = new List<int>(dataSize - 2);
+        var blocksNeeded = _dataBlocks.length;
+        var ignoredCharacters = 2;
+        if(_dataBlocks.last.length == 1) {
+          assert(_dataBlocks.last.last == _LF);
+          ignoredCharacters--;
+          blocksNeeded--;
+          assert(_dataBlocks[blocksNeeded-1].last == _CR);
+        }
 
-      var stringIndex = 0;
-      for(var blockIndex=0; blockIndex < blocksNeeded; blockIndex++) {
-        final currentBlock = _dataBlocks[0];
+        var stringIndex = 0;
+        for(var blockIndex=0; blockIndex < blocksNeeded; blockIndex++) {
+          final currentBlock = _dataBlocks[blockIndex];
+          bool isLastBlock = blockIndex == blocksNeeded - 1;
+          final charsToTake = currentBlock.length - (isLastBlock? ignoredCharacters:0);
 
-        _asString.setAll(stringIndex,
-            blockIndex == blocksNeeded - 1?
-            currentBlock.take(currentBlock.length - ignoredCharacters) :
-            currentBlock);
+          _data.setAll(stringIndex,
+              isLastBlock?
+              currentBlock.take(currentBlock.length - ignoredCharacters) :
+              currentBlock);
+
+          stringIndex += charsToTake;
+        }
       }
     }
     return _data;
   }
 
-  String get line => {
-    if(_line == null) {
-      _line = UTF8.decode(data);
-    }
-    return _line;
-  }
+  final List<List<int>> _dataBlocks = [];
 
   /// The joined _dataBlocks
   List<int> _data;
-  /// The line data as String
-  String _line;
+
 }
 
-class _BlockConsumer extends _RedisConsumer {
-  int consume(List<int> data, int start, int end) {
-    int result;
+abstract class _LineConsumer extends _RedisConsumer {
+
+  int consume(List<int> data, final int start, final int end) {
     assert(start < end);
-    if(_lengthRequired == null) {
-      final newEnd = _lineConsumer.consume(data, start, end);
-      assert(newEnd > start && newEnd <= end);
+    ///////////////////////////////////////////////////////////////////////////
+    // Iterate looking for CR,LF to end the line. If we have data already use
+    // the last character saved as check for CR in CR,LF. Otherwise start at
+    // beginning of data
+    ///////////////////////////////////////////////////////////////////////////
+    bool haveSome = !_dataBlocks.isEmpty;
+
+    var prevChar = haveSome? _dataBlocks.last.last : data[start];
+    int current = haveSome? start : start + 1;
+
+    for(; current < end; current++) {
+      final nextChar = data[current];
+      if(prevChar == _CR && nextChar == _LF) {
+        _done = true;
+        current++;
+        break;
+      }
+      prevChar = nextChar;
+    }
+
+    _dataBlocks.add(new UnmodifiableListView(data.getRange(start, current)));
+
+    // we've advanced and either are done or ran out
+    assert(current > start && (done || current == end));
+
+    return current;
+  }
+
+  String get line => _line == null? (_line = UTF8.decode(data)) : _line;
+  bool get done => _done;
+
+  /// The line data as String
+  String _line;
+  /// Done reading the single line
+  bool _done;
+}
+
+class _BulkConsumer extends _RedisConsumer {
+  int consume(List<int> data, final int start, final int end) {
+    assert(start < end);
+
+    int current = start;
+    if(_lengthRequired == null && current < end) {
+      current = _lineConsumer.consume(data, current, end);
       if(_lineConsumer.done) {
-        _lengthRequired = int.parse(new String.fromCharCode(_lineConsumer.data));
-        result = newEnd < end? consume(data, newEnd, end) : newEnd;
-      } else {
-        result = newEnd;
+        final specifiedLength =
+          int.parse(new String.fromCharCodes(_lineConsumer.data));
+        if(specifiedLength == -1) {
+          _lengthRequired = 0;
+        } else {
+          _lengthRequired = 2 + specifiedLength;
+        }
       }
     } else {
-      final needed = _lengthRequired - _length;
+      final needed = _lengthRequired - _lengthRead;
       final desiredEnd = start + needed;
       final takeTo = min(desiredEnd, end);
       _dataBlocks.add(new UnmodifiableListView(data.getRange(start, takeTo)));
       _addToLength(takeTo - start);
-      result = takeTo;
+      current = takeTo;
     }
-    assert(result > start && result <= end);
-    return result;
+
+    if(current < end) {
+      current = consume(data, current, end);
+    }
+
+    // we've advanced and either are done or ran out
+    assert(current > start && (done || current == end));
+
+    return current;
   }
+
+  get done => _lengthRead == _lengthRequired;
+
+  RedisReply makeReply() => new BulkReply(data);
+
+  // List<int> get data {
+  //   assert(done);
+  //   final size = _dataBlocks.fold(0, (prev, elm) => prev + elm.length);
+  //   final result = new List<int>(size);
+  //   int i=0;
+  //   _dataBlocks.forEach((List<int> dataBlock) {
+  //     result.setAll(i, dataBlock);
+  //     i += dataBlock.length;
+  //   });
+  //   return result;
+  // }
 
   _addToLength(int additional) {
-    _length += additional;
-    assert(_length <= _lengthRequired);
-    if(_length == _lengthRequired) _done = true;
+    _lengthRead += additional;
+    assert(_lengthRead <= _lengthRequired);
   }
 
-  LineConsumer _lineConsumer = new LineConsumer();
-  int _length = 0;
+  _LineConsumer _lineConsumer = new _IntegerConsumer();
+  int _lengthRead = 0;
   int _lengthRequired;
 }
 
@@ -759,22 +814,18 @@ class _IntegerConsumer extends _LineConsumer {
   RedisReply makeReply() => new IntegerReply(int.parse(line));
 }
 
-class _BulkConsumer extends _BlockConsumer {
-  RedisReply makeReply() => new BulkReply(data);
-}
-
 class _MultiBulkConsumer extends _RedisConsumer {
 
   int consume(List<int> data, final int start, final int end) {
-    int current = start;
-    assert(current < end);
-    if(_numReplies == null) {
-      current = _lineConsumer.consume(data, current, end);
-      assert(newEnd <= end);
+    assert(start < end);
 
+    int current = start;
+    if(_replies == null) {
+      current = _lineConsumer.consume(data, current, end);
       if(_lineConsumer.done) {
-        _numReplies = int.parse(new String.fromCharCode(_lineConsumer.data));
-        result = current < end? consume(data, current, end) : end;
+        final numReplies =
+          int.parse(new String.fromCharCodes(_lineConsumer.data));
+        _replies = new List<RedisReply>(numReplies);
       }
     } else {
       if(_activeConsumer == null) {
@@ -783,67 +834,38 @@ class _MultiBulkConsumer extends _RedisConsumer {
       if(current < end) {
         current = _activeConsumer.consume(data, current, end);
         if(_activeConsumer.done) {
-
+          _replies[_repliesReceived++] = _activeConsumer.makeReply();
+          _activeConsumer = null;
         }
       }
     }
 
-    assert(current > start && current <= end);
+    if(current < end) {
+      current = consume(data, current, end);
+    }
+
+    // we've advanced and either are done or ran out
+    assert(current > start && (done || current == end));
     return current;
   }
 
-  RedisReply makeReply() => new MultiBulkReply();
-  LineConsumer _lineConsumer = new LineConsumer();
-  RedisConsumer _activeConsumer;
-  int _numReplies;
+  RedisReply makeReply() => new MultiBulkReply(_replies);
+  bool get done => _replies != null && _replies.length == _repliesReceived;
+
+  _LineConsumer _lineConsumer = new _IntegerConsumer();
+  _RedisConsumer _activeConsumer;
+  List<RedisReply> _replies;
   int _repliesReceived = 0;
 }
 
-class StatusReply extends RedisReply {
-  ErrorReply(this.status);
-  String toString() => "StatusReply: $status";
-  final String status;
-}
-
-class ErrorReply extends RedisReply {
-  ErrorReply(this.error);
-  String toString() => "ErrorReply: $error";
-  final String error;
-}
-
-class IntegerReply extends RedisReply {
-  RedisReply(this.integer);
-  String toString() => "IntegerReply: $integer";
-  final int integer;
-}
-
-class BulkReply extends RedisReply {
-  BulkReply(this.bytes);
-
-  String get string {
-    if(_dataAsString == null) {
-      _dataAsString = UTF8.decode(bytes);
-    }
-    return _dataAsString;
-  }
-
-  String _dataAsString;
-  final List<int> bytes;
-}
-
-class MultiBulkReply extends RedisReply {
-  MutliBulkReply(this.replies);
-  final List<RedisReply> replies;
-}
-
-RedisConsumer _makeRedisConsumer(final int replyType) {
+_RedisConsumer _makeRedisConsumer(final int replyType) {
   switch(replyType) {
-    case _STATUS: return new StatusConsumer();
-    case _ERROR: return new ErrorConsumer();
-    case _INTEGER: return new LineConsumer();
-    case _BULK: return new BulkConsumer();
-    case _MULTI_BULK: return new MultiBulkConsumer();
+    case _STATUS: return new _StatusConsumer();
+    case _ERROR: return new _ErrorConsumer();
+    case _INTEGER: return new _IntegerConsumer();
+    case _BULK: return new _BulkConsumer();
+    case _MULTI_BULK: return new _MultiBulkConsumer();
     default: throw new InvalidRedisResponseError(
-      "The type character was incorrect (${new String.fromCharCode(replyTypeChar)}).");
+      "The type character was incorrect (${new String.fromCharCode(replyType)}).");
   }
 }

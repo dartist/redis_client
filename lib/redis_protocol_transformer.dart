@@ -23,7 +23,4 @@ import 'dart:convert';
 
 part 'transformer/transformer_exceptions.dart';
 
-part 'transformer/data_consumers.dart';
-
 part 'transformer/redis_replies.dart';
-
