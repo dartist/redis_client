@@ -45,14 +45,6 @@ abstract class RedisConnection {
   /// Redis database
   int db;
 
-
-
-  void handleDone(EventSink<RedisReply> output);
-
-  void handleError(Object error, StackTrace stackTrace, EventSink<RedisReply> sink);
-
-  void handleData(List<int> data, EventSink<RedisReply> output);
-
   Future auth(String password);
 
   /// Closes the connection.
@@ -105,52 +97,12 @@ class _RedisConnection extends RedisConnection {
 
   int db;
 
-
-  RedisReply _currentReply;
-
-  void handleDone(EventSink<RedisReply> output) {
-
-    if (_currentReply != null) {
-      var error = new UnexpectedRedisClosureError("Some data has already been sent but was not complete.");
-      // Apparently some data has already been sent, but the stream is done.
-      handleError(error, error.stackTrace, output);
-    }
-
-    output.close();
-  }
-
-  void handleError(Object error, StackTrace stackTrace, EventSink<RedisReply> sink) {
-    sink.addError(error, stackTrace);
-  }
-
-  void handleData(List<int> data, EventSink<RedisReply> output) {
-    // I'm not entirely sure this is necessary, but better be safe.
-    if (data.length == 0) return;
-
-    final int end = data.length;
-    var i = 0;
-    while(i < end) {
-      if(_consumer == null) {
-        try {
-          _consumer = _makeRedisConsumer(data[i++]);
-        }
-        on RedisProtocolTransformerException catch (e) {
-          handleError(e, e.stackTrace, output);
-        }
-      } else {
-        i = _consumer.consume(data, i, end);
-        if(_consumer.done) {
-          output.add(_consumer.makeReply());
-          _consumer = null;
-        }
-      }
-    }
-  }
-
   /// The [Socket] used in this connection.
   Socket _socket;
 
-  /// The current consumer
+  RedisStreamTransformerHandler _streamTransformerHandler = new RedisStreamTransformerHandler();
+
+  // /// The current consumer
   _RedisConsumer _consumer;
 
 
@@ -226,8 +178,8 @@ class _RedisConnection extends RedisConnection {
 
           // Setting up all the listeners so Redis responses can be interpreted.
           socket
-              .transform(new StreamTransformer.fromHandlers(handleData: handleData, handleError: handleError, handleDone: handleDone))
-              .listen(_onRedisReply, onError: _onStreamError, onDone: _onStreamDone);
+            .transform(_streamTransformerHandler.createTransformer())
+            .listen(_onRedisReply, onError: _onStreamError, onDone: _onStreamDone);
 
           if (password != null) return _authenticate(password);
         })
@@ -642,6 +594,11 @@ const int _INTEGER = 58;
 const int _BULK = 36;
 const int _MULTI_BULK = 42;
 
+/// Establishes base for the consumers of redis data
+///
+/// The pattern for the consume method is indexed base, meaning consumers are
+/// supplied a (start, end] on which to work and they return the index of the
+/// next datum to be consumed.
 abstract class _RedisConsumer {
 
   /// consume data from start index up to end (exclusive) index returning the
@@ -690,19 +647,22 @@ abstract class _RedisConsumer {
     return _data;
   }
 
+  /// Blocks of data consumed
   final List<List<int>> _dataBlocks = [];
 
-  /// The joined _dataBlocks
+  /// The joined _dataBlocks - lazy initilialized to join via `get data` call
+  /// which at that point strips the CR,LF
   List<int> _data;
 
 }
 
+/// Consumes a single line of data
 abstract class _LineConsumer extends _RedisConsumer {
 
   int consume(List<int> data, final int start, final int end) {
     assert(start < end);
     ///////////////////////////////////////////////////////////////////////////
-    // Iterate looking for CR,LF to end the line. If we have data already use
+    // Iterate looking for CR,LF to end the line. If we have data already, use
     // the last character saved as check for CR in CR,LF. Otherwise start at
     // beginning of data
     ///////////////////////////////////////////////////////////////////////////
@@ -735,9 +695,10 @@ abstract class _LineConsumer extends _RedisConsumer {
   /// The line data as String
   String _line;
   /// Done reading the single line
-  bool _done;
+  bool _done = false;
 }
 
+/// Consumes the bulk type redis reply
 class _BulkConsumer extends _RedisConsumer {
   int consume(List<int> data, final int start, final int end) {
     assert(start < end);
@@ -776,18 +737,6 @@ class _BulkConsumer extends _RedisConsumer {
   get done => _lengthRead == _lengthRequired;
 
   RedisReply makeReply() => new BulkReply(data);
-
-  // List<int> get data {
-  //   assert(done);
-  //   final size = _dataBlocks.fold(0, (prev, elm) => prev + elm.length);
-  //   final result = new List<int>(size);
-  //   int i=0;
-  //   _dataBlocks.forEach((List<int> dataBlock) {
-  //     result.setAll(i, dataBlock);
-  //     i += dataBlock.length;
-  //   });
-  //   return result;
-  // }
 
   _addToLength(int additional) {
     _lengthRead += additional;
@@ -838,7 +787,7 @@ class _MultiBulkConsumer extends _RedisConsumer {
       }
     }
 
-    if(current < end) {
+    if(current < end && !done) {
       current = consume(data, current, end);
     }
 
@@ -848,11 +797,19 @@ class _MultiBulkConsumer extends _RedisConsumer {
   }
 
   RedisReply makeReply() => new MultiBulkReply(_replies);
+
+  /// Consumer is done when all replies have been received
   bool get done => _replies != null && _replies.length == _repliesReceived;
 
+  /// Consumer used to get the number of replies in the MultiBulkReply
   _LineConsumer _lineConsumer = new _IntegerConsumer();
+
+  /// Consumer for the current reply being processed
   _RedisConsumer _activeConsumer;
+
+  /// List of resulting replies in this MultiBulkReply
   List<RedisReply> _replies;
+
   int _repliesReceived = 0;
 }
 
@@ -866,4 +823,53 @@ _RedisConsumer _makeRedisConsumer(final int replyType) {
     default: throw new InvalidRedisResponseError(
       "The type character was incorrect (${new String.fromCharCode(replyType)}).");
   }
+}
+
+class RedisStreamTransformerHandler {
+
+  StreamTransformer createTransformer() =>
+    new StreamTransformer.fromHandlers(handleData: handleData,
+        handleError: handleError, handleDone: handleDone);
+
+  void handleDone(EventSink<RedisReply> output) {
+
+    if (_consumer != null) {
+      var error = new UnexpectedRedisClosureError("Some data has already been sent but was not complete.");
+      // Apparently some data has already been sent, but the stream is done.
+      handleError(error, error.stackTrace, output);
+    }
+
+    output.close();
+  }
+
+  void handleError(Object error, StackTrace stackTrace, EventSink<RedisReply> sink) {
+    sink.addError(error, stackTrace);
+  }
+
+  void handleData(List<int> data, EventSink<RedisReply> output) {
+    // I'm not entirely sure this is necessary, but better be safe.
+    if (data.length == 0) return;
+
+    final int end = data.length;
+    var i = 0;
+    while(i < end) {
+      if(_consumer == null) {
+        try {
+          _consumer = _makeRedisConsumer(data[i++]);
+        }
+        on RedisProtocolTransformerException catch (e) {
+          handleError(e, e.stackTrace, output);
+        }
+      } else {
+        i = _consumer.consume(data, i, end);
+        if(_consumer.done) {
+          output.add(_consumer.makeReply());
+          _consumer = null;
+        }
+      }
+    }
+  }
+
+  /// The current consumer
+  _RedisConsumer _consumer;
 }

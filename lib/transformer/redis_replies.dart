@@ -1,6 +1,10 @@
 part of redis_protocol_transformer;
 
-class RedisReply {}
+class RedisReply {
+  /// All replies complete and client code should not need this, but here since
+  /// it was available in original api
+  get done => true;
+}
 
 class StatusReply extends RedisReply {
   StatusReply(this.status);
