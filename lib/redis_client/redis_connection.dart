@@ -258,12 +258,11 @@ class _RedisConnection extends RedisConnection {
       throw new RedisClientException("Received data without expecting any ($redisReply).");
     }
 
-    for (var response in _pendingResponses) {
-      if (response.reply == null) {
-        response.reply = redisReply;
-        return;
-      }
-    }
+    assert(!_pendingResponses.isEmpty);
+
+    final pending = _pendingResponses.removeFirst();
+    assert(pending.reply == null);
+    pending.reply = redisReply;
   }
 
   /// Handles stream errors
@@ -279,7 +278,7 @@ class _RedisConnection extends RedisConnection {
   }
 
 
-  List<Receiver> _pendingResponses = <Receiver>[ ];
+  Queue<Receiver> _pendingResponses = new Queue<Receiver>();
 
   /**
    * Returns a [Receiver] on which you can get a future of a specific type.
