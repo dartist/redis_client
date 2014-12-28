@@ -18,12 +18,12 @@
  */
 library redis_protocol_transformer;
 
+import 'dart:math';
+import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
 
-part 'transformer/transformer_exceptions.dart';
-
-part 'transformer/data_consumers.dart';
 
 part 'transformer/redis_replies.dart';
-
+part 'transformer/transformer_exceptions.dart';
+part 'transformer/transformer.dart';
