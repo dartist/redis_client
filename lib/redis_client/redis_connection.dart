@@ -323,6 +323,11 @@ class _RedisConnection extends RedisConnection {
   Receiver rawSend(List<List<int>> cmdWithArgs) {
     var response = new Receiver();
     
+   
+    if( logger.level <= Level.FINEST){
+      logger.finest("Sending message ${UTF8.decode(cmdWithArgs[0])}");
+    }
+    
     //we call _socket.add only once and we try to avoid string concat
     List<int> buffer = new List<int>();
     buffer.addAll("*".codeUnits);
