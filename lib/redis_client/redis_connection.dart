@@ -322,18 +322,20 @@ class _RedisConnection extends RedisConnection {
    */
   Receiver rawSend(List<List<int>> cmdWithArgs) {
     var response = new Receiver();
-
-    logger.finest("Sending message ${UTF8.decode(cmdWithArgs[0])}");
-
-    _socket.add("*${cmdWithArgs.length}\r\n".codeUnits);
-    cmdWithArgs.forEach((line) {
-      _socket.add("\$${line.length}\r\n".codeUnits);
-
-      // Write the line, and the line end
-      _socket.add(line);
-      _socket.add(_lineEnd);
-    });
-
+    
+    //we call _socket.add only once and we try to avoid string concat
+    List<int> buffer = new List<int>();
+    buffer.addAll("*".codeUnits);
+    buffer.addAll(cmdWithArgs.length.toString().codeUnits);
+    buffer.addAll(_lineEnd);    
+    for( var line in cmdWithArgs) {
+      buffer.addAll("\$".codeUnits);
+      buffer.addAll(line.length.toString().codeUnits);
+      buffer.addAll(_lineEnd);
+      buffer.addAll(line);
+      buffer.addAll(_lineEnd);
+    }
+    _socket.add(buffer);
     _pendingResponses.add(response);
 
     return response;
