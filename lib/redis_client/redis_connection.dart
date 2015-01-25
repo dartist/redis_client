@@ -214,32 +214,29 @@ class _RedisConnection extends RedisConnection {
 
   Function _subscriptionHandler = null;
 
-  Future subscribe(List<String> channels, Function onMessage){
-
-    Completer subscribeCompleter = new Completer();
-    List<String> args = new List <String>()
-        ..add("SUBSCRIBE")
-        ..addAll(channels);
-
-    send(args).receive().then((val){
-      _subscriptionHandler = onMessage;
-      subscribeCompleter.complete();
+  Future _subscribeImpl(List<String> terms, Function onMessage, String command,
+      bool isSubscribe) {
+    final args = new List<String>()..add(command)..addAll(terms);
+    if(!isSubscribe) _subscriptionHandler = null;
+    Completer completer = new Completer();
+    send(args).receive().then((RedisReply val){
+      if(isSubscribe) _subscriptionHandler = onMessage;
+      completer.complete();
     });
-    return subscribeCompleter.future;
+    return completer.future;
   }
 
-  Future unsubscribe(List<String> channels){
-    Completer unsubscribeCompleter = new Completer();
-    List<String> args = new List <String>()
-        ..add("UNSUBSCRIBE")
-        ..addAll(channels);
+  Future subscribe(List<String> channels, Function onMessage) =>
+    _subscribeImpl(channels, onMessage, "SUBSCRIBE", true);
 
-    _subscriptionHandler = null;
-    send(args).receive().then((val){
-      unsubscribeCompleter.complete();
-    });
-    return unsubscribeCompleter.future;
-  }
+  Future unsubscribe(List<String> channels) =>
+    _subscribeImpl(channels, null, "UNSUBSCRIBE", false);
+
+  Future psubscribe(List<String> channels, Function onMessage) =>
+    _subscribeImpl(channels, onMessage, "PSUBSCRIBE", true);
+
+  Future punsubscribe(List<String> channels) =>
+    _subscribeImpl(channels, null, "PUNSUBSCRIBE", false);
 
   /// Handles new data received from stream.
   void _onRedisReply(RedisReply redisReply) {

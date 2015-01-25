@@ -1573,7 +1573,18 @@ class RedisClient {
    * Unubscribes from [List<String>] channels 
    */
   Future unsubscribe(List<String> channels) => connection.unsubscribe(channels);
-  
+
+  /**
+   * Psubscribes to [List<String> ] channels
+   * with [Function] onMessage handler
+   */
+  Future psubscribe(List<String> patterns, Function onMessage) => connection.psubscribe(patterns, onMessage);
+
+  /**
+   * Punubscribes from [List<String>] channels
+   */
+  Future punsubscribe(List<String> patterns) => connection.punsubscribe(patterns);
+       
   /**
    * Publishes [String] message to [String] channel 
    * map when key does not exist.
