@@ -10,3 +10,4 @@ pubspec.lock
 test/packages
 .children
 .project
+.idea
