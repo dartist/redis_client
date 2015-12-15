@@ -3,9 +3,9 @@ library redis_protocol_transformer_tests;
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 
-import 'package:unittest/mock.dart';
+import 'package:mockito/mockito.dart';
 
 import 'package:redis_client/redis_protocol_transformer.dart';
 import 'package:redis_client/redis_client.dart';

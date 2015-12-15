@@ -1,7 +1,7 @@
 library redis_pubsub_tests;
 
 import 'dart:async';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'package:redis_client/redis_client.dart';
 import 'helper.dart';
  
