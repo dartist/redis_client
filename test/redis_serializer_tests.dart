@@ -1,7 +1,7 @@
 library redis_serializer_tests;
 
 import 'dart:convert';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'package:redis_client/redis_client.dart';
 
 class A {
