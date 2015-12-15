@@ -5,7 +5,9 @@
 *.war
 *.ear
 
-packages/
+packages
+.packages
+.pub
 pubspec.lock
 test/packages
 .children
