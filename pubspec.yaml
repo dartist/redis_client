@@ -1,11 +1,12 @@
 name: redis_client
-version: 0.1.14
+version: 0.1.16
 authors:
 - Demis Bellot <demis.bellot@gmail.com>
 - Adam Singer <financeCoding@gmail.com>
 - Matias Meno <m@tias.me>
 - Baruch Berger <baruchberger@gmail.com>
 - Max Horstmann <max.horstmann@gmail.com>
+- Matthew Butler <butler.matthew@gmail.com>
 description: A high-performance async/non-blocking Redis client for Dart.
 homepage: https://github.com/dartist/redis_client
 environment:
