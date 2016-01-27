@@ -217,14 +217,16 @@ class _RedisConnection extends RedisConnection {
   Future subscribe(List<String> channels, Function onMessage){
 
     Completer subscribeCompleter = new Completer();
-    List<String> args = new List <String>()
-        ..add("SUBSCRIBE")
-        ..addAll(channels);
+    List<List<int>> args = new List <List<int>>()
+        ..add("SUBSCRIBE".codeUnits)
+        ..addAll(channels.map((String channel) => UTF8.encode(channel)));
 
-    send(args).receive().then((val){
-      _subscriptionHandler = onMessage;
-      subscribeCompleter.complete();
+    Future.wait(rawSendMultipleResponses(args, channels.length)
+        .map((Receiver r) => r.receiveMultiBulk())).then((_) {
+          _subscriptionHandler = onMessage;
+          subscribeCompleter.complete();
     });
+
     return subscribeCompleter.future;
   }
 
@@ -322,17 +324,17 @@ class _RedisConnection extends RedisConnection {
    */
   Receiver rawSend(List<List<int>> cmdWithArgs) {
     var response = new Receiver();
-    
-   
+
+
     if( logger.level <= Level.FINEST){
       logger.finest("Sending message ${UTF8.decode(cmdWithArgs[0])}");
     }
-    
+
     //we call _socket.add only once and we try to avoid string concat
     List<int> buffer = new List<int>();
     buffer.addAll("*".codeUnits);
     buffer.addAll(cmdWithArgs.length.toString().codeUnits);
-    buffer.addAll(_lineEnd);    
+    buffer.addAll(_lineEnd);
     for( var line in cmdWithArgs) {
       buffer.addAll("\$".codeUnits);
       buffer.addAll(line.length.toString().codeUnits);
@@ -346,6 +348,28 @@ class _RedisConnection extends RedisConnection {
     return response;
   }
 
+  /**
+   * This is the same as [rawSend] except it expects more than 1 response.
+   *
+   *
+   * Eg.:
+   *     Future.wait(
+   *         rawSendMultipleResponses(["SUBSCRIBE".codeUnits, "CHAN1".codeUnits, "CHAN2".codeUnits], 2)
+   *         .map((Receiver r) => r.receiveMultiBulkStrings());
+   */
+  List<Receiver> rawSendMultipleResponses(List<List<int>> cmdWithArgs, int expectedResponseCount) {
+    List<Receiver> receivers = new List<Receiver>()
+      ..add(rawSend(cmdWithArgs));
+
+    Receiver receiver;
+    for (int i=1; i<expectedResponseCount; i++) {
+      receiver = new Receiver();
+      receivers.add(receiver);
+      _pendingResponses.add(receiver);
+    }
+
+    return receivers;
+  }
 }
 
 
