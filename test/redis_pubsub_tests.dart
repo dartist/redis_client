@@ -74,8 +74,59 @@ main() {
       );
       
     });
-    
-    
+
+    test("Subscribe multiple channels", () {
+      List<List<String>> messages = new List<List<String>>();
+      async(
+        client.subscribe(["chan0", "chan1"], (Receiver message) {
+          message.receiveMultiBulkStrings().then((List<String> message) {
+            messages.add(message);
+            if (messages.length == 2) {
+              expect(messages[0][1], equals('chan1'));
+              expect(messages[0][2], equals('Hello'));
+              expect(messages[1][1], equals('chan0'));
+              expect(messages[1][2], equals('World'));
+            }
+          });
+        })
+        .then((_) {
+          client1.publish("chan1", "Hello");
+          client1.publish("chan0", "World");
+        })
+      );
+    });
+
+    test("partial unsubscribe", () {
+
+      List<List<String>> responses = new List<List<String>>();
+      async(
+          client.subscribe(["chan0", "chan1", "chan2"], (Receiver message) {
+              message.receiveMultiBulkStrings().then((List<String> response) {
+                responses.add(response);
+                if (responses.length == 1) {
+                  client.unsubscribe(["chan0", "chan1"]).then((_) {
+                    client1.publish("chan0", "Hello chan0");
+                    client1.publish("chan1", "Hello chan1");
+                    client1.publish("chan2", "Hello chan2");
+                  });
+                }
+                if (responses.length == 4) {
+                  expect(responses[0], equals(["chan0", "Hello chan0"]));
+                  expect(responses[1], equals(["chan1", "Hello chan1"]));
+                  expect(responses[2], equals(["chan2", "Hello chan2"]));
+                  expect(responses[3], equals(["chan2", "Hello chan2"]));
+                }
+              });
+
+          }).then((_) {
+            client1.publish("chan0","Hello chan0");
+            client1.publish("chan1","Hello chan1");
+            client1.publish("chan2","Hello chan2");
+          })
+      );
+
+    });
+
   });  
   
 }
