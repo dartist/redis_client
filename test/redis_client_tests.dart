@@ -916,8 +916,14 @@ invalid_line
           .then((blpopResult) => expect(blpopResult, equals({'list1':'a'})))
       );
     });
-    
-    test('BRPOP', () { 
+
+    test('BLPOP - with timeout', () {
+      async(
+          client.blpop(['list1'], timeout: 1).
+          then((blpopResult) => expect(blpopResult, equals({}))));
+    });
+
+    test('BRPOP', () {
       async(
           client.rpush('list1', ['a', 'b', 'c'])
           .then((_) => client.brpop(['list1', 'list2'], timeout: 0))

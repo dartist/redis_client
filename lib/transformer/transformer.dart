@@ -236,8 +236,9 @@ class _MultiBulkConsumer extends _RedisConsumer {
     if(_replies == null) {
       current = _lineConsumer.consume(data, current, end);
       if(_lineConsumer.done) {
-        final numReplies =
+        final numRepliesOnWire =
           int.parse(new String.fromCharCodes(_lineConsumer.data));
+        final numReplies = numRepliesOnWire == -1 ? 0 : numRepliesOnWire;
         _replies = new List<RedisReply>(numReplies);
       }
     } else {
