@@ -305,6 +305,14 @@ class RedisClient {
       connection.sendCommand(RedisCommand.PSETEX, 
           [ key, expireInMs.toString(), value ]).receiveStatus("OK");
 
+  /// If [key] does not exist, the key is added with the value of [value],
+  /// and true is returned.
+  ///
+  /// If [key] does exist, this operation has no effect and false is returned.
+  Future<bool> setnx(String key, Object value) =>
+      connection.sendCommandWithVariadicValues(RedisCommand.SETNX, [ key ],
+          serializer.serializeToList(value)).receiveBool();
+
   /**
    * Remove the existing timeout on key.
    *
