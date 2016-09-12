@@ -1447,7 +1447,7 @@ class RedisClient {
    * If field already exists, this operation has no effect.
    */
   Future<bool> hsetnx(String hashId, String key, Object value) => 
-      connection.sendCommandWithVariadicValues(RedisCommand.HSETNX, [ key ], 
+      connection.sendCommandWithVariadicValues(RedisCommand.HSETNX, [ hashId, key ], 
           serializer.serializeToList(value)).receiveBool();
   
   /**
