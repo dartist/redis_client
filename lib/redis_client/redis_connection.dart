@@ -78,6 +78,8 @@ abstract class RedisConnection {
 
   /// Unubscribes from [List<String>] channels
   Future unsubscribe(List<String> channels);
+  
+  var isConnected = false;
 }
 
 
@@ -169,6 +171,8 @@ class _RedisConnection extends RedisConnection {
             .transform(_streamTransformerHandler.createTransformer())
             .listen(_onRedisReply, onError: _onStreamError, onDone: _onStreamDone);
 
+          isConnected = true;
+
           if (password != null) return _authenticate(password);
         })
         .then((_) {
@@ -189,6 +193,7 @@ class _RedisConnection extends RedisConnection {
   /// Closes the connection.
   Future close() {
     logger.fine("Closing connection.");
+    isConnected = false;
     return this.connected.then((_) => _socket.close());
   }
 
@@ -209,6 +214,7 @@ class _RedisConnection extends RedisConnection {
   /// Gets called when the socket has an error.
   void _onSocketError(err) {
     logger.warning("Socket error $err.");
+    close();
     throw new RedisClientException("Socket error $err.");
   }
 
@@ -269,11 +275,13 @@ class _RedisConnection extends RedisConnection {
   void _onStreamError(err) {
     logger.warning("Stream error $err");
     _socket.close();
+    isConnected = false;
     throw new RedisClientException("Received stream error $err.");
   }
 
   /// Gets called when the stream closes.
   void _onStreamDone() {
+    isConnected = false;
     logger.fine("Stream finished.");
   }
 
@@ -321,6 +329,10 @@ class _RedisConnection extends RedisConnection {
    *     rawSend([ "GET".codeUnits, UTF8.encode("keyname") ]).receiveBulkString().then((String value) { });
    */
   Receiver rawSend(List<List<int>> cmdWithArgs) {
+    
+    if (!isConnected)
+      throw new RedisClientException('redis socket not connected');
+
     var response = new Receiver();
     
    

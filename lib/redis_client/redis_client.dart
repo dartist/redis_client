@@ -62,6 +62,8 @@ class RedisClient {
   Map get stats => connection.stats;
 
   Future close() => connection.close();
+  
+  bool get isConnected => connection.isConnected;
 
 
 
