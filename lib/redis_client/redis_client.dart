@@ -2,6 +2,8 @@ part of redis_client;
 
 const exclusive = '(';
 
+typedef SubscriptionCallback = Function(Receiver receiver);
+
 /**
  * The [RedisClient] is a high level class to access your redis server.
  *
@@ -1577,7 +1579,7 @@ class RedisClient {
    * Subscribes to [List<String> ] channels 
    * with [Function] onMessage handler
    */
-  Future subscribe(List<String> channels, Function onMessage) => connection.subscribe(channels, onMessage);      
+  Future subscribe(List<String> channels, SubscriptionCallback onMessage) => connection.subscribe(channels, onMessage);      
   
   /**
    * Unubscribes from [List<String>] channels 

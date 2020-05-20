@@ -73,7 +73,7 @@ abstract class RedisConnection {
 
 
   /// Subscribes to [List<String>] channels with [Function] onMessage handler
-  Future subscribe(List<String> channels, Function onMessage);
+  Future subscribe(List<String> channels, SubscriptionCallback onMessage);
 
 
   /// Unubscribes from [List<String>] channels
@@ -218,9 +218,9 @@ class _RedisConnection extends RedisConnection {
     throw new RedisClientException("Socket error $err.");
   }
 
-  Function _subscriptionHandler = null;
+  SubscriptionCallback _subscriptionHandler = null;
 
-  Future subscribe(List<String> channels, Function onMessage){
+  Future subscribe(List<String> channels, SubscriptionCallback onMessage){
 
     Completer subscribeCompleter = new Completer();
     List<String> args = new List <String>()
