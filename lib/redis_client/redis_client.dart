@@ -1590,7 +1590,7 @@ class RedisClient {
    * Publishes [String] message to [String] channel 
    * map when key does not exist.
    */
-  Future publish(String channel, String message) => 
+  Future<int> publish(String channel, String message) => 
       connection.sendCommand(RedisCommand.PUBLISH, [channel,message])
         .receiveInteger();
   
