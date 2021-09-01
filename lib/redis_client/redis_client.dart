@@ -288,7 +288,17 @@ class RedisClient {
   Future<String> getset(String key, String value) => connection.sendCommand(RedisCommand.GETSET, [ key, value ]).receiveBulkString();
 
   /// Sets the value of given key.
-  Future set(String key, String value) => connection.sendCommand(RedisCommand.SET, [ key, value ]).receiveStatus("OK");
+  Future<bool> set(String key, String value, {bool ifNotExists = false, Duration expiration}) async {
+    final list = [key, value];
+    if (expiration != null) list.addAll(['PX', (expiration.inMilliseconds).toString()]);
+    if (ifNotExists) list.add('NX');
+    try {
+      final reply = await connection.sendCommand(RedisCommand.SET, list).receiveStatus('OK');
+      return reply == 'OK';
+    } on RedisClientException catch (e) {
+      return false;
+    }
+  }
 
   /**
    * Sets a value and the expiration in one step.
