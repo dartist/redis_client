@@ -2,6 +2,8 @@ part of redis_client;
 
 const exclusive = '(';
 
+typedef SubscriptionCallback = Function(Receiver receiver);
+
 /**
  * The [RedisClient] is a high level class to access your redis server.
  *
@@ -62,6 +64,8 @@ class RedisClient {
   Map get stats => connection.stats;
 
   Future close() => connection.close();
+  
+  bool get isConnected => connection.isConnected;
 
 
 
@@ -284,7 +288,17 @@ class RedisClient {
   Future<String> getset(String key, String value) => connection.sendCommand(RedisCommand.GETSET, [ key, value ]).receiveBulkString();
 
   /// Sets the value of given key.
-  Future set(String key, String value) => connection.sendCommand(RedisCommand.SET, [ key, value ]).receiveStatus("OK");
+  Future<bool> set(String key, String value, {bool ifNotExists = false, Duration expiration}) async {
+    final list = [key, value];
+    if (expiration != null) list.addAll(['PX', (expiration.inMilliseconds).toString()]);
+    if (ifNotExists) list.add('NX');
+    try {
+      final reply = await connection.sendCommand(RedisCommand.SET, list).receiveStatus('OK');
+      return reply == 'OK';
+    } on RedisClientException catch (e) {
+      return false;
+    }
+  }
 
   /**
    * Sets a value and the expiration in one step.
@@ -304,6 +318,14 @@ class RedisClient {
   Future psetex(String key, int expireInMs, String value) => 
       connection.sendCommand(RedisCommand.PSETEX, 
           [ key, expireInMs.toString(), value ]).receiveStatus("OK");
+
+  /// If [key] does not exist, the key is added with the value of [value],
+  /// and true is returned.
+  ///
+  /// If [key] does exist, this operation has no effect and false is returned.
+  Future<bool> setnx(String key, Object value) =>
+      connection.sendCommandWithVariadicValues(RedisCommand.SETNX, [ key ],
+          serializer.serializeToList(value)).receiveBool();
 
   /**
    * Remove the existing timeout on key.
@@ -1447,7 +1469,7 @@ class RedisClient {
    * If field already exists, this operation has no effect.
    */
   Future<bool> hsetnx(String hashId, String key, Object value) => 
-      connection.sendCommandWithVariadicValues(RedisCommand.HSETNX, [ key ], 
+      connection.sendCommandWithVariadicValues(RedisCommand.HSETNX, [ hashId, key ], 
           serializer.serializeToList(value)).receiveBool();
   
   /**
@@ -1567,7 +1589,7 @@ class RedisClient {
    * Subscribes to [List<String> ] channels 
    * with [Function] onMessage handler
    */
-  Future subscribe(List<String> channels, Function onMessage) => connection.subscribe(channels, onMessage);      
+  Future subscribe(List<String> channels, SubscriptionCallback onMessage) => connection.subscribe(channels, onMessage);      
   
   /**
    * Unubscribes from [List<String>] channels 
@@ -1578,7 +1600,7 @@ class RedisClient {
    * Publishes [String] message to [String] channel 
    * map when key does not exist.
    */
-  Future publish(String channel, String message) => 
+  Future<int> publish(String channel, String message) => 
       connection.sendCommand(RedisCommand.PUBLISH, [channel,message])
         .receiveInteger();
   
